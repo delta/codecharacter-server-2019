@@ -9,10 +9,11 @@ app.set('view engine', 'ejs');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-//= =ROUTES==
+
+//=====ROUTES====
 
 app.use(routes);
 
-app.listen(config.port, () => {
-  console.log(`Server started on port ${config.port}`);
+app.listen(config.app.port, () => {
+  console.log(`Server started on port ${config.app.port}`);
 });
