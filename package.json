@@ -6,7 +6,8 @@
   "dependencies": {
     "body-parser": "1.18.3",
     "express": "4.16.4",
-    "sequelize": "4.41.2"
+    "mysql2": "1.6.4",
+    "sequelize": "4.42.0"
   },
   "devDependencies": {
     "eslint": "5.9.0",
@@ -14,10 +15,20 @@
     "eslint-config-airbnb-base": "13.1.0",
     "eslint-plugin-import": "2.14.0",
     "eslint-plugin-jsx-a11y": "6.1.2",
-    "eslint-plugin-react": "7.11.1"
+    "eslint-plugin-react": "7.11.1",
+    "husky": "1.2.1",
+    "nodemon": "1.18.9",
+    "sequelize-cli": "5.4.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint",
+      "pre-push": "npm run lint"
+    }
   },
   "scripts": {
-    "lint" : "eslint --fix .",
+    "lint": "eslint --fix .",
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
