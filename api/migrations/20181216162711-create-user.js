@@ -7,13 +7,32 @@ module.exports = {
       primaryKey: true,
       type: Sequelize.INTEGER,
     },
-    password: Sequelize.STRING,
-    country: Sequelize.STRING,
-    activated: Sequelize.BOOLEAN,
+    username: {
+      allowNull: false,
+      type: Sequelize.INTEGER,
+      unique: true
+    },
+    email: {
+      type: Sequelize.INTEGER,
+      allowNull: false
+    },
+    password: {
+      type: Sequelize.STRING,
+      allowNull: false
+    },
+    country: {
+      type: Sequelize.STRING,
+      defaultValue: 'IN'
+    },
+    activated: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: true,
+    },
     activationToken: Sequelize.STRING,
     expiry: Sequelize.DATE,
-    name: {
+    fullName: {
       type: Sequelize.STRING,
+      allowNull: false
     },
     createdAt: {
       allowNull: false,
