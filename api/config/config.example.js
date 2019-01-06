@@ -3,12 +3,14 @@ const config = {
   {
     app: {
       port: 'Your port number',
+      sessionSecret: 'SESSION_SECRET',
     },
   },
   production:
   {
     app: {
       port: 'Your port number',
+      sessionSecret: 'SESSION_SECRET',
     },
   },
 };
