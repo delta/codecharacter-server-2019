@@ -23,8 +23,6 @@ app.use(passport.session());
 
 passportSetup(passport);
 
-//= ====ROUTES====
-
 app.use(routes);
 
 app.listen(config.app.port, () => {
