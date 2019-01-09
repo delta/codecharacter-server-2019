@@ -52,4 +52,13 @@ router.post('/logout', (req, res) => {
   res.sendStatus(200);
 });
 
+router.get('/checkusername/:username', (req, res) => {
+  const { username } = req.params;
+  User.findAll({ where: { username } }).then((users) => {
+    res.send(!!users.length);
+  }).catch((err) => {
+    res.send(err);
+  });
+});
+
 module.exports = router;
