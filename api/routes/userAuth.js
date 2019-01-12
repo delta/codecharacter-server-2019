@@ -8,14 +8,16 @@ const router = express.Router();
 
 router.post('/register', (req, res) => {
   const {
-    username, password, email, country, fullName, pragyanId,
+    username, password, email, country, fullName, pragyanId, repeatPassword,
   } = req.body;
   User.findOne({
     where: {
       [Op.or]: [{ username }, { email }],
     },
   }).then(async (user) => {
-    if (user) {
+    if (password !== repeatPassword) {
+      res.status(400).send('Passwords do not match');
+    } else if (user) {
       res.status(500).send('Username/email already taken');
     } else {
       const hash = await bcrypt.hash(password, 10);
