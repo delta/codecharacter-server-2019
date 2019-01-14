@@ -9,8 +9,8 @@ const isLoggedIn = require('../middlewares/isLoggedIn');
 const router = express.Router();
 
 router.use('/code', codeRoutes);
-router.use('/user/profile', userRoutes);
-router.use('/user', isLoggedIn, userAuthRoutes);
+router.use('/user/profile', isLoggedIn, userRoutes);
+router.use('/user', userAuthRoutes);
 router.use('/leaderboard', leaderboardRoutes);
 router.use('/compete', simulationRoutes);
 

@@ -5,6 +5,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       type: DataTypes.STRING,
       unique: true,
+      validate: {
+        isEmpty(val, next) {
+          if (val.length >= 1) return next();
+          return next('username cannot be empty');
+        },
+      },
     },
     email: {
       type: DataTypes.STRING,
@@ -30,6 +36,12 @@ module.exports = (sequelize, DataTypes) => {
     fullName: {
       type: DataTypes.STRING,
       allowNull: false,
+      validate: {
+        isEmpty(val, next) {
+          if (val.length >= 1) return next();
+          return next('fullName cannot be empty');
+        },
+      },
     },
     pragyanId: {
       allowNull: true,

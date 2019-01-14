@@ -6,6 +6,7 @@
   "dependencies": {
     "bcrypt": "3.0.3",
     "body-parser": "1.18.3",
+    "chai-http": "^4.2.1",
     "express": "4.16.4",
     "express-session": "1.15.6",
     "mysql2": "1.6.4",
@@ -13,9 +14,11 @@
     "passport-local": "1.0.0",
     "sequelize": "4.42.0",
     "shelljs": "^0.8.3",
-    "simple-git": "^1.107.0"
+    "simple-git": "^1.107.0",
+    "validator": "^10.10.0"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
     "eslint": "5.9.0",
     "eslint-config-airbnb": "17.1.0",
     "eslint-config-airbnb-base": "13.1.0",
@@ -23,19 +26,20 @@
     "eslint-plugin-jsx-a11y": "6.1.2",
     "eslint-plugin-react": "7.11.1",
     "husky": "1.2.1",
+    "mocha": "^5.2.0",
     "nodemon": "1.18.9",
     "sequelize-cli": "5.4.0"
   },
   "husky": {
     "hooks": {
       "pre-commit": "npm run lint",
-      "pre-push": "npm run lint"
+      "pre-push": "npm test"
     }
   },
   "scripts": {
     "lint": "eslint --fix .",
     "start": "node app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --exit"
   },
   "author": "",
   "license": "ISC"
