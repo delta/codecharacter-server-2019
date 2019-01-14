@@ -9,10 +9,7 @@ const router = express.Router();
 
 router.post('/register', [
   check('username')
-    .not().isEmpty().withMessage('Username cannot be empty')
-    .not()
-    .isAlphanumeric()
-    .withMessage('Username should be alphanumeric'),
+    .not().isEmpty().withMessage('Username cannot be empty'),
   check('password')
     .not().isEmpty().withMessage('Password cannot be empty'),
   check('email')
