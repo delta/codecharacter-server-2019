@@ -2,38 +2,37 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const passport = require('passport');
 const { Op } = require('sequelize');
-const validator = require('validator');
+const { check, validationResult } = require('express-validator/check');
 const User = require('../models').user;
 
 const router = express.Router();
 
-router.post('/register', async (req, res) => {
+router.post('/register', [
+  check('username')
+    .isAlphanumeric()
+    .not().isEmpty(),
+  check('password')
+    .not().isEmpty(),
+  check('email')
+    .not().isEmpty()
+    .isEmail(),
+  check('fullName')
+    .not().isEmpty(),
+  check('country')
+    .isAlpha(),
+], async (req, res) => {
   const {
     username, password, email, country, fullName, pragyanId, repeatPassword,
   } = req.body;
 
-  if (!validator.isAlphanumeric(username) || validator.isEmpty(username)) {
-    res.status(400).send('Username must be non empty alphanumeric string');
-    return;
-  }
-
-  if (validator.isEmpty(password)) {
-    res.status(400).send('Password cannot be empty');
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    res.status(400).json({ errors: errors.array() });
     return;
   }
 
   if (password !== repeatPassword) {
     res.status(400).send('Passwords do not match');
-    return;
-  }
-
-  if (validator.isEmpty(email) || !validator.isEmail(email)) {
-    res.status(400).send('Invalid Email');
-    return;
-  }
-
-  if (validator.isEmpty(fullName)) {
-    res.status(400).send('Invalid Email');
     return;
   }
 
