@@ -2,3 +2,5 @@ node_modules/
 api/config/config.js
 api/config/database.json
 .vscode/
+storage/*
+!/storage/codes/default/code.cpp

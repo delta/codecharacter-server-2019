@@ -4,6 +4,7 @@ const passport = require('passport');
 const { Op } = require('sequelize');
 const { check, validationResult } = require('express-validator/check');
 const User = require('../models').user;
+const git = require('../utils/git_handlers');
 
 const router = express.Router();
 
@@ -44,8 +45,29 @@ router.post('/register', [
     });
 
     if (user) {
-      res.status(400).send('Username / Email already exists');
-      return;
+      res.status(400).send('Username/email already taken');
+    } else {
+      const hash = await bcrypt.hash(password, 10);
+      User.create({
+        username,
+        email,
+        fullName,
+        country: country || 'IN',
+        pragyanId: pragyanId || null,
+        password: hash,
+      }).then((newUser) => {
+        if (newUser) {
+          if (git.createUserDir(username)) {
+            res.sendStatus(200);
+          } else {
+            res.sendStatus(401);
+          }
+        } else {
+          res.sendStatus(401);
+        }
+      }).catch((err) => {
+        res.status(500).send(err);
+      });
     }
   } catch (err) {
     res.status(500);
