@@ -1,6 +1,7 @@
 const path = require('path');
 const shell = require('shelljs');
 const git = require('simple-git');
+const fs = require('fs');
 
 exports.createUserDir = async (username) => {
   const userDir = `${path.resolve('storage/codes/')}/${username}`;
@@ -40,20 +41,27 @@ exports.commitLog = async (username) => {
 
 exports.add = async (username) => {
   const userDir = `${path.resolve('storage/codes/')}/${username}`;
-  git(userDir).add();
+  return git(userDir).add('./*');
 };
 
-exports.commit = async (username) => {
+exports.commit = async (username, commitMessage) => {
   const userDir = `${path.resolve('storage/codes/')}/${username}`;
-  git(userDir).commit();
+  return git(userDir).commit(commitMessage);
 };
 
 exports.getFile = async (username, filename = 'code.cpp', commitHash = null) => {
   const userDir = `${path.resolve('storage/codes/')}/${username}`;
   let file;
-  await git(userDir).show((commitHash ? `${commitHash}:${filename}` : ''), (err, resolvedFile) => {
+  await git(userDir).show([(commitHash ? `${commitHash}:${filename}` : '')], (err, resolvedFile) => {
     file = resolvedFile;
   });
 
   return file;
+};
+
+
+exports.setFile = async (username, fileText) => {
+  const userDir = `${path.resolve('storage/codes/')}/${username}`;
+  fs.writeFileSync(path.resolve(userDir, 'code.cpp'), fileText);
+  return null;
 };
