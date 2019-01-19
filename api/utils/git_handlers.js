@@ -3,13 +3,14 @@ const shell = require('shelljs');
 const git = require('simple-git');
 const fs = require('fs');
 
+const getUserDir = username => `${appPath}/storage/codes/${username}`;
+
 exports.createUserDir = async (username) => {
-  const userDir = `${path.resolve('storage/codes/')}/${username}`;
+  const userDir = getUserDir(username);
+  const defaultDir = `${appPath}/storage/codes/default`;
+  await shell.mkdir(userDir);
 
-  shell.mkdir(userDir);
-  shell.cd(userDir);
-
-  if (shell.exec('cp ../default/code.cpp .').code !== 0) {
+  if (await shell.exec(`cp ${defaultDir}/code.cpp ${userDir}/`).code !== 0) {
     return false;
   }
 
@@ -22,7 +23,7 @@ exports.createUserDir = async (username) => {
 };
 
 exports.latestCommit = async (username) => {
-  const userDir = `${path.resolve('storage/codes/')}/${username}`;
+  const userDir = getUserDir(username);
   let latestLog;
   await git(userDir).log((err, log) => {
     latestLog = log.latest;
@@ -31,7 +32,7 @@ exports.latestCommit = async (username) => {
 };
 
 exports.commitLog = async (username) => {
-  const userDir = `${path.resolve('storage/codes/')}/${username}`;
+  const userDir = getUserDir(username);
   let commitLog;
   await git(userDir).log((err, log) => {
     commitLog = log.all;
@@ -40,17 +41,17 @@ exports.commitLog = async (username) => {
 };
 
 exports.add = async (username) => {
-  const userDir = `${path.resolve('storage/codes/')}/${username}`;
+  const userDir = getUserDir(username);
   return git(userDir).add('./*');
 };
 
 exports.commit = async (username, commitMessage) => {
-  const userDir = `${path.resolve('storage/codes/')}/${username}`;
+  const userDir = getUserDir(username);
   return git(userDir).commit(commitMessage);
 };
 
 exports.getFile = async (username, filename = 'code.cpp', commitHash = null) => {
-  const userDir = `${path.resolve('storage/codes/')}/${username}`;
+  const userDir = getUserDir(username);
   let file;
   await git(userDir).show([(commitHash ? `${commitHash}:${filename}` : '')], (err, resolvedFile) => {
     file = resolvedFile;
