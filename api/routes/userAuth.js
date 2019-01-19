@@ -92,10 +92,33 @@ router.post('/register', [
   }
 });
 
-router.post('/login', passport.authenticate('local'), (req, res) => {
-  if (req.user) {
-    res.sendStatus(200);
-  }
+router.post('/login', async (req, res) => {
+  await passport.authenticate('local', (err, user) => {
+    if (err) {
+      return res.status(500).json({
+        message: 'Internal Server Error',
+      });
+    }
+    if (!user) {
+      return res.status(200).json({
+        message: 'Username does not exist',
+      });
+    }
+    req.logIn(user, (loginErr) => {
+      if (loginErr) {
+        return res.status(400).json({
+          message: 'Wrong Password',
+        });
+      }
+      return res.status(200).json({
+        message: 'Login Successful',
+      });
+    });
+
+    return res.status(500).json({
+      message: 'Internal Server Error',
+    });
+  })(req, res);
 });
 
 router.post('/logout', (req, res) => {
