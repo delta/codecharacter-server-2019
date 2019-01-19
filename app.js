@@ -1,10 +1,13 @@
 const express = require('express');
+const path = require('path');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 const session = require('express-session');
 const routes = require('./api/routes/index.js');
 const config = require('./api/config/config.js');
 const passportSetup = require('./api/utils/passport');
+
+global.appPath = path.resolve(__dirname);
 
 const app = express();
 

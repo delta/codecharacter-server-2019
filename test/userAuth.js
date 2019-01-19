@@ -3,6 +3,7 @@ process.env.NODE_ENV = 'test';
 const chai = require('chai');
 // eslint-disable-next-line
 const should = chai.should();
+const shell = require('shelljs');
 const chaiHttp = require('chai-http');
 
 const server = require('../app');
@@ -13,7 +14,7 @@ chai.use(chaiHttp);
 describe('Test Register', async () => {
   let body;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     body = {
       username: 'testusername',
       password: 'testpassword',
@@ -28,7 +29,7 @@ describe('Test Register', async () => {
   it('send 200', async () => {
     const { res } = await chai.request(server)
       .post('/user/register')
-      .set('content-type', 'application/x-www-form-urlencoded')
+      .set('content-type', 'application/json')
       .send(body);
 
     res.should.have.status(200);
@@ -40,13 +41,16 @@ describe('Test Register', async () => {
     });
 
     await user.destroy();
+
+    const userDir = `${appPath}/storage/codes/${user.username}`;
+    await shell.rm('-rf', userDir);
   });
 
   it('send 400 (Empty username)', async () => {
     body.username = '';
     const { res } = await chai.request(server)
       .post('/user/register')
-      .set('content-type', 'application/x-www-form-urlencoded')
+      .set('content-type', 'application/json')
       .send(body);
 
     res.should.have.status(400);
@@ -56,8 +60,8 @@ describe('Test Register', async () => {
     body.email = '';
     const { res } = await chai.request(server)
       .post('/user/register')
-      .set('content-type', 'application/x-www-form-urlencoded')
-      .send(body);
+      .set('content-type', 'application/json')
+      .send();
 
     res.should.have.status(400);
   });
@@ -65,13 +69,13 @@ describe('Test Register', async () => {
   it('send 400 (Already taken username)', async () => {
     await chai.request(server)
       .post('/user/register')
-      .set('content-type', 'application/x-www-form-urlencoded')
+      .set('content-type', 'application/json')
       .send(body);
 
     const duplicateBody = body;
     const { res } = await chai.request(server)
       .post('/user/register')
-      .set('content-type', 'application/x-www-form-urlencoded')
+      .set('content-type', 'application/json')
       .send(duplicateBody);
 
     res.should.have.status(400);
@@ -83,13 +87,16 @@ describe('Test Register', async () => {
     });
 
     await user.destroy();
+
+    const userDir = `${appPath}/storage/codes/${user.username}`;
+    await shell.rm('-rf', userDir);
   });
 
   it('send 400 (Empty password)', async () => {
     body.password = '';
     const { res } = await chai.request(server)
       .post('/user/register')
-      .set('content-type', 'application/x-www-form-urlencoded')
+      .set('content-type', 'application/json')
       .send(body);
 
     res.should.have.status(400);
@@ -99,7 +106,7 @@ describe('Test Register', async () => {
     body.repeatPassword = 'wrongpassword';
     const { res } = await chai.request(server)
       .post('/user/register')
-      .set('content-type', 'application/x-www-form-urlencoded')
+      .set('content-type', 'application/json')
       .send(body);
 
     res.should.have.status(400);
@@ -109,7 +116,7 @@ describe('Test Register', async () => {
     body.email = '@@##!!';
     const { res } = await chai.request(server)
       .post('/user/register')
-      .set('content-type', 'application/x-www-form-urlencoded')
+      .set('content-type', 'application/json')
       .send(body);
 
     res.should.have.status(400);

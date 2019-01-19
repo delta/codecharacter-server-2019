@@ -13,6 +13,8 @@ router.post('/register', [
     .not().isEmpty().withMessage('Username cannot be empty'),
   check('password')
     .not().isEmpty().withMessage('Password cannot be empty'),
+  check('repeatPassword')
+    .not().isEmpty().withMessage('Password cannot be empty'),
   check('email')
     .not().isEmpty().withMessage('Email cannot be empty')
     .isEmail()
@@ -27,14 +29,19 @@ router.post('/register', [
   } = req.body;
 
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) {
-    res.status(400).json({ errors: errors.array() });
-    return;
+    return res.status(400).json({
+      message: 'Validation Error',
+      errors: errors.array(),
+    });
   }
 
   if (password !== repeatPassword) {
-    res.status(400).send('Passwords do not match');
-    return;
+    return res.status(400).json({
+      message: 'Validation Error',
+      errors: ['Passwords do not match'],
+    });
   }
 
   try {
@@ -45,39 +52,12 @@ router.post('/register', [
     });
 
     if (user) {
-      res.status(400).send('Username/email already taken');
-    } else {
-      const hash = await bcrypt.hash(password, 10);
-      User.create({
-        username,
-        email,
-        fullName,
-        country: country || 'IN',
-        pragyanId: pragyanId || null,
-        password: hash,
-      }).then((newUser) => {
-        if (newUser) {
-          if (git.createUserDir(username)) {
-            res.sendStatus(200);
-          } else {
-            res.sendStatus(401);
-          }
-        } else {
-          res.sendStatus(401);
-        }
-      }).catch((err) => {
-        res.status(500).send(err);
+      return res.status(400).json({
+        message: 'Username/email already taken',
       });
     }
-  } catch (err) {
-    res.status(500);
-    return;
-  }
-
-  try {
     const passwordHash = await bcrypt.hash(password, 10);
-
-    await User.create({
+    const newUser = await User.create({
       username,
       email,
       fullName,
@@ -86,9 +66,22 @@ router.post('/register', [
       password: passwordHash,
     });
 
-    res.sendStatus(200).send('User created');
+    if (newUser) {
+      if (await git.createUserDir(username)) {
+        return res.status(200).json({
+          message: 'Registration Successful!',
+        });
+      }
+    }
+
+    return res.status(401).json({
+      message: 'Error',
+    });
   } catch (err) {
-    res.status(500);
+    return res.status(500).json({
+      message: 'Internal Server Error',
+      errors: err,
+    });
   }
 });
 
