@@ -1,21 +1,24 @@
 const connections = { };
 const disconnectHandler = (socketId, userId) => {
+  // delete socketId from connections[userId]
   delete connections[userId][socketId];
 };
 module.exports.handleConnections = (socket) => {
+
+  // get socketId and userId from cookies
   let cookies = socket.handshake.headers.cookie;
   cookies = cookies.split(';');
   let socketId;
   let userId;
-  cookies.map((cookie) => {
+  cookies.foreach((cookie) => {
     if (cookie.replace(/ /g, '').slice(0, 2) === 'io') {
       [, socketId] = cookie.split('=');
     } else if (cookie.replace(/ /g, '').slice(0, 6) === 'userId') {
       [, userId] = cookie.split('=');
     }
-    return null;
   });
 
+  // save socketId to user's connections
   if (!connections[userId]) {
     connections[userId] = {};
   }
@@ -27,10 +30,12 @@ module.exports.handleConnections = (socket) => {
 };
 
 module.exports.sendMessage = (userId, message, type) => {
+  // get socketIds of connections by userId
   const socketIds = Object.keys(connections[userId]);
-  socketIds.map((socketId) => {
+
+  // send message to each socketId
+  socketIds.foreach((socketId) => {
     connections[userId][socketId].emit(type, message);
-    return null;
   });
 };
 
