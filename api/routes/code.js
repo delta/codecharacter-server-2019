@@ -8,6 +8,8 @@ router.get('/latest', async (req, res) => {
   const latestCommitHash = await git.latestCommit(username);
   const fileContent = await git.getFile(username, 'code.cpp', latestCommitHash.hash);
   res.status(200).json({
+    type: 'Success',
+    error: '',
     code: fileContent,
   });
 });
@@ -16,7 +18,10 @@ router.post('/save', async (req, res) => {
   const { username, code } = req.user;
   git.setFile(username, code);
   await git.add(username);
-  res.sendStatus(200);
+  res.status(200).json({
+    type: 'Success',
+    error: '',
+  });
 });
 
 
@@ -25,12 +30,17 @@ router.post('/commit', async (req, res) => {
   const { commitMessage } = req.body;
   await git.add(username);
   await git.commit(username, commitMessage);
-  res.sendStatus(200);
+  res.status(200).json({
+    type: 'Success',
+    error: '',
+  });
 });
 
 router.get('/log', async (req, res) => {
   const { username } = req.user;
   res.status(200).json({
+    type: 'Success',
+    error: '',
     log: await git.commitLog(username),
   });
 });
@@ -41,6 +51,8 @@ router.get('/view/:commitHash', async (req, res) => {
   const fileContent = await git.getFile(username, 'code.cpp', commitHash);
 
   res.status(200).json({
+    type: 'Success',
+    error: '',
     code: fileContent,
   });
 });
@@ -53,6 +65,9 @@ router.get('/fork/:commitHash', async (req, res) => {
   git.setFile(username, fileContent);
   await git.add(username);
   await git.commit(username);
-  res.sendStatus(200);
+  res.status(200).json({
+    type: 'Success',
+    error: '',
+  });
 });
 module.exports = router;
