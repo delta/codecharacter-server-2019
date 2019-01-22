@@ -32,15 +32,15 @@ router.post('/register', [
 
   if (!errors.isEmpty()) {
     return res.status(400).json({
-      message: 'Validation Error',
-      errors: errors.array(),
+      type: 'Error',
+      error: (errors.array())[0],
     });
   }
 
   if (password !== repeatPassword) {
     return res.status(400).json({
-      message: 'Validation Error',
-      errors: ['Passwords do not match'],
+      type: 'Error',
+      error: 'Passwords do not match',
     });
   }
 
@@ -53,7 +53,8 @@ router.post('/register', [
 
     if (user) {
       return res.status(400).json({
-        message: 'Username/email already taken',
+        type: 'Error',
+        error: 'Username/email already taken',
       });
     }
     const passwordHash = await bcrypt.hash(password, 10);
@@ -69,47 +70,53 @@ router.post('/register', [
     if (newUser) {
       if (await git.createUserDir(username)) {
         return res.status(200).json({
-          message: 'Registration Successful!',
+          type: 'Success',
+          error: '',
         });
       }
     }
 
     return res.status(401).json({
-      message: 'Error',
+      type: 'Error',
+      error: 'Internal Server Error',
     });
   } catch (err) {
     return res.status(500).json({
-      message: 'Internal Server Error',
-      errors: err,
+      type: 'Error',
+      error: 'Internal Server Error',
     });
   }
 });
 
 router.post('/login', async (req, res) => {
-  await passport.authenticate('local', (err, user) => {
+  await passport.authenticate('local', async (err, user) => {
     if (err) {
       return res.status(500).json({
-        message: 'Internal Server Error',
+        type: 'Error',
+        error: 'Internal Server Error',
       });
     }
     if (!user) {
-      return res.status(200).json({
-        message: 'Username does not exist',
+      return res.status(400).json({
+        type: 'Error',
+        error: 'Username does not exist',
       });
     }
-    req.logIn(user, (loginErr) => {
-      if (loginErr) {
-        return res.status(400).json({
-          message: 'Wrong Password',
-        });
-      }
-      return res.status(200).json({
-        message: 'Login Successful',
-      });
+
+    const loginErr = await new Promise((resolve) => {
+      req.logIn(user, reqLoginErr => resolve(reqLoginErr));
     });
 
-    return res.status(500).json({
-      message: 'Internal Server Error',
+    if (loginErr) {
+      return res.status(400).json({
+        type: 'Error',
+        error: 'Wrong Password',
+      });
+    }
+
+    return res.status(200).json({
+      type: 'Success',
+      error: '',
     });
   })(req, res);
 });
@@ -122,7 +129,16 @@ router.post('/logout', (req, res) => {
 router.get('/checkusername/:username', (req, res) => {
   const { username } = req.params;
   User.findAll({ where: { username } }).then((users) => {
-    res.send(!!users.length);
+    if (users.length) {
+      res.status(200).json({
+        message: 'Error',
+        error: 'Username already exists',
+      });
+    }
+    res.status(200).json({
+      message: 'Success',
+      error: '',
+    });
   }).catch((err) => {
     res.send(err);
   });
