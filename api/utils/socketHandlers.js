@@ -4,12 +4,14 @@ const disconnectHandler = (socketId, userId) => {
   delete connections[userId][socketId];
 };
 module.exports.handleConnections = (socket) => {
+
   // get socketId and userId from cookies
   let cookies = socket.handshake.headers.cookie;
   cookies = cookies.split(';');
   let socketId;
   let userId;
   cookies.foreach((cookie) => {
+    // cookies are separated by ' ' and before start of each string, spaces are stripped
     if (cookie.replace(/ /g, '').slice(0, 2) === 'io') {
       [, socketId] = cookie.split('=');
     } else if (cookie.replace(/ /g, '').slice(0, 6) === 'userId') {
