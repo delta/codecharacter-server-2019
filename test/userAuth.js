@@ -174,6 +174,10 @@ describe('Test Login', async () => {
   });
 
   it('send 200', async () => {
+    await chai.request(server)
+      .post('/user/login')
+      .set('content-type', 'application/json')
+      .send(credentials);
     const { res } = await chai.request(server)
       .post('/user/logout')
       .send();
@@ -187,6 +191,7 @@ describe('Test Check Username', async () => {
     const { res } = await chai.request(server)
       .get('/user/checkusername/wrong');
 
+    res.should.have.status(200);
     chai.assert(JSON.parse(res.text).error === '');
   });
 
@@ -194,6 +199,7 @@ describe('Test Check Username', async () => {
     const { res } = await chai.request(server)
       .get('/user/checkusername/username');
 
+    res.should.have.status(200);
     chai.assert(JSON.parse(res.text).error !== '');
   });
 });
