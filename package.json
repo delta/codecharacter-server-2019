@@ -37,7 +37,7 @@
     }
   },
   "scripts": {
-    "lint": "eslint --fix .",
+    "lint": "eslint .",
     "start": "nodemon app.js",
     "test": "mocha --exit"
   },
