@@ -19,11 +19,18 @@ router.get('/view/:username', async (req, res) => {
       where: { username },
       attributes: ['username', 'fullName', 'country'],
     });
-    res.status(200).json({
-      type: 'Success',
-      error: '',
-      userDetails,
-    });
+    if (!userDetails) {
+      res.status(400).json({
+        type: 'Error',
+        error: 'User does not exist',
+      });
+    } else {
+      res.status(200).json({
+        type: 'Success',
+        error: '',
+        userDetails,
+      });
+    }
   } catch (error) {
     res.status(500).json({
       type: 'Error',
