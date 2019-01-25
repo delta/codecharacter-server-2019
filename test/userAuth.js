@@ -122,26 +122,30 @@ describe('Test Register', async () => {
     res.should.have.status(400);
   });
 });
+
 describe('Test Login', async () => {
   let credentials;
+  const registerBody = {
+    username: 'username',
+    password: 'password',
+    repeatPassword: 'password',
+    email: 'email@test.com',
+    country: 'IN',
+    fullName: 'Mocha',
+    pragyanId: null,
+  };
+  // eslint-disable-next-line no-undef
+  before(async () => {
+    await chai.request(server)
+      .post('/user/register')
+      .set('content-type', 'application/json')
+      .send(registerBody);
+  });
   beforeEach(async () => {
     credentials = {
       username: 'username',
       password: 'password',
     };
-    const body = {
-      username: 'username',
-      password: 'password',
-      repeatPassword: 'password',
-      email: 'email@test.com',
-      country: 'IN',
-      fullName: 'Mocha',
-      pragyanId: null,
-    };
-    await chai.request(server)
-      .post('/user/register')
-      .set('content-type', 'application/json')
-      .send(body);
   });
 
   it('send 400 (Wrong Password)', async () => {
@@ -172,7 +176,13 @@ describe('Test Login', async () => {
 
     res.should.have.status(200);
   });
+});
 
+describe('Test Logout', async () => {
+  const credentials = {
+    username: 'username',
+    password: 'password',
+  };
   it('send 200', async () => {
     await chai.request(server)
       .post('/user/login')
@@ -187,9 +197,11 @@ describe('Test Login', async () => {
 });
 
 describe('Test Check Username', async () => {
+  const wrongUsername = 'wrong';
+  const correctUsername = 'username';
   it('send Error', async () => {
     const { res } = await chai.request(server)
-      .get('/user/checkusername/wrong');
+      .get(`/user/checkusername/${wrongUsername}`);
 
     res.should.have.status(200);
     chai.assert(JSON.parse(res.text).error === '');
@@ -197,9 +209,17 @@ describe('Test Check Username', async () => {
 
   it('send Success', async () => {
     const { res } = await chai.request(server)
-      .get('/user/checkusername/username');
+      .get(`/user/checkusername/${correctUsername}`);
 
     res.should.have.status(200);
     chai.assert(JSON.parse(res.text).error !== '');
+    const user = await User.findOne({
+      where: {
+        username: correctUsername,
+      },
+    });
+    await user.destroy();
+    const userDir = `${appPath}/storage/codes/${user.username}`;
+    await shell.rm('-rf', userDir);
   });
 });
