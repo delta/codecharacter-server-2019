@@ -4,7 +4,6 @@ const disconnectHandler = (socketId, userId) => {
   delete connections[userId][socketId];
 };
 module.exports.handleConnections = (socket) => {
-
   // get socketId and userId from cookies
   let cookies = socket.handshake.headers.cookie;
   cookies = cookies.split(';');
