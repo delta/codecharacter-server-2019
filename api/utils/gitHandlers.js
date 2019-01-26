@@ -1,6 +1,6 @@
 const path = require('path');
 const shell = require('shelljs');
-const git = require('simple-git');
+const git = require('simple-git/promise');
 const fs = require('fs');
 
 const getUserDir = username => `${appPath}/storage/codes/${username}`;
@@ -14,35 +14,38 @@ exports.createUserDir = async (username) => {
     return false;
   }
 
-  git(userDir)
-    .init()
-    .add('./*')
-    .commit('Initial Commit');
+  await git(userDir).init();
+  await git(userDir).add('./*');
+  await git(userDir).commit('Initial Commit');
 
   return true;
 };
 
 exports.latestCommit = async (username) => {
   const userDir = getUserDir(username);
-  let latestLog;
-  await git(userDir).log((err, log) => {
-    latestLog = log.latest;
-  });
-  return latestLog;
+  const logResult = await git(userDir).log();
+  return logResult.latest;
 };
 
 exports.commitLog = async (username) => {
   const userDir = getUserDir(username);
-  let commitLog;
-  await git(userDir).log((err, log) => {
-    commitLog = log.all;
-  });
-  return commitLog;
+  const logResult = await git(userDir).log();
+  return logResult.all;
 };
 
 exports.add = async (username) => {
   const userDir = getUserDir(username);
   return git(userDir).add('./*');
+};
+
+exports.diff = async (username) => {
+  const userDir = getUserDir(username);
+  return git(userDir).diff();
+};
+
+exports.diffStaged = async (username) => {
+  const userDir = getUserDir(username);
+  return git(userDir).diff(['--staged']);
 };
 
 exports.commit = async (username, commitMessage) => {
@@ -52,14 +55,15 @@ exports.commit = async (username, commitMessage) => {
 
 exports.getFile = async (username, filename = 'code.cpp', commitHash = null) => {
   const userDir = getUserDir(username);
-  let file;
-  await git(userDir).show([(commitHash ? `${commitHash}:${filename}` : '')], (err, resolvedFile) => {
-    file = resolvedFile;
-  });
-
-  return file;
+  let result;
+  if (commitHash) {
+    result = await git(userDir).show([`${commitHash}:${filename}`]);
+  } else {
+    const catResult = await shell.cat(`${userDir}/${filename}`);
+    result = catResult.stdout;
+  }
+  return result;
 };
-
 
 exports.setFile = async (username, fileText) => {
   const userDir = `${path.resolve('storage/codes/')}/${username}`;

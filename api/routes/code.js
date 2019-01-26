@@ -1,19 +1,18 @@
 const express = require('express');
 
 const router = express.Router();
-const git = require('../utils/git_handlers');
+const git = require('../utils/gitHandlers');
 
 router.get('/latest', async (req, res) => {
   try {
     const { username } = req.user;
-    const latestCommitHash = await git.latestCommit(username);
-    const fileContent = await git.getFile(username, 'code.cpp', latestCommitHash.hash);
+    const fileContent = await git.getFile(username, 'code.cpp');
     res.status(200).json({
       type: 'Success',
       error: '',
       code: fileContent,
     });
-  } catch (error) {
+  } catch (err) {
     res.status(500).json({
       type: 'Error',
       error: 'Internal server error',
@@ -31,7 +30,7 @@ router.post('/save', async (req, res) => {
       type: 'Success',
       error: '',
     });
-  } catch (error) {
+  } catch (err) {
     res.status(500).json({
       type: 'Error',
       error: 'Internal server error',
@@ -45,13 +44,20 @@ router.post('/commit', async (req, res) => {
     const { username } = req.user;
     const { commitMessage } = req.body;
     await git.add(username);
+    const diff = await git.diffStaged(username);
+    if (diff === '') {
+      return res.status(200).json({
+        type: 'Error',
+        error: 'No changes have been made',
+      });
+    }
     await git.commit(username, commitMessage);
-    res.status(200).json({
+    return res.status(200).json({
       type: 'Success',
       error: '',
     });
-  } catch (error) {
-    res.status(500).json({
+  } catch (err) {
+    return res.status(500).json({
       type: 'Error',
       error: 'Internal server error',
     });
@@ -61,12 +67,13 @@ router.post('/commit', async (req, res) => {
 router.get('/log', async (req, res) => {
   try {
     const { username } = req.user;
+    const log = await git.commitLog(username);
     res.status(200).json({
       type: 'Success',
       error: '',
-      log: await git.commitLog(username),
+      log,
     });
-  } catch (error) {
+  } catch (err) {
     res.status(500).json({
       type: 'Error',
       error: 'Internal server error',
@@ -79,13 +86,12 @@ router.get('/view/:commitHash', async (req, res) => {
     const { username } = req.user;
     const { commitHash } = req.params;
     const fileContent = await git.getFile(username, 'code.cpp', commitHash);
-
     res.status(200).json({
       type: 'Success',
       error: '',
       code: fileContent,
     });
-  } catch (error) {
+  } catch (err) {
     res.status(500).json({
       type: 'Error',
       error: 'Internal server error',
@@ -95,7 +101,7 @@ router.get('/view/:commitHash', async (req, res) => {
 
 router.get('/fork/:commitHash', async (req, res) => {
   try {
-    const { username } = req.user.username;
+    const { username } = req.user;
     const { commitHash } = req.params;
     const fileContent = await git.getFile(username, 'code.cpp', commitHash);
     git.setFile(username, fileContent);
@@ -105,7 +111,7 @@ router.get('/fork/:commitHash', async (req, res) => {
       type: 'Success',
       error: '',
     });
-  } catch (error) {
+  } catch (err) {
     res.status(500).json({
       type: 'Error',
       error: 'Internal server error',

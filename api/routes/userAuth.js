@@ -4,7 +4,7 @@ const passport = require('passport');
 const { Op } = require('sequelize');
 const { check, validationResult } = require('express-validator/check');
 const User = require('../models').user;
-const git = require('../utils/git_handlers');
+const git = require('../utils/gitHandlers');
 
 const router = express.Router();
 
