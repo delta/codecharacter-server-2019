@@ -123,7 +123,10 @@ router.post('/login', async (req, res) => {
 
 router.post('/logout', (req, res) => {
   req.logout();
-  res.sendStatus(200);
+  res.status(200).json({
+    type: 'Success',
+    error: '',
+  });
 });
 
 router.get('/checkusername/:username', (req, res) => {
@@ -131,16 +134,19 @@ router.get('/checkusername/:username', (req, res) => {
   User.findAll({ where: { username } }).then((users) => {
     if (users.length) {
       res.status(200).json({
-        message: 'Error',
+        type: 'Error',
         error: 'Username already exists',
       });
     }
     res.status(200).json({
-      message: 'Success',
+      type: 'Success',
       error: '',
     });
-  }).catch((err) => {
-    res.send(err);
+  }).catch(() => {
+    res.status(500).json({
+      type: 'Error',
+      error: 'Internal server error',
+    });
   });
 });
 
