@@ -166,7 +166,7 @@ describe('Test Login', async () => {
       .set('content-type', 'application/json')
       .send(credentials);
 
-    res.should.have.error('Wrong Password');
+    res.should.have.property('error', 'Wrong Password');
     res.should.have.status(400);
   });
 
@@ -177,7 +177,7 @@ describe('Test Login', async () => {
       .set('content-type', 'application/json')
       .send(credentials);
 
-    res.should.have.error('Username does not exist');
+    res.should.have.property('error', 'Username does not exist');
     res.should.have.status(400);
   });
 
@@ -188,7 +188,7 @@ describe('Test Login', async () => {
       .send(credentials);
 
     res.should.have.status(200);
-    res.should.have.error('');
+    res.should.have.property('error', '');
   });
 });
 
