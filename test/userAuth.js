@@ -166,7 +166,6 @@ describe('Test Login', async () => {
       .set('content-type', 'application/json')
       .send(credentials);
 
-    console.log(res.text);
     chai.assert(JSON.parse(res.text).error === 'Wrong Credentials');
     res.should.have.status(400);
   });
@@ -239,7 +238,7 @@ describe('Test Logout', async () => {
 });
 
 describe('Test Check Username', async () => {
-  const wrongUsername = 'wrong';
+  const wrongUsername = 'wrongUsername';
   const correctUsername = 'username';
   const registerBody = {
     username: correctUsername,
