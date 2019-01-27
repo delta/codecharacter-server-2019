@@ -141,6 +141,17 @@ describe('Test Login', async () => {
       .set('content-type', 'application/json')
       .send(registerBody);
   });
+  // eslint-disable-next-line no-undef
+  after(async () => {
+    const user = await User.findOne({
+      where: {
+        username: registerBody.username,
+      },
+    });
+    await user.destroy();
+    const userDir = `${appPath}/storage/codes/${user.username}`;
+    await shell.rm('-rf', userDir);
+  });
   beforeEach(async () => {
     credentials = {
       username: 'username',
@@ -155,6 +166,7 @@ describe('Test Login', async () => {
       .set('content-type', 'application/json')
       .send(credentials);
 
+    res.should.have.error('Wrong Password');
     res.should.have.status(400);
   });
 
@@ -165,6 +177,7 @@ describe('Test Login', async () => {
       .set('content-type', 'application/json')
       .send(credentials);
 
+    res.should.have.error('Username does not exist');
     res.should.have.status(400);
   });
 
@@ -175,6 +188,7 @@ describe('Test Login', async () => {
       .send(credentials);
 
     res.should.have.status(200);
+    res.should.have.error('');
   });
 });
 
@@ -183,6 +197,33 @@ describe('Test Logout', async () => {
     username: 'username',
     password: 'password',
   };
+  const registerBody = {
+    username: 'username',
+    password: 'password',
+    repeatPassword: 'password',
+    email: 'email@test.com',
+    country: 'IN',
+    fullName: 'Mocha',
+    pragyanId: null,
+  };
+  // eslint-disable-next-line no-undef
+  before(async () => {
+    await chai.request(server)
+      .post('/user/register')
+      .set('content-type', 'application/json')
+      .send(registerBody);
+  });
+  // eslint-disable-next-line no-undef
+  after(async () => {
+    const user = await User.findOne({
+      where: {
+        username: registerBody.username,
+      },
+    });
+    await user.destroy();
+    const userDir = `${appPath}/storage/codes/${user.username}`;
+    await shell.rm('-rf', userDir);
+  });
   it('send 200', async () => {
     await chai.request(server)
       .post('/user/login')
@@ -199,6 +240,33 @@ describe('Test Logout', async () => {
 describe('Test Check Username', async () => {
   const wrongUsername = 'wrong';
   const correctUsername = 'username';
+  const registerBody = {
+    username: correctUsername,
+    password: 'password',
+    repeatPassword: 'password',
+    email: 'email@test.com',
+    country: 'IN',
+    fullName: 'Mocha',
+    pragyanId: null,
+  };
+  // eslint-disable-next-line no-undef
+  before(async () => {
+    await chai.request(server)
+      .post('/user/register')
+      .set('content-type', 'application/json')
+      .send(registerBody);
+  });
+  // eslint-disable-next-line no-undef
+  after(async () => {
+    const user = await User.findOne({
+      where: {
+        username: correctUsername,
+      },
+    });
+    await user.destroy();
+    const userDir = `${appPath}/storage/codes/${user.username}`;
+    await shell.rm('-rf', userDir);
+  });
   it('send Error', async () => {
     const { res } = await chai.request(server)
       .get(`/user/checkusername/${wrongUsername}`);
@@ -213,13 +281,5 @@ describe('Test Check Username', async () => {
 
     res.should.have.status(200);
     chai.assert(JSON.parse(res.text).error !== '');
-    const user = await User.findOne({
-      where: {
-        username: correctUsername,
-      },
-    });
-    await user.destroy();
-    const userDir = `${appPath}/storage/codes/${user.username}`;
-    await shell.rm('-rf', userDir);
   });
 });
