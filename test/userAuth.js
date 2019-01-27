@@ -166,7 +166,8 @@ describe('Test Login', async () => {
       .set('content-type', 'application/json')
       .send(credentials);
 
-    res.should.have.property('error', 'Wrong Password');
+    console.log(res.text);
+    chai.assert(JSON.parse(res.text).error === 'Wrong Credentials');
     res.should.have.status(400);
   });
 
@@ -177,7 +178,7 @@ describe('Test Login', async () => {
       .set('content-type', 'application/json')
       .send(credentials);
 
-    res.should.have.property('error', 'Username does not exist');
+    chai.assert(JSON.parse(res.text).error === 'Wrong Credentials');
     res.should.have.status(400);
   });
 
@@ -188,7 +189,7 @@ describe('Test Login', async () => {
       .send(credentials);
 
     res.should.have.status(200);
-    res.should.have.property('error', '');
+    chai.assert(JSON.parse(res.text).error === '');
   });
 });
 

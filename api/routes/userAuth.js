@@ -99,7 +99,7 @@ router.post('/login', async (req, res) => {
     if (!user) {
       return res.status(400).json({
         type: 'Error',
-        error: 'Username does not exist',
+        error: 'Wrong Credentials',
       });
     }
 
