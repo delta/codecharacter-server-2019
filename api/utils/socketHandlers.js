@@ -33,6 +33,8 @@ module.exports.sendMessage = (userId, message, type) => {
   // get socketIds of connections by userId
   const socketIds = Object.keys(connections[userId]);
 
+  // if length of socketIds is 0, add messages to notifications - sww
+
   // send message to each socketId
   socketIds.foreach((socketId) => {
     connections[userId][socketId].emit(type, message);

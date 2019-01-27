@@ -28,6 +28,7 @@ module.exports = {
           key: 'id'
         }
       },
+      isAi: Sequelize.BOOLEAN,
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

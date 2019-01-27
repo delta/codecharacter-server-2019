@@ -3,6 +3,8 @@ const express = require('express');
 const router = express.Router();
 const git = require('../utils/gitHandlers');
 
+const { pushToCompileQueue } = require('../utils/compileQueueHandler');
+
 router.get('/latest', async (req, res) => {
   try {
     const { username } = req.user;
@@ -117,5 +119,16 @@ router.get('/fork/:commitHash', async (req, res) => {
     });
   }
 });
-
+router.post('/compile', async (req, res) => {
+  // find the last match initiated by code1, from both match model and
+  // executequeue model and do the timechecking sww
+  const userId = req.user.id;
+  const code = git.getFile(userId);
+  const success = await pushToCompileQueue(userId, code);
+  if (success) {
+    res.status(200);
+  } else {
+    res.status(500);
+  }
+});
 module.exports = router;

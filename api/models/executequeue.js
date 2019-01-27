@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id',
       },
     },
+    isAi: DataTypes.BOOLEAN,
   }, {});
   // ExecuteQueue.associate = function(models) {
   //   // associations can be defined here
