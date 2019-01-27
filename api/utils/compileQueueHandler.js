@@ -1,7 +1,9 @@
 const request = require('request');
-
+const rp = require('request-promise');
 const Constant = require('../models').constant;
+const compileBox = require('../models').compilebox;
 const CompileQueue = require('../models').compilequeue;
+const { secretString } = require('../config/config');
 
 let compileQueueSize;
 Constant.find({
@@ -22,8 +24,6 @@ const getQueueSize = async () => CompileQueue.findAll({
   attributes: ['id'],
 }).then(compileQueueElements => compileQueueElements.length)
   .catch(() => -1);
-
-const { secretString, compileBoxUrl } = require('../config/config.js').compileBox;
 
 const pushToQueue = async (userId, code) => {
   const queueLength = await getQueueSize();
@@ -55,3 +55,25 @@ setInterval(async () => {
   });
   return x;
 }, 300);
+
+async function sendToCompilebox(code) {
+  try {
+    const availableBoxes = await compileBox.findAll({
+      where: { tasks_running: 0 },
+    });
+    const targetBox = availableBoxes[0];
+    const options = {
+      method: 'POST',
+      uri: `${targetBox.url}/compile`,
+      body: {
+        code,
+        secretString,
+      },
+      json: true, // Automatically stringifies the body to JSON
+    };
+    const response = await rp(options);
+    console.log(response);
+  } catch (error) {
+    return error;
+  }
+}
