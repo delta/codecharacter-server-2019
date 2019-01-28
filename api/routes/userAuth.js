@@ -130,18 +130,16 @@ router.get('/checkusername/:username', (req, res) => {
   const { username } = req.params;
   User.findAll({ where: { username } }).then((users) => {
     if (users.length) {
-      res.status(200).json({
+      return res.status(200).json({
         message: 'Error',
         error: 'Username already exists',
       });
     }
-    res.status(200).json({
+    return res.status(200).json({
       message: 'Success',
       error: '',
     });
-  }).catch((err) => {
-    res.send(err);
-  });
+  }).catch(err => res.send(err));
 });
 
 module.exports = router;
