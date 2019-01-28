@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     rating: {
       type: DataTypes.INTEGER,
+      defaultValue: 1000,
     },
     dll1: {
       type: DataTypes.STRING,
