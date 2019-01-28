@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       type: DataTypes.INTEGER,
       unique: true,
-      foreignKEY: true,
+      foreignKey: true,
       references: {
         model: User,
         key: 'id',
