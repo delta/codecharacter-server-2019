@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id',
       },
     },
-    code: DataTypes.BLOB,
+    code: DataTypes.STRING,
   }, {});
   // CompileQueue.associate = function(models) {
   //   // associations can be defined here

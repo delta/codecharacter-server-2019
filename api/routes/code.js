@@ -123,7 +123,7 @@ router.post('/compile', async (req, res) => {
   // find the last match initiated by code1, from both match model and
   // executequeue model and do the timechecking sww
   const userId = req.user.id;
-  const code = git.getFile(userId);
+  const code = await git.getFile(req.user.username);
   const success = await pushToCompileQueue(userId, code);
   if (success) {
     res.status(200);

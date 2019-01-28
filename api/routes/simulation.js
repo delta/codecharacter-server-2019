@@ -2,7 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 const git = require('../utils/gitHandlers');
-const ExecuteQueue = require('../models').executequeue;
+const ExecuteQueue = require('../models').ExecuteQueue;
 const Constant = require('../models').constant;
 const Match = require('../models').match;
 const { pushToQueue } = require('../utils/executeQueueHandler');
@@ -140,15 +140,17 @@ router.get('/compete/nextmatchtime', (req, res) => {
       res.json({ success: false, message: 'Internal Server Error' });
     });
 });
-router.get('/compete/self', async (req, res) => {
-  const { userId } = req.user;
+router.get('/self', async (req, res) => {
+  const userId = req.user.id;
+  const { username } = req.user;
+  console.log(userId, username);
   // get 2 dlls
   // execute them and send back
-  const dll1 = await git.getFile(userId, 'one.dll');
-  const dll2 = await git.getFile(userId, 'two.dll');
+  const dll1 = await git.getFile(username, 'one.dll');
+  const dll2 = await git.getFile(username, 'two.dll');
   Match.create({
-    player_id1: userId,
-    player_id2: userId,
+    user_id_1: userId,
+    user_id_2: userId,
     match_log: '',
     status: 'executing',
   }).then(() => pushToQueue(userId, userId, dll1, dll2, true)).then(() => {

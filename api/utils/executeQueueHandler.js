@@ -3,7 +3,7 @@ const rp = require('request-promise');
 const compileBox = require('../models').compilebox;
 const { secretString } = require('../config/config');
 const Constant = require('../models').constant;
-const ExecuteQueue = require('../models').executequeue;
+const ExecuteQueue = require('../models').ExecuteQueue;
 
 let executeQueueSize;
 Constant.find({
@@ -51,35 +51,48 @@ setInterval(async () => {
   if (requestUnderway) {
     return null;
   }
-  const x = await ExecuteQueue.findOne().then((executeQueueElement) => {
-    const {
+  const x = await ExecuteQueue.findOne().then(async (executeQueueElement) => {
+    if (!executeQueueElement) {
+      return null;
+    }
+    let {
       userId1, userId2, dll1, dll2,
     } = executeQueueElement;
+    dll1 = dll1.toString();
+    dll2 = dll2.toString();
     requestUnderway = true;
+    const response = await sendToCompilebox(userId1, userId2, dll1, dll2);
+
+    console.log(response);
+
     // do something with executeQueueElement and destroy
+
     executeQueueElement.destroy();
     requestUnderway = false;
   });
   return x;
-}, 300);
+}, 2000);
 
-async function sendToCompilebox(code) {
+async function sendToCompilebox(userId1, userId2, dll1, dll2) {
   try {
     const availableBoxes = await compileBox.findAll({
-      where: { tasks_running: 0 },
+      where: { tasks_running: 10 },
     });
     const targetBox = availableBoxes[0];
     const options = {
       method: 'POST',
       uri: `${targetBox.url}/execute`,
       body: {
-        code,
+        userId1,
+        userId2,
+        dll1,
+        dll2,
         secretString,
       },
       json: true, // Automatically stringifies the body to JSON
     };
     const response = await rp(options);
-    console.log(response);
+    // update ratings of users etc
   } catch (error) {
     return error;
   }

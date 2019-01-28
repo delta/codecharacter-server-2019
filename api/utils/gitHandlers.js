@@ -66,8 +66,8 @@ exports.getFile = async (username, filename = 'code.cpp', commitHash = null) => 
   return result;
 };
 
-exports.setFile = async (username, fileText) => {
+exports.setFile = async (username, fileName = 'code.cpp', fileText) => {
   const userDir = `${path.resolve('storage/codes/')}/${username}`;
-  await fsWriteFile(path.resolve(userDir, 'code.cpp'), fileText);
+  await fs.writeFile(path.resolve(userDir, fileName), fileText);
   return null;
 };
