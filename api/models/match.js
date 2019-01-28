@@ -20,14 +20,9 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id',
       },
     },
-    match_log: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    status: {
+    verdict: {
       type: DataTypes.ENUM,
-      values: ['Idle', 'Waiting', 'Compiling', 'Compiled', 'Error', 'Executing', 'Executed'],
-      defaultValue: 'Idle',
+      values: ['0', '1', '2'],
     },
   }, {});
   // match.associate = function (models) {

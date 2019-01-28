@@ -43,7 +43,7 @@
   "scripts": {
     "lint": "eslint .",
     "start": "nodemon app.js",
-    "test": "mocha --exit"
+    "test": "mocha --exit --timeout 10000"
   },
   "author": "",
   "license": "ISC"
