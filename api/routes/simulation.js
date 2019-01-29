@@ -2,15 +2,26 @@ const express = require('express');
 
 const router = express.Router();
 const git = require('../utils/gitHandlers');
-const ExecuteQueue = require('../models').ExecuteQueue;
 const Constant = require('../models').constant;
 const Match = require('../models').match;
 const { pushToQueue } = require('../utils/executeQueueHandler');
+const User = require('../models').user;
+
+const getUserName = async (userId) => {
+  return User.findOne({
+    where: {
+      id: userId,
+    },
+  }).then(user => user.dataValues)
+    .catch(() => null);
+};
 
 router.post('/comptete/:userId1/:userId2', async (req, res) => {
   const { userId1, userId2 } = req.params;
-  const dll1 = await git.getFile(userId1, 'one.dll');
-  const dll2 = await git.getFile(userId2, 'two.dll');
+  const userName1 = await getUserName(userId1);
+  const userName2 = await getUserName(userId2);
+  const dll1 = await git.getFile(userName1, 'one.dll');
+  const dll2 = await git.getFile(userName2, 'two.dll');
 
   let WAIT_TIME_CHALLENGE;
   Constant.findOne({
@@ -75,10 +86,13 @@ router.get('/compete/ai/:ai_id', async (req, res) => {
   // ALWAYS COMPILE AND RUN
   const { userId } = req.user;
   const { aiId } = req.params;
+  const userName1 = await getUserName(userId);
+  const userName2 = await getUserName(aiId);
+
   // get 2 dlls
   // execute them and send back
-  const dll1 = await git.getFile(userId, 'one.dll');
-  const dll2 = await git.getFile(aiId, 'two.dll');
+  const dll1 = await git.getFile(userName1, 'one.dll');
+  const dll2 = await git.getFile(userName2, 'two.dll');
   Match.create({
     player_id1: userId,
     player_id2: aiId,
@@ -126,8 +140,8 @@ router.get('/compete/nextmatchtime', (req, res) => {
         const timeLeft = WAIT_TIME_CHALLENGE - (now.getTime() - mostRecent.updatedAt.getTime()) / 60000;
         const minutes = Math.floor(timeLeft);
         const seconds = Math.floor((timeLeft - minutes) * 60);
-        return res.json({
-          success: false,
+        return res.status(200).json({
+          success: true,
           message: `Please wait for ${minutes} minutes and ${seconds} seconds to start a match with this user again`,
           time_left: WAIT_TIME_CHALLENGE - (now.getTime() - mostRecent.updatedAt.getTime()) / 60000,
           minutes,
@@ -135,15 +149,21 @@ router.get('/compete/nextmatchtime', (req, res) => {
         });
       }
     }
+    return res.status(200).json({
+      success: true,
+      message: `Please wait for ${minutes} minutes and ${seconds} seconds to start a match with this user again`,
+      time_left: 0,
+      minutes: 0,
+      seconds: 0,
+    });
   })
-    .catch((err) => {
+    .catch(() => {
       res.json({ success: false, message: 'Internal Server Error' });
     });
 });
 router.get('/self', async (req, res) => {
   const userId = req.user.id;
   const { username } = req.user;
-  console.log(userId, username);
   // get 2 dlls
   // execute them and send back
   const dll1 = await git.getFile(username, 'one.dll');
