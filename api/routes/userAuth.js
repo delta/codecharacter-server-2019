@@ -99,7 +99,7 @@ router.post('/login', async (req, res) => {
     if (!user) {
       return res.status(400).json({
         type: 'Error',
-        error: 'Username does not exist',
+        error: 'Wrong Credentials',
       });
     }
 
@@ -133,17 +133,17 @@ router.get('/checkusername/:username', (req, res) => {
   const { username } = req.params;
   User.findAll({ where: { username } }).then((users) => {
     if (users.length) {
-      res.status(200).json({
+      return res.status(200).json({
         type: 'Error',
         error: 'Username already exists',
       });
     }
-    res.status(200).json({
+    return res.status(200).json({
       type: 'Success',
       error: '',
     });
   }).catch(() => {
-    res.status(500).json({
+    return res.status(500).json({
       type: 'Error',
       error: 'Internal server error',
     });
