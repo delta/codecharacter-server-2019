@@ -3,9 +3,17 @@ const rp = require('request-promise');
 const Constant = require('../models').constant;
 const compileBox = require('../models').compilebox;
 const CompileQueue = require('../models').CompileQueue;
+const User = require('../models').user;
 const git = require('./gitHandlers');
 const { secretString } = require('../config/config');
-
+const getUserName = async (userId) => {
+  return User.findOne({
+    where: {
+      id: userId,
+    },
+  }).then(user => user.dataValues.username)
+    .catch(() => null);
+};
 let compileQueueSize;
 Constant.find({
   where: {
@@ -20,7 +28,7 @@ Constant.find({
   .catch(() => {
     compileQueueSize = 100;
   });
-const requestUnderway = false;
+let requestUnderway = false;
 const getQueueSize = async () => CompileQueue.findAll({
   attributes: ['id'],
 }).then(compileQueueElements => compileQueueElements.length)
@@ -35,7 +43,7 @@ const pushToCompileQueue = async (userId, code) => {
     userId,
     code,
   }).then(() => true)
-    .catch((err) => { console.log(err); });
+    .catch((err) => { console.log(err); return false; });
 };
 
 module.exports = {
@@ -77,16 +85,19 @@ setInterval(async () => {
     if (!compileQueueElement) {
       return null;
     }
+    requestUnderway = true;
     let { code, userId } = compileQueueElement;
     code = code.toString();
     const response = await sendToCompilebox(userId, code);
     // do something with compileQueueElement and destroy
     console.log(response);
-    const dll1 = 'a';
-    const dll2 = 'b';
-    // git.setFile(userId, 'one.dll', dll1);
-    // git.setFile(userId, 'two.dll', dll2); modify table to store username and then process it
+    const dll1 = 'c';
+    const dll2 = 'd';
+    const username = await getUserName(userId);
+    git.setFile(username, 'one.dll', dll1);
+    git.setFile(username, 'two.dll', dll2); // modify table to store username and then process it
     compileQueueElement.destroy();
+    requestUnderway = false;
   })
     .catch((err) => {
       console.log(err);

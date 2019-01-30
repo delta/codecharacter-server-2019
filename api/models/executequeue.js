@@ -1,5 +1,5 @@
 const User = require('./user');
-
+const Match = require('./match');
 module.exports = (sequelize, DataTypes) => {
   const ExecuteQueue = sequelize.define('ExecuteQueue', {
     dll1: DataTypes.BLOB,
@@ -15,6 +15,13 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       references: {
         model: User,
+        key: 'id',
+      },
+    },
+    matchId: {
+      type: DataTypes.STRING,
+      references: {
+        model: Match,
         key: 'id',
       },
     },

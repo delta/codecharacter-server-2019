@@ -20,6 +20,7 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id',
       },
     },
+    match_log: '',
     verdict: {
       type: DataTypes.ENUM,
       values: ['0', '1', '2'],

@@ -12,14 +12,20 @@ const getUserName = async (userId) => {
     where: {
       id: userId,
     },
-  }).then(user => user.dataValues)
-    .catch(() => null);
+  }).then(user => user.dataValues.username)
+    .catch((err) => {
+      console.log(err, 'asdasdasd');
+      return null;
+    });
 };
 
-router.post('/comptete/:userId1/:userId2', async (req, res) => {
-  const { userId1, userId2 } = req.params;
-  const userName1 = await getUserName(userId1);
+router.post('/match/:userId2', async (req, res) => {
+  let { userId2 } = req.params;
+  userId2 = Number(userId2);
+  const userId1 = req.user.id;
+  const userName1 = req.user.username;
   const userName2 = await getUserName(userId2);
+  console.log(userName1, userName2);
   const dll1 = await git.getFile(userName1, 'one.dll');
   const dll2 = await git.getFile(userName2, 'two.dll');
 
@@ -39,8 +45,8 @@ router.post('/comptete/:userId1/:userId2', async (req, res) => {
     });
   Match.findAll({
     where: {
-      userId1,
-      userId2: { $ne: userId1 },
+      user_id_1: userId1,
+      user_id_2: { $ne: userId1 },
     },
     order: ['updatedAt'],
     attributes: ['id', 'createdAt', 'updatedAt'],
@@ -52,29 +58,34 @@ router.post('/comptete/:userId1/:userId2', async (req, res) => {
         const timeLeft = WAIT_TIME_CHALLENGE - (now.getTime() - mostRecent.updatedAt.getTime()) / 60000;
         const minutes = Math.floor(timeLeft);
         const seconds = Math.floor((timeLeft - minutes) * 60);
-        return res.json({
+        res.status(400).json({
           success: false,
           message: `Please wait for ${minutes} minutes and ${seconds} seconds to start a match with this user again`,
           time_left: WAIT_TIME_CHALLENGE - (now.getTime() - mostRecent.updatedAt.getTime()) / 60000,
           minutes,
           seconds,
         });
+        return Promise.reject(new Error('triggered_manually'));
       }
     }
     return Promise.resolve(true);
   }).then(() => Match.create({
-    player_id1: userId1,
-    ai_id: userId2,
+    user_id_1: userId1,
+    user_id_2: userId2,
     match_log: '',
     status: 'executing',
-  })).then(() => pushToQueue(userId1, userId2, dll1, dll2, false))
+  })).then((match) => {
+    return pushToQueue(userId1, userId2, dll1, dll2, false, match.id);
+  })
     .then(() => {
       res.status(200).json({
         message: 'match initiated',
       });
     })
     .catch((err) => {
-      res.status(500).json({ success: false, message: 'Internal server error!', err });
+      if (err.message !== 'triggered_manually') {
+        res.status(500).json({ success: false, message: 'Internal server error!', err });
+      }
     });
   // find the last match initiated by user1, from both match model and
   // executequeue model and do the timechecking sww, get time checking constant from constants table
@@ -82,7 +93,7 @@ router.post('/comptete/:userId1/:userId2', async (req, res) => {
   // send notifications to userId1 and userId2
 });
 
-router.get('/compete/ai/:ai_id', async (req, res) => {
+router.get('/ai/:ai_id', async (req, res) => {
   // ALWAYS COMPILE AND RUN
   const { userId } = req.user;
   const { aiId } = req.params;
@@ -98,7 +109,9 @@ router.get('/compete/ai/:ai_id', async (req, res) => {
     player_id2: aiId,
     match_log: '',
     status: 'executing',
-  }).then(() => pushToQueue(userId, aiId, dll1, dll2, true)).then(() => {
+  }).then((match) => {
+    return pushToQueue(userId, aiId, dll1, dll2, true, match.null);
+  }).then(() => {
     res.status(200).json({
       message: 'match initiated',
     });
@@ -107,7 +120,7 @@ router.get('/compete/ai/:ai_id', async (req, res) => {
       res.status(500).json({ success: false, message: 'Internal server error!', err });
     });
 });
-router.get('/compete/nextmatchtime', (req, res) => {
+router.get('/nextmatchtime', (req, res) => {
   // copy the time calculations from execute match route and paste it here
   let WAIT_TIME_CHALLENGE;
   Constant.findOne({
@@ -151,7 +164,7 @@ router.get('/compete/nextmatchtime', (req, res) => {
     }
     return res.status(200).json({
       success: true,
-      message: `Please wait for ${minutes} minutes and ${seconds} seconds to start a match with this user again`,
+      message: `Please wait for ${0} minutes and ${0} seconds to start a match with this user again`,
       time_left: 0,
       minutes: 0,
       seconds: 0,
@@ -171,14 +184,17 @@ router.get('/self', async (req, res) => {
   Match.create({
     user_id_1: userId,
     user_id_2: userId,
-    match_log: '',
+    match_log: 'sda',
     status: 'executing',
-  }).then(() => pushToQueue(userId, userId, dll1, dll2, true)).then(() => {
+  }).then((match) => {
+    return pushToQueue(userId, userId, dll1, dll2, true, match.id);
+  }).then(() => {
     res.status(200).json({
       message: 'match initiated',
     });
   })
     .catch((err) => {
+      console.log(err);
       res.status(500).json({ success: false, message: 'Internal server error!', err });
     });
 });

@@ -6,7 +6,7 @@ module.exports = {
       'compileboxes',
       'maximum_tasks',
       {
-        type: DataTypes.INTEGER,
+        type: Sequelize.INTEGER,
         defaultValue: 10,
       },
     )

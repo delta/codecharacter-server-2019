@@ -125,10 +125,11 @@ router.post('/compile', async (req, res) => {
   const userId = req.user.id;
   const code = await git.getFile(req.user.username);
   const success = await pushToCompileQueue(userId, code);
+  console.log(success, '\n\n');
   if (success) {
-    res.status(200);
+    res.sendStatus(200);
   } else {
-    res.status(500);
+    res.sendStatus(500);
   }
 });
 module.exports = router;

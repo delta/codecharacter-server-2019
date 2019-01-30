@@ -2,7 +2,7 @@
 const User = require('./user');
 
 module.exports = (sequelize, DataTypes) => {
-  const leaderboard = sequelize.define('leaderboard', {
+  const Leaderboard = sequelize.define('leaderboard', {
     user_id: {
       allowNull: false,
       type: DataTypes.INTEGER,
@@ -37,5 +37,5 @@ module.exports = (sequelize, DataTypes) => {
   // leaderboard.associate = function(models) {
   //   // associations can be defined here
   // };
-  return leaderboard;
+  return Leaderboard;
 };
