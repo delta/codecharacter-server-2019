@@ -7,7 +7,8 @@ Leaderboard.belongsTo(User, { foreignKey: 'user_id' });
 const router = express.Router();
 let filtered;
 router.post('/:start/:finish', async (req, res) => {
-  const { start, finish } = req.params;
+  let { finish } = req.params;
+  const { start } = req.params;
   const leaderboard = await Leaderboard.findAll(
     {
       include: [
@@ -19,6 +20,11 @@ router.post('/:start/:finish', async (req, res) => {
     },
   );
   if (leaderboard.length) {
+    if (leaderboard.length < finish + 1) {
+      finish = leaderboard.length;
+    } else if (start > leaderboard.length) {
+      return res.status(200).send({ type: 'Success', error: '', message: JSON.parse('') });
+    }
     filtered = leaderboard.slice(start, finish + 1);
     return res.status(200).send({ type: 'Success', error: '', message: JSON.parse(filtered) });
   }
