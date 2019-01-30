@@ -118,7 +118,6 @@ describe('Test Register', async () => {
       .post('/user/register')
       .set('content-type', 'application/json')
       .send(body);
-
     res.should.have.status(400);
   });
 });

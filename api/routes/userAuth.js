@@ -4,7 +4,7 @@ const passport = require('passport');
 const { Op } = require('sequelize');
 const { check, validationResult } = require('express-validator/check');
 const User = require('../models').user;
-const git = require('../utils/git_handlers');
+const git = require('../utils/gitHandlers');
 
 const router = express.Router();
 
@@ -123,7 +123,10 @@ router.post('/login', async (req, res) => {
 
 router.post('/logout', (req, res) => {
   req.logout();
-  res.sendStatus(200);
+  res.status(200).json({
+    type: 'Success',
+    error: '',
+  });
 });
 
 router.get('/checkusername/:username', (req, res) => {
@@ -131,15 +134,20 @@ router.get('/checkusername/:username', (req, res) => {
   User.findAll({ where: { username } }).then((users) => {
     if (users.length) {
       return res.status(200).json({
-        message: 'Error',
+        type: 'Error',
         error: 'Username already exists',
       });
     }
     return res.status(200).json({
-      message: 'Success',
+      type: 'Success',
       error: '',
     });
-  }).catch(err => res.send(err));
+  }).catch(() => {
+    return res.status(500).json({
+      type: 'Error',
+      error: 'Internal server error',
+    });
+  });
 });
 
 module.exports = router;
