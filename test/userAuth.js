@@ -165,7 +165,7 @@ describe('Test Login', async () => {
       .set('content-type', 'application/json')
       .send(credentials);
 
-    chai.assert(JSON.parse(res.text).error === 'Wrong Credentials');
+    chai.assert(JSON.parse(res.text).error === 'Wrong password');
     res.should.have.status(400);
   });
 
@@ -176,7 +176,7 @@ describe('Test Login', async () => {
       .set('content-type', 'application/json')
       .send(credentials);
 
-    chai.assert(JSON.parse(res.text).error === 'Wrong Credentials');
+    chai.assert(JSON.parse(res.text).error === 'Username not found');
     res.should.have.status(400);
   });
 

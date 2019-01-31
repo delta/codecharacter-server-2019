@@ -13,9 +13,9 @@ module.exports = (passport) => {
           [Op.or]: [{ username }, { email: username }],
         },
       }).then(async (user) => {
-        if (!user) { return done(null, false); }
-        if (!(await bcrypt.compare(password, user.password))) { return done(null, false); }
-        return done(null, user);
+        if (!user) { return done(null, false, 'Username not found'); }
+        if (!(await bcrypt.compare(password, user.password))) { return done(null, false, 'Wrong password'); }
+        return done(null, user, 'Success');
       }).catch((error) => {
         done(error);
       });
