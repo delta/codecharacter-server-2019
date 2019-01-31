@@ -1,4 +1,3 @@
-const request = require('request');
 const rp = require('request-promise');
 const Constant = require('../models').constant;
 const compileBox = require('../models').compilebox;
@@ -8,14 +7,12 @@ const git = require('./gitHandlers');
 const { secretString } = require('../config/config');
 const { sendMessage } = require('../utils/socketHandlers');
 
-const getUserName = async (userId) => {
-  return User.findOne({
-    where: {
-      id: userId,
-    },
-  }).then(user => user.dataValues.username)
-    .catch(() => null);
-};
+const getUserName = async userId => User.findOne({
+  where: {
+    id: userId,
+  },
+}).then(user => user.dataValues.username)
+  .catch(() => null);
 let compileQueueSize;
 Constant.find({
   where: {
@@ -45,7 +42,7 @@ const pushToCompileQueue = async (userId, code) => {
     userId,
     code,
   }).then(() => true)
-    .catch((err) => { console.log(err); return false; });
+    .catch(() => false);
 };
 
 module.exports = {
@@ -88,7 +85,8 @@ setInterval(async () => {
       return null;
     }
     requestUnderway = true;
-    let { code, userId } = compileQueueElement;
+    let { code } = compileQueueElement;
+    const { userId } = compileQueueElement;
     code = code.toString();
     const response = await sendToCompilebox(userId, code);
     const { errorBool, log } = response.body;
@@ -106,9 +104,10 @@ setInterval(async () => {
 
     compileQueueElement.destroy();
     requestUnderway = false;
+    return null;
   })
-    .catch((err) => {
-      console.log(err);
+    .catch(() => {
+      // console.log(err);
     });
   return x;
 }, 2000);

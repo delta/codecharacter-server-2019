@@ -4,6 +4,7 @@ const router = express.Router();
 const git = require('../utils/gitHandlers');
 
 const { pushToCompileQueue } = require('../utils/compileQueueHandler');
+const { Leaderboard } = require('../models');
 
 router.get('/latest', async (req, res) => {
   try {
@@ -40,7 +41,27 @@ router.post('/save', async (req, res) => {
   }
 });
 
-
+router.post('/lock', async (req, res) => {
+  try {
+    const { id } = req.user;
+    await Leaderboard.create({
+      user_id: id,
+      rating: 1400,
+      dll_1: '',
+      dll_2: '',
+      is_ai: false,
+    });
+    res.status(200).json({
+      type: 'Success',
+      error: '',
+    });
+  } catch (err) {
+    res.status(500).json({
+      type: 'Error',
+      error: 'Internal server error',
+    });
+  }
+});
 router.post('/commit', async (req, res) => {
   try {
     const { username } = req.user;
@@ -125,7 +146,6 @@ router.post('/compile', async (req, res) => {
   const userId = req.user.id;
   const code = await git.getFile(req.user.username);
   const success = await pushToCompileQueue(userId, code);
-  console.log(success, '\n\n');
   if (success) {
     res.sendStatus(200);
   } else {

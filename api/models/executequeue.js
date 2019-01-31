@@ -1,5 +1,6 @@
 const User = require('./user');
 const Match = require('./match');
+
 module.exports = (sequelize, DataTypes) => {
   const ExecuteQueue = sequelize.define('ExecuteQueue', {
     dll1: DataTypes.BLOB,

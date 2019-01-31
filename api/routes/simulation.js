@@ -7,17 +7,12 @@ const Match = require('../models').match;
 const { pushToQueue } = require('../utils/executeQueueHandler');
 const User = require('../models').user;
 
-const getUserName = async (userId) => {
-  return User.findOne({
-    where: {
-      id: userId,
-    },
-  }).then(user => user.dataValues.username)
-    .catch((err) => {
-      console.log(err, 'asdasdasd');
-      return null;
-    });
-};
+const getUserName = async userId => User.findOne({
+  where: {
+    id: userId,
+  },
+}).then(user => user.dataValues.username)
+  .catch(() => null);
 
 router.post('/match/:userId2', async (req, res) => {
   let { userId2 } = req.params;
@@ -25,7 +20,6 @@ router.post('/match/:userId2', async (req, res) => {
   const userId1 = req.user.id;
   const userName1 = req.user.username;
   const userName2 = await getUserName(userId2);
-  console.log(userName1, userName2);
   const dll1 = await git.getFile(userName1, 'one.dll');
   const dll2 = await git.getFile(userName2, 'two.dll');
 
@@ -55,7 +49,8 @@ router.post('/match/:userId2', async (req, res) => {
     const mostRecent = matches.pop();
     if (mostRecent) {
       if ((now.getTime() - mostRecent.createdAt.getTime()) < WAIT_TIME_CHALLENGE * 60 * 1000) {
-        const timeLeft = WAIT_TIME_CHALLENGE - (now.getTime() - mostRecent.updatedAt.getTime()) / 60000;
+        const timeLeft = WAIT_TIME_CHALLENGE
+          - (now.getTime() - mostRecent.updatedAt.getTime()) / 60000;
         const minutes = Math.floor(timeLeft);
         const seconds = Math.floor((timeLeft - minutes) * 60);
         res.status(400).json({
@@ -74,9 +69,7 @@ router.post('/match/:userId2', async (req, res) => {
     user_id_2: userId2,
     match_log: '',
     status: 'executing',
-  })).then((match) => {
-    return pushToQueue(userId1, userId2, dll1, dll2, false, match.id);
-  })
+  })).then(match => pushToQueue(userId1, userId2, dll1, dll2, false, match.id))
     .then(() => {
       res.status(200).json({
         message: 'match initiated',
@@ -109,9 +102,7 @@ router.get('/ai/:ai_id', async (req, res) => {
     player_id2: aiId,
     match_log: '',
     status: 'executing',
-  }).then((match) => {
-    return pushToQueue(userId, aiId, dll1, dll2, true, match.null);
-  }).then(() => {
+  }).then(match => pushToQueue(userId, aiId, dll1, dll2, true, match.null)).then(() => {
     res.status(200).json({
       message: 'match initiated',
     });
@@ -133,7 +124,7 @@ router.get('/nextmatchtime', (req, res) => {
       WAIT_TIME_CHALLENGE = 30;
     }
   })
-    .catch((err) => {
+    .catch(() => {
       WAIT_TIME_CHALLENGE = 30;
     });
   const userId = req.user.id;
@@ -150,7 +141,8 @@ router.get('/nextmatchtime', (req, res) => {
     const mostRecent = matches.pop();
     if (mostRecent) {
       if ((now.getTime() - mostRecent.createdAt.getTime()) < WAIT_TIME_CHALLENGE * 60 * 1000) {
-        const timeLeft = WAIT_TIME_CHALLENGE - (now.getTime() - mostRecent.updatedAt.getTime()) / 60000;
+        const timeLeft = WAIT_TIME_CHALLENGE
+          - (now.getTime() - mostRecent.updatedAt.getTime()) / 60000;
         const minutes = Math.floor(timeLeft);
         const seconds = Math.floor((timeLeft - minutes) * 60);
         return res.status(200).json({
@@ -186,15 +178,12 @@ router.get('/self', async (req, res) => {
     user_id_2: userId,
     match_log: 'sda',
     status: 'executing',
-  }).then((match) => {
-    return pushToQueue(userId, userId, dll1, dll2, true, match.id);
-  }).then(() => {
+  }).then(match => pushToQueue(userId, userId, dll1, dll2, true, match.id)).then(() => {
     res.status(200).json({
       message: 'match initiated',
     });
   })
     .catch((err) => {
-      console.log(err);
       res.status(500).json({ success: false, message: 'Internal server error!', err });
     });
 });
