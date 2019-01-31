@@ -42,25 +42,19 @@ router.post('/:start/:finish', [
       },
     );
 
-    if (leaderboard.length) {
-      if (start > leaderboard.length) {
-        return res.status(200).send({ type: 'Success', error: '', message: JSON.parse('') });
-      }
-      for (let index = start; index < Math.min(finish, leaderboard.length); index += 1) {
-        const leaderboardElement = {};
-        leaderboardElement.rank = index + 1;
-        leaderboardElement.rating = leaderboard[index].rating;
-        leaderboardElement.fullName = leaderboard[index].user.fullName;
-        leaderboardElement.country = leaderboard[index].user.country;
-        leaderboardElement.username = leaderboard[index].user.username;
-        leaderboardData.push(leaderboardElement);
-      }
-      return res.status(200).send({ type: 'Success', error: '', message: JSON.stringify(leaderboardData) });
+    if (start > leaderboard.length) {
+      return res.status(200).send({ type: 'Success', error: '', leaderboardData: JSON.parse('') });
     }
-    return res.status(400).json({
-      message: 'Error',
-      error: 'No Entries Found',
-    });
+    for (let index = start; index < Math.min(finish, leaderboard.length); index += 1) {
+      const leaderboardElement = {};
+      leaderboardElement.rank = index + 1;
+      leaderboardElement.rating = leaderboard[index].rating;
+      leaderboardElement.fullName = leaderboard[index].user.fullName;
+      leaderboardElement.country = leaderboard[index].user.country;
+      leaderboardElement.username = leaderboard[index].user.username;
+      leaderboardData.push(leaderboardElement);
+    }
+    return res.status(200).send({ type: 'Success', error: '', leaderboardData: JSON.stringify(leaderboardData) });
   } catch (err) {
     return res.status(500).json({
       type: 'Error',
@@ -110,25 +104,19 @@ router.post('/:search/:start/:finish', [
         attributes: ['rating'],
       },
     );
-    if (leaderboard.length) {
-      if (start > leaderboard.length) {
-        return res.status(200).send({ type: 'Success', error: '', message: JSON.parse('') });
-      }
-      for (let index = start; index < Math.min(finish, leaderboard.length); index += 1) {
-        const leaderboardElement = {};
-        leaderboardElement.rank = index + 1;
-        leaderboardElement.rating = leaderboard[index].rating;
-        leaderboardElement.fullName = leaderboard[index].user.fullName;
-        leaderboardElement.country = leaderboard[index].user.country;
-        leaderboardElement.username = leaderboard[index].user.username;
-        leaderboardData.push(leaderboardElement);
-      }
-      return res.status(200).send({ type: 'Success', error: '', message: JSON.stringify(leaderboardData) });
+    if (start > leaderboard.length) {
+      return res.status(200).send({ type: 'Success', error: '', leaderboardData: JSON.parse('') });
     }
-    return res.status(400).json({
-      message: 'Error',
-      error: 'No Entries Found',
-    });
+    for (let index = start; index < Math.min(finish, leaderboard.length); index += 1) {
+      const leaderboardElement = {};
+      leaderboardElement.rank = index + 1;
+      leaderboardElement.rating = leaderboard[index].rating;
+      leaderboardElement.fullName = leaderboard[index].user.fullName;
+      leaderboardElement.country = leaderboard[index].user.country;
+      leaderboardElement.username = leaderboard[index].user.username;
+      leaderboardData.push(leaderboardElement);
+    }
+    return res.status(200).send({ type: 'Success', error: '', leaderboardData: JSON.stringify(leaderboardData) });
   } catch (err) {
     return res.status(500).json({
       type: 'Error',
