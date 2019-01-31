@@ -142,12 +142,10 @@ router.get('/checkusername/:username', (req, res) => {
       type: 'Success',
       error: '',
     });
-  }).catch(() => {
-    return res.status(500).json({
-      type: 'Error',
-      error: 'Internal server error',
-    });
-  });
+  }).catch(() => res.status(500).json({
+    type: 'Error',
+    error: 'Internal server error',
+  }));
 });
 
 module.exports = router;
