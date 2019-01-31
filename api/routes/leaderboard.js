@@ -7,18 +7,17 @@ const User = require('../models').user;
 
 Leaderboard.belongsTo(User, { foreignKey: 'user_id' });
 const router = express.Router();
-let obj;
 router.post('/:start/:finish', [
   check('start')
     .not().isEmpty().withMessage('Start cannot be empty')
     .isInt()
-    .withMessage('Start must be Intteger'),
+    .withMessage('Start must be Integer'),
   check('finish')
     .not().isEmpty().withMessage('Finish cannot be empty')
     .isInt()
     .withMessage('Finish must be Integer'),
 ], async (req, res) => {
-  obj = {};
+  const leaderboardData = [];
   const { start, finish } = req.params;
   const errors = validationResult(req);
 
@@ -29,36 +28,45 @@ router.post('/:start/:finish', [
     });
   }
 
-  const leaderboard = await Leaderboard.findAll(
-    {
-      include: [
-        {
-          model: User,
-          attributes: ['fullName', 'country'],
-        },
-      ],
-      order: ['rating'],
-      attributes: ['rating'],
-    },
-  );
+  try {
+    const leaderboard = await Leaderboard.findAll(
+      {
+        include: [
+          {
+            model: User,
+            attributes: ['username', 'fullName', 'country'],
+          },
+        ],
+        order: ['rating'],
+        attributes: ['rating'],
+      },
+    );
 
-  if (leaderboard.length) {
-    if (start > leaderboard.length) {
-      return res.status(200).send({ type: 'Success', error: '', message: JSON.parse('') });
+    if (leaderboard.length) {
+      if (start > leaderboard.length) {
+        return res.status(200).send({ type: 'Success', error: '', message: JSON.parse('') });
+      }
+      for (let index = start; index < Math.min(finish, leaderboard.length); index += 1) {
+        const leaderboardElement = {};
+        leaderboardElement.rank = index + 1;
+        leaderboardElement.rating = leaderboard[index].rating;
+        leaderboardElement.fullName = leaderboard[index].user.fullName;
+        leaderboardElement.country = leaderboard[index].user.country;
+        leaderboardElement.username = leaderboard[index].user.username;
+        leaderboardData.push(leaderboardElement);
+      }
+      return res.status(200).send({ type: 'Success', error: '', message: JSON.stringify(leaderboardData) });
     }
-    for (let index = start; index < Math.min(finish, leaderboard.length); index += 1) {
-      obj[index - start] = {};
-      obj[index - start].rank = index + 1;
-      obj[index - start].rating = leaderboard[index].rating;
-      obj[index - start].fullName = leaderboard[index].user.fullName;
-      obj[index - start].country = leaderboard[index].user.country;
-    }
-    return res.status(200).send({ type: 'Success', error: '', message: JSON.stringify(obj) });
+    return res.status(400).json({
+      message: 'Error',
+      error: 'No Entries Found',
+    });
+  } catch (err) {
+    return res.status(500).json({
+      type: 'Error',
+      error: 'Internal Server Error',
+    });
   }
-  return res.status(400).json({
-    message: 'Error',
-    error: 'No Entries Found',
-  });
 });
 
 router.post('/:search/:start/:finish', [
@@ -67,13 +75,13 @@ router.post('/:search/:start/:finish', [
   check('start')
     .not().isEmpty().withMessage('Start cannot be empty')
     .isInt()
-    .withMessage('Start must be Intteger'),
+    .withMessage('Start must be Integer'),
   check('finish')
     .not().isEmpty().withMessage('Finish cannot be empty')
     .isInt()
     .withMessage('Finish must be Integer'),
 ], async (req, res) => {
-  obj = {};
+  const leaderboardData = [];
   const { search, start, finish } = req.params;
   const errors = validationResult(req);
 
@@ -84,39 +92,49 @@ router.post('/:search/:start/:finish', [
     });
   }
 
-  const leaderboard = await Leaderboard.findAll(
-    {
-      include: [
-        {
-          model: User,
-          attributes: ['fullName', 'country'],
-          where: {
-            fullName: {
-              [Op.like]: `%${search}%`,
+  try {
+    const leaderboard = await Leaderboard.findAll(
+      {
+        include: [
+          {
+            model: User,
+            attributes: ['username', 'fullName', 'country'],
+            where: {
+              fullName: {
+                [Op.like]: `%${search}%`,
+              },
             },
           },
-        },
-      ],
-      order: ['rating'],
-      attributes: ['rating'],
-    },
-  );
-  if (leaderboard.length) {
-    if (start > leaderboard.length) {
-      return res.status(200).send({ type: 'Success', error: '', message: JSON.parse('') });
+        ],
+        order: ['rating'],
+        attributes: ['rating'],
+      },
+    );
+    if (leaderboard.length) {
+      if (start > leaderboard.length) {
+        return res.status(200).send({ type: 'Success', error: '', message: JSON.parse('') });
+      }
+      for (let index = start; index < Math.min(finish, leaderboard.length); index += 1) {
+        const leaderboardElement = {};
+        leaderboardElement.rank = index + 1;
+        leaderboardElement.rating = leaderboard[index].rating;
+        leaderboardElement.fullName = leaderboard[index].user.fullName;
+        leaderboardElement.country = leaderboard[index].user.country;
+        leaderboardElement.username = leaderboard[index].user.username;
+        leaderboardData.push(leaderboardElement);
+      }
+      return res.status(200).send({ type: 'Success', error: '', message: JSON.stringify(leaderboardData) });
     }
-    for (let index = start; index < Math.min(finish, leaderboard.length); index += 1) {
-      obj[index - start] = {};
-      obj[index - start].rank = index + 1;
-      obj[index - start].rating = leaderboard[index].rating;
-      obj[index - start].fullName = leaderboard[index].user.fullName;
-      obj[index - start].country = leaderboard[index].user.country;
-    }
-    return res.status(200).send({ type: 'Success', error: '', message: JSON.stringify(obj) });
+    return res.status(400).json({
+      message: 'Error',
+      error: 'No Entries Found',
+    });
+  } catch (err) {
+    return res.status(500).json({
+      type: 'Error',
+      error: 'Internal Server Error',
+    });
   }
-  return res.status(400).json({
-    message: 'Error',
-    error: 'No Entries Found',
-  });
 });
+
 module.exports = router;
