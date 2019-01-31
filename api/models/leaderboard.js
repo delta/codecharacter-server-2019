@@ -30,7 +30,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: false,
     },
-  }, {});
+  }, {
+    freezeTableName: true,
+    tableName: 'leaderboard',
+  });
   // leaderboard.associate = function(models) {
   //   // associations can be defined here
   // };
