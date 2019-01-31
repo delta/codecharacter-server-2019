@@ -2,10 +2,12 @@ const request = require('request');
 const rp = require('request-promise');
 const Constant = require('../models').constant;
 const compileBox = require('../models').compilebox;
-const CompileQueue = require('../models').CompileQueue;
+const { CompileQueue } = require('../models');
 const User = require('../models').user;
 const git = require('./gitHandlers');
 const { secretString } = require('../config/config');
+const { sendMessage } = require('../utils/socketHandlers');
+
 const getUserName = async (userId) => {
   return User.findOne({
     where: {
@@ -89,13 +91,19 @@ setInterval(async () => {
     let { code, userId } = compileQueueElement;
     code = code.toString();
     const response = await sendToCompilebox(userId, code);
+    const { errorBool, log } = response.body;
     // do something with compileQueueElement and destroy
-    console.log(response);
     const dll1 = 'c';
     const dll2 = 'd';
     const username = await getUserName(userId);
     git.setFile(username, 'one.dll', dll1);
     git.setFile(username, 'two.dll', dll2); // modify table to store username and then process it
+    sendMessage(userId, {
+      message: 'compiled',
+      errorBool,
+      log,
+    }, 'notification');
+
     compileQueueElement.destroy();
     requestUnderway = false;
   })

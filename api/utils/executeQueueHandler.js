@@ -3,7 +3,9 @@ const rp = require('request-promise');
 const compileBox = require('../models').compilebox;
 const { secretString } = require('../config/config');
 const Constant = require('../models').constant;
+const Match = require('../models').match;
 const { ExecuteQueue, Leaderboard } = require('../models');
+const { sendMessage } = require('../utils/socketHandlers');
 
 let executeQueueSize;
 Constant.find({
@@ -83,37 +85,55 @@ setInterval(async () => {
       return null;
     }
     let {
-      userId1, userId2, dll1, dll2, matchId
+      userId1, userId2, dll1, dll2, matchId, isAi
     } = executeQueueElement;
     dll1 = dll1.toString();
     dll2 = dll2.toString();
     requestUnderway = true;
     const response = await sendToCompilebox(userId1, userId2, dll1, dll2);
 
-    console.log(response);
 
+    const user1 = await Leaderboard.find({ where: { user_id: userId1 } });
+    const user2 = await Leaderboard.find({ where: { user_id: userId2 } });
+    const ratingP1Old = user1.rating;
+    const ratingP2Old = user2.rating;
+
+    // console.log(response);
+    const { winner, matchLog, errorStatus } = response.body;
     // do something with executeQueueElement and destroy
-    const ratingP1Old = 12;
-    const ratingP2Old = 13;
-    // calculate ratings by some methods by getting game scores
-    const ratingP1New = 14;
-    const ratingP2New = 14;
-    await Leaderboard.update({
-      rating: ratingP1New,
-    },
-    {
-      user_id: userId1,
-    });
-    await Leaderboard.update({
-      rating: ratingP2New,
-    },
-    {
-      user_id: userId2,
-    });
-    
+    if (!isAi) {
+      // calculate ratings by some methods by getting game scores
+      const ratingP1New = 14;
+      const ratingP2New = 14;
+      await Leaderboard.update({
+        rating: ratingP1New,
+      },
+      {
+        user_id: userId1,
+      });
+      await Leaderboard.update({
+        rating: ratingP2New,
+      },
+      {
+        user_id: userId2,
+      });
+    }
     // update match status here
+    await Match.update({
+      match_log: matchLog,
+      verdict: errorStatus,
+    });
 
     // send notifications here
+    sendMessage(userId1, {
+      winner,
+      message: (winner === userId1) ? 'you win' : 'you lose',
+    }, 'notification');
+
+    sendMessage(userId2, {
+      winner,
+      message: (winner === userId2) ? 'you win' : 'you lose',
+    }, 'notification');
 
     executeQueueElement.destroy();
     requestUnderway = false;
