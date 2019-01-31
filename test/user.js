@@ -7,6 +7,7 @@ const request = require('supertest');
 const User = require('../api/models').user;
 const server = require('../app');
 
+
 async function userLogin(userAgent, userDetails) {
   const { username, password } = userDetails;
   return userAgent.post('/user/login')
@@ -42,6 +43,17 @@ async function deleteCreatedUser(body, userAgent) {
   const userDir = `${appPath}/storage/codes/${user.username}`;
   await shell.rm('-rf', userDir);
 }
+
+describe('Profile route middlware check', () => {
+  it('should fail if user is not logged in', async () => {
+    const { res } = await chai.request(server)
+      .get('/user/profile');
+
+    res.should.have.status(401);
+    JSON.parse(res.text).error.should.equal('Unauthorised');
+  });
+});
+
 describe('Current user profile', () => {
   let body;
   const userAgent = request.agent(server);

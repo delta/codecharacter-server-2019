@@ -88,37 +88,36 @@ router.post('/register', [
   }
 });
 
-router.post('/login', async (req, res) => {
-  await passport.authenticate('local', async (err, user) => {
+router.post('/login', async (req, res, next) => {
+  passport.authenticate('local', (err, user, info) => {
     if (err) {
       return res.status(500).json({
         type: 'Error',
-        error: 'Internal Server Error',
+        error: 'Internal server error',
       });
     }
     if (!user) {
       return res.status(400).json({
         type: 'Error',
-        error: 'Wrong Credentials',
+        error: info,
       });
     }
 
-    const loginErr = await new Promise((resolve) => {
-      req.logIn(user, reqLoginErr => resolve(reqLoginErr));
-    });
-
-    if (loginErr) {
-      return res.status(400).json({
-        type: 'Error',
-        error: 'Wrong Password',
+    req.logIn(user, (error) => {
+      if (error) {
+        return res.status(500).json({
+          type: 'Error',
+          error: 'Internal server error',
+        });
+      }
+      return res.status(200).json({
+        type: 'Success',
+        error: '',
       });
-    }
-
-    return res.status(200).json({
-      type: 'Success',
-      error: '',
     });
-  })(req, res);
+
+    return null; // coz eslint forces to have a return at the end
+  })(req, res, next);
 });
 
 router.post('/logout', (req, res) => {
