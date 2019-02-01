@@ -1,5 +1,4 @@
 const express = require('express');
-const { Op } = require('sequelize');
 const { check, validationResult } = require('express-validator/check');
 
 const Leaderboard = require('../models').leaderboard;
@@ -18,9 +17,11 @@ router.post('/:start/:finish', [
     .withMessage('Finish must be Integer'),
 ], async (req, res) => {
   const leaderboardData = [];
-  const { start, finish } = req.params;
+  let { start, finish } = req.params;
   const errors = validationResult(req);
 
+  start = parseInt(start, 10);
+  finish = parseInt(finish, 10);
   if (!errors.isEmpty()) {
     return res.status(400).json({
       type: 'Error',
@@ -45,7 +46,8 @@ router.post('/:start/:finish', [
     if (start > leaderboard.length) {
       return res.status(200).send({ type: 'Success', error: '', leaderboardData: JSON.parse('') });
     }
-    for (let index = start; index < Math.min(finish, leaderboard.length); index += 1) {
+    finish = Math.min(finish, leaderboard.length);
+    for (let index = start - 1; index < finish; index += 1) {
       const leaderboardElement = {};
       leaderboardElement.rank = index + 1;
       leaderboardElement.rating = leaderboard[index].rating;
@@ -76,9 +78,13 @@ router.post('/:search/:start/:finish', [
     .withMessage('Finish must be Integer'),
 ], async (req, res) => {
   const leaderboardData = [];
-  const { search, start, finish } = req.params;
+  let { start, finish } = req.params;
+  const { search } = req.params;
   const errors = validationResult(req);
+  let count = 0;
 
+  start = parseInt(start, 10);
+  finish = parseInt(finish, 10);
   if (!errors.isEmpty()) {
     return res.status(400).json({
       type: 'Error',
@@ -93,11 +99,6 @@ router.post('/:search/:start/:finish', [
           {
             model: User,
             attributes: ['username', 'fullName', 'country'],
-            where: {
-              fullName: {
-                [Op.like]: `%${search}%`,
-              },
-            },
           },
         ],
         order: ['rating'],
@@ -107,14 +108,18 @@ router.post('/:search/:start/:finish', [
     if (start > leaderboard.length) {
       return res.status(200).send({ type: 'Success', error: '', leaderboardData: JSON.parse('') });
     }
-    for (let index = start; index < Math.min(finish, leaderboard.length); index += 1) {
-      const leaderboardElement = {};
-      leaderboardElement.rank = index + 1;
-      leaderboardElement.rating = leaderboard[index].rating;
-      leaderboardElement.fullName = leaderboard[index].user.fullName;
-      leaderboardElement.country = leaderboard[index].user.country;
-      leaderboardElement.username = leaderboard[index].user.username;
-      leaderboardData.push(leaderboardElement);
+    finish = Math.min(finish, leaderboard.length);
+    for (let index = start - 1; index < finish; index += 1) {
+      if (leaderboard[index].user.fullName.includes(search)) {
+        const leaderboardElement = {};
+        leaderboardElement.rank = index + 1;
+        leaderboardElement.rating = leaderboard[index].rating;
+        leaderboardElement.fullName = leaderboard[index].user.fullName;
+        leaderboardElement.country = leaderboard[index].user.country;
+        leaderboardElement.username = leaderboard[index].user.username;
+        leaderboardData[count] = leaderboardElement;
+        count += 1;
+      }
     }
     return res.status(200).send({ type: 'Success', error: '', leaderboardData: JSON.stringify(leaderboardData) });
   } catch (err) {
