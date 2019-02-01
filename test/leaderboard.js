@@ -15,6 +15,18 @@ chai.use(chaiHttp);
 describe('Test Leaderboard', async () => {
   describe('Test Leaderboard by Rank', async () => {
     const superAgent = request.agent(server);
+    const searchKey = 'z';
+    // eslint-disable-next-line no-undef
+    after(async () => {
+      const user = await User.findAll();
+      for (let index = 0; index < user.length; index += 1) {
+        user[index].destroy();
+      }
+      const leaderboard = await Leaderboard.findAll();
+      for (let index = 0; index < leaderboard.length; index += 1) {
+        leaderboard[index].destroy();
+      }
+    });
     // eslint-disable-next-line no-undef
     before(async () => {
       const numEntries = 10;
@@ -132,33 +144,6 @@ describe('Test Leaderboard', async () => {
       for (let index = 0; index < numEntries; index += 1) {
         chai.assert(leaderboardData[index].rank === start + index);
       }
-    });
-  });
-
-  describe('Test Leaderboard by Search', async () => {
-    const searchKey = 'z';
-    const superAgent = request.agent(server);
-    // eslint-disable-next-line no-undef
-    before(async () => {
-      const registerBody = {
-        username: 'testusername',
-        password: 'testpassword',
-        repeatPassword: 'testpassword',
-        email: 'testemail@test.com',
-        country: 'IN',
-        fullName: 'Mocha Test',
-        pragyanId: null,
-      };
-      await superAgent.post('/user/register')
-        .set('content-type', 'application/json')
-        .send(registerBody);
-      const loginBody = {
-        username: 'testusername',
-        password: 'testpassword',
-      };
-      await superAgent.post('/user/login')
-        .set('content-type', 'application/json')
-        .send(loginBody);
     });
 
     it(`send 200 (Search '${searchKey}')`, async () => {
