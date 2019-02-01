@@ -112,6 +112,16 @@ describe('Test Leaderboard', async () => {
       chai.assert(JSON.parse(res.text).error.msg === 'Finish must be Integer');
     });
 
+
+    it('send 400 (Start greater than Finish)', async () => {
+      const start = 2;
+      const finish = 1;
+      const { res } = await superAgent
+        .post(`/leaderboard/${start}/${finish}`);
+      res.should.have.status(400);
+      chai.assert(JSON.parse(res.text).error === 'Start cannot be greater than Finish');
+    });
+
     it('send 200 (Rank 1)', async () => {
       const start = 1;
       const finish = 1;

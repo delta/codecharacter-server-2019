@@ -22,10 +22,18 @@ router.post('/:start/:finish', [
 
   start = parseInt(start, 10);
   finish = parseInt(finish, 10);
+
   if (!errors.isEmpty()) {
     return res.status(400).json({
       type: 'Error',
       error: (errors.array())[0],
+    });
+  }
+
+  if (start > finish) {
+    return res.status(400).json({
+      type: 'Error',
+      error: 'Start cannot be greater than Finish',
     });
   }
 
@@ -43,9 +51,6 @@ router.post('/:start/:finish', [
       },
     );
 
-    if (start > leaderboard.length) {
-      return res.status(200).send({ type: 'Success', error: '', leaderboardData: JSON.parse('') });
-    }
     finish = Math.min(finish, leaderboard.length);
     for (let index = start - 1; index < finish; index += 1) {
       const leaderboardElement = {};
@@ -92,6 +97,13 @@ router.post('/:search/:start/:finish', [
     });
   }
 
+  if (start > finish) {
+    return res.status(400).json({
+      type: 'Error',
+      error: 'Start cannot be greater than Finish',
+    });
+  }
+
   try {
     const leaderboard = await Leaderboard.findAll(
       {
@@ -105,9 +117,7 @@ router.post('/:search/:start/:finish', [
         attributes: ['rating'],
       },
     );
-    if (start > leaderboard.length) {
-      return res.status(200).send({ type: 'Success', error: '', leaderboardData: JSON.parse('') });
-    }
+
     finish = Math.min(finish, leaderboard.length);
     for (let index = start - 1; index < finish; index += 1) {
       if (leaderboard[index].user.fullName.includes(search)) {
