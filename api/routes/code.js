@@ -85,7 +85,7 @@ router.get('/view/:commitHash', async (req, res) => {
   try {
     const { username } = req.user;
     const { commitHash } = req.params;
-    const fileContent = await git.getFile(username, 'code.cpp', commitHash);
+    const fileContent = await git.getFile(username, 'code.cpp', commitHash === 'latest' ? null : commitHash);
     res.status(200).json({
       type: 'Success',
       error: '',
@@ -106,7 +106,6 @@ router.get('/fork/:commitHash', async (req, res) => {
     const fileContent = await git.getFile(username, 'code.cpp', commitHash);
     git.setFile(username, fileContent);
     await git.add(username);
-    await git.commit(username);
     res.status(200).json({
       type: 'Success',
       error: '',
