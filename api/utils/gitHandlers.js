@@ -1,7 +1,10 @@
 const path = require('path');
 const shell = require('shelljs');
 const git = require('simple-git/promise');
-const fs = require('fs').promises;
+const fs = require('fs');
+const util = require('util');
+
+const fsWriteFile = util.promisify(fs.writeFile);
 
 const getUserDir = username => `${appPath}/storage/codes/${username}`;
 
@@ -67,6 +70,6 @@ exports.getFile = async (username, filename = 'code.cpp', commitHash = null) => 
 
 exports.setFile = async (username, fileText) => {
   const userDir = `${path.resolve('storage/codes/')}/${username}`;
-  await fs.writeFile(path.resolve(userDir, 'code.cpp'), fileText);
+  await fsWriteFile(path.resolve(userDir, 'code.cpp'), fileText);
   return null;
 };
