@@ -97,19 +97,19 @@ describe('Test Leaderboard', async () => {
       const start = 'a';
       const finish = 1;
       const { res } = await superAgent
-        .post(`/leaderboard/${start}/${finish}`);
+        .get(`/leaderboard/${start}/${finish}`);
 
       res.should.have.status(400);
-      chai.assert(JSON.parse(res.text).error.msg === 'Start must be Integer');
+      JSON.parse(res.text).error.msg.should.equal('Start must be Integer');
     });
 
     it('finish must be int', async () => {
       const start = 0;
       const finish = 'a';
       const { res } = await superAgent
-        .post(`/leaderboard/${start}/${finish}`);
+        .get(`/leaderboard/${start}/${finish}`);
       res.should.have.status(400);
-      chai.assert(JSON.parse(res.text).error.msg === 'Finish must be Integer');
+      JSON.parse(res.text).error.msg.should.equal('Finish must be Integer');
     });
 
 
@@ -117,16 +117,16 @@ describe('Test Leaderboard', async () => {
       const start = 2;
       const finish = 1;
       const { res } = await superAgent
-        .post(`/leaderboard/${start}/${finish}`);
+        .get(`/leaderboard/${start}/${finish}`);
       res.should.have.status(400);
-      chai.assert(JSON.parse(res.text).error === 'Start cannot be greater than Finish');
+      JSON.parse(res.text).error.should.equal('Start cannot be greater than Finish');
     });
 
     it('send 200 (Rank 1)', async () => {
       const start = 1;
       const finish = 1;
       const { res } = await superAgent
-        .post(`/leaderboard/${start}/${finish}`);
+        .get(`/leaderboard/${start}/${finish}`);
       res.should.have.status(200);
     });
 
@@ -134,11 +134,11 @@ describe('Test Leaderboard', async () => {
       const start = 5;
       const finish = 10;
       const { res } = await superAgent
-        .post(`/leaderboard/${start}/${finish}`);
+        .get(`/leaderboard/${start}/${finish}`);
       res.should.have.status(200);
       const { leaderboardData } = JSON.parse(res.text);
       for (let index = 0; index < leaderboardData.length; index += 1) {
-        chai.assert(leaderboardData[index].rank === start + index);
+        leaderboardData[index].rank.should.equal(start + index);
       }
     });
 
@@ -147,27 +147,27 @@ describe('Test Leaderboard', async () => {
       const finish = 100;
       const numEntries = 20;
       const { res } = await superAgent
-        .post(`/leaderboard/${start}/${finish}`);
+        .get(`/leaderboard/${start}/${finish}`);
       res.should.have.status(200);
       const { leaderboardData } = JSON.parse(res.text);
-      chai.assert(leaderboardData.length === numEntries);
+      leaderboardData.length.should.equal(numEntries);
       for (let index = 0; index < numEntries; index += 1) {
-        chai.assert(leaderboardData[index].rank === start + index);
+        leaderboardData[index].rank.should.equal(start + index);
       }
     });
 
     it(`send 200 (Search '${searchKey}')`, async () => {
       const start = 1;
-      const finish = 100;
-      const numEntries = 10;
+      const finish = 7;
+      const numEntries = 7;
       const { res } = await superAgent
-        .post(`/leaderboard/${searchKey}/${start}/${finish}`);
+        .get(`/leaderboard/${searchKey}/${start}/${finish}`);
       res.should.have.status(200);
-      const { leaderboardData } = JSON.parse(res.text);
-      chai.assert(leaderboardData.length === numEntries);
-      for (let index = 0; index < numEntries; index += 1) {
-        chai.assert(leaderboardData[index].rank === 2 + index * 2);
-      }
+      const { searchData } = JSON.parse(res.text);
+      (searchData.length).should.equal(numEntries);
+      searchData.forEach((data) => {
+        data.user.username.includes(searchKey).should.equal(true);
+      });
     });
   });
 });
