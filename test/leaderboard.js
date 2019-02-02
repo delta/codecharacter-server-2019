@@ -15,7 +15,7 @@ chai.use(chaiHttp);
 describe('Test Leaderboard', async () => {
   describe('Test Leaderboard by Rank', async () => {
     const superAgent = request.agent(server);
-    const searchKey = 'z';
+    const searchKey = 't';
     // eslint-disable-next-line no-undef
     after(async () => {
       const user = await User.findAll();
@@ -63,10 +63,10 @@ describe('Test Leaderboard', async () => {
       for (let index = 0; index < numEntries; index += 1) {
         User.findOrCreate({
           where: {
-            username: `z${index + 10}`,
-            password: `z${index + 10}`,
-            email: `z${index + 10}@testemail.com`,
-            fullName: `z${index + 10}`,
+            username: `test${index}`,
+            password: `test${index}`,
+            email: `test${index}@testemail.com`,
+            fullName: `test${index}`,
             id: 110 + index,
           },
         });
