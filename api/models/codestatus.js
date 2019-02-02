@@ -22,10 +22,12 @@ module.exports = (sequelize, DataTypes) => {
     lastSavedAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: Date.now(),
     },
     lastCompiledAt: {
       type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: new Date(0),
     },
   }, {
     freezeTableName: true,

@@ -29,10 +29,12 @@ module.exports = {
       lastSavedAt: {
         type: Sequelize.DATE,
         allowNull: false,
+        defaultValue: new Date(),
       },
       lastCompiledAt: {
         type: Sequelize.DATE,
         allowNull: false,
+        defaultValue: new Date(0),
       },
       createdAt: {
         type: Sequelize.DATE,

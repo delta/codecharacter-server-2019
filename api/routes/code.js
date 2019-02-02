@@ -1,8 +1,13 @@
 const express = require('express');
+const git = require('../utils/gitHandlers');
+const codeStatus = require('../models').code_status;
 
 const router = express.Router();
+<<<<<<< HEAD
 const git = require('../utils/gitHandlers');
 const socket = require('../utils/socketHandlers');
+=======
+>>>>>>> Save time when code is saved
 
 router.get('/latest', async (req, res) => {
   try {
@@ -27,6 +32,11 @@ router.post('/save', async (req, res) => {
     const { code } = req.body;
     git.setFile(username, code);
     await git.add(username);
+    await codeStatus.update({
+      lastSavedAt: new Date(),
+    }, {
+      where: { user_id: req.user.id },
+    });
     socket.sendMessage(id, 'Saved!', 'Success');
     res.status(200).json({
       type: 'Success',
