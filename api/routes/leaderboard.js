@@ -61,7 +61,7 @@ router.post('/:start/:finish', [
       leaderboardElement.username = leaderboard[index].user.username;
       leaderboardData.push(leaderboardElement);
     }
-    return res.status(200).send({ type: 'Success', error: '', leaderboardData: JSON.stringify(leaderboardData) });
+    return res.status(200).json({ type: 'Success', error: '', leaderboardData });
   } catch (err) {
     return res.status(500).json({
       type: 'Error',
@@ -131,7 +131,7 @@ router.post('/:search/:start/:finish', [
         count += 1;
       }
     }
-    return res.status(200).send({ type: 'Success', error: '', leaderboardData: JSON.stringify(leaderboardData) });
+    return res.status(200).json({ type: 'Success', error: '', leaderboardData });
   } catch (err) {
     return res.status(500).json({
       type: 'Error',

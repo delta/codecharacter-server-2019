@@ -136,7 +136,7 @@ describe('Test Leaderboard', async () => {
       const { res } = await superAgent
         .post(`/leaderboard/${start}/${finish}`);
       res.should.have.status(200);
-      const leaderboardData = JSON.parse(JSON.parse(res.text).leaderboardData);
+      const { leaderboardData } = JSON.parse(res.text);
       for (let index = 0; index < leaderboardData.length; index += 1) {
         chai.assert(leaderboardData[index].rank === start + index);
       }
@@ -149,7 +149,7 @@ describe('Test Leaderboard', async () => {
       const { res } = await superAgent
         .post(`/leaderboard/${start}/${finish}`);
       res.should.have.status(200);
-      const leaderboardData = JSON.parse(JSON.parse(res.text).leaderboardData);
+      const { leaderboardData } = JSON.parse(res.text);
       chai.assert(leaderboardData.length === numEntries);
       for (let index = 0; index < numEntries; index += 1) {
         chai.assert(leaderboardData[index].rank === start + index);
@@ -163,7 +163,7 @@ describe('Test Leaderboard', async () => {
       const { res } = await superAgent
         .post(`/leaderboard/${searchKey}/${start}/${finish}`);
       res.should.have.status(200);
-      const leaderboardData = JSON.parse(JSON.parse(res.text).leaderboardData);
+      const { leaderboardData } = JSON.parse(res.text);
       chai.assert(leaderboardData.length === numEntries);
       for (let index = 0; index < numEntries; index += 1) {
         chai.assert(leaderboardData[index].rank === 2 + index * 2);
