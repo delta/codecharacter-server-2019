@@ -6,7 +6,7 @@ const User = require('../models').user;
 
 Leaderboard.belongsTo(User, { foreignKey: 'user_id' });
 const router = express.Router();
-router.post('/:start/:finish', [
+router.get('/:start/:finish', [
   check('start')
     .not().isEmpty().withMessage('Start cannot be empty')
     .isInt()
@@ -70,7 +70,7 @@ router.post('/:start/:finish', [
   }
 });
 
-router.post('/:search/:start/:finish', [
+router.get('/:search/:start/:finish', [
   check('search')
     .not().isEmpty().withMessage('Search cannot be empty'),
   check('start')
@@ -82,7 +82,6 @@ router.post('/:search/:start/:finish', [
     .isInt()
     .withMessage('Finish must be Integer'),
 ], async (req, res) => {
-  const leaderboardData = [];
   let { start, finish } = req.params;
   const { search } = req.params;
   const errors = validationResult(req);
@@ -118,20 +117,25 @@ router.post('/:search/:start/:finish', [
       },
     );
 
-    finish = Math.min(finish, leaderboard.length);
-    for (let index = start - 1; index < finish; index += 1) {
-      if (leaderboard[index].user.fullName.includes(search)) {
-        const leaderboardElement = {};
-        leaderboardElement.rank = index + 1;
-        leaderboardElement.rating = leaderboard[index].rating;
-        leaderboardElement.fullName = leaderboard[index].user.fullName;
-        leaderboardElement.country = leaderboard[index].user.country;
-        leaderboardElement.username = leaderboard[index].user.username;
-        leaderboardData[count] = leaderboardElement;
-        count += 1;
-      }
+    const searchData = [];
+    if (leaderboard && leaderboard.length > 0) {
+      finish = Math.min(finish, leaderboard.length);
+      leaderboard.forEach((leaderboardElement, index) => {
+        if (leaderboardElement.user.username.includes(search)) {
+          const searchElement = {};
+          searchElement.rank = index + 1;
+          searchElement.rating = leaderboardElement.rating;
+          searchElement.fullName = leaderboardElement.user.fullName;
+          searchElement.country = leaderboardElement.user.country;
+          searchElement.username = leaderboardElement.user.username;
+          if ((count + 1) >= start && (count + 1) <= finish) {
+            searchData[count - start + 1] = leaderboardElement;
+          }
+          count += 1;
+        }
+      });
     }
-    return res.status(200).json({ type: 'Success', error: '', leaderboardData });
+    return res.status(200).json({ type: 'Success', error: '', searchData });
   } catch (err) {
     return res.status(500).json({
       type: 'Error',
