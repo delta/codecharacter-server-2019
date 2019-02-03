@@ -13,7 +13,7 @@ exports.createUserDir = async (username) => {
   const defaultDir = `${appPath}/storage/codes/default`;
   await shell.mkdir(userDir);
 
-  if (await shell.exec(`cp ${defaultDir}/code.cpp ${userDir}/`).code !== 0) {
+  if (await shell.exec(`cp "${defaultDir}/code.cpp" "${userDir}/"`).code !== 0) {
     return false;
   }
 
