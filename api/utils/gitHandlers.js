@@ -71,3 +71,5 @@ exports.setFile = async (username, fileText) => {
   await fsWriteFile(path.resolve(userDir, 'code.cpp'), fileText);
   return null;
 };
+
+exports.getUserDir = getUserDir;
