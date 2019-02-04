@@ -8,6 +8,7 @@
     "body-parser": "1.18.3",
     "chai-http": "^4.2.1",
     "cookie-parser": "^1.4.3",
+    "cors": "2.8.5",
     "express": "4.16.4",
     "express-session": "1.15.6",
     "express-validator": "^5.3.1",
@@ -43,7 +44,9 @@
   "scripts": {
     "lint": "eslint .",
     "start": "nodemon app.js",
-    "test": "mocha --exit --timeout 10000"
+    "migrate":"sequelize db:migrate --env=test --migrations-path api/migrations --models-path api/models --config api/config/database.json",
+    "undo-migrate": "sequelize db:migrate:undo:all --env=test --migrations-path api/migrations --models-path api/models --config api/config/database.json",
+    "test": "npm run migrate && mocha --exit --timeout 10000 && npm run undo-migrate"
   },
   "author": "",
   "license": "ISC"
