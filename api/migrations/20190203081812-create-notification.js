@@ -20,7 +20,7 @@ module.exports = {
         type: Sequelize.ENUM,
         values: ['Info', 'Success', 'Error'],
       },
-      user_id: {
+      userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         foreignKey: true,
