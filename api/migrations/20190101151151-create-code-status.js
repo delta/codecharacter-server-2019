@@ -29,12 +29,12 @@ module.exports = {
       lastSavedAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: new Date(),
+        defaultValue: new Date(),  //current time
       },
       lastCompiledAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: new Date(0),
+        defaultValue: new Date(0),  //epoch start time
       },
       createdAt: {
         type: Sequelize.DATE,

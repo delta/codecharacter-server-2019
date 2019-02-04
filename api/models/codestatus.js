@@ -1,7 +1,7 @@
 const User = require('./user');
 
 module.exports = (sequelize, DataTypes) => {
-  const CodeStatus = sequelize.define('codestatus', {
+  const codeStatus = sequelize.define('codestatus', {
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -22,12 +22,12 @@ module.exports = (sequelize, DataTypes) => {
     lastSavedAt: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: Date.now(),
+      defaultValue: Date.now(), // current time
     },
     lastCompiledAt: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: new Date(0),
+      defaultValue: new Date(0), // epoch start time
     },
   }, {
     freezeTableName: true,
@@ -36,5 +36,5 @@ module.exports = (sequelize, DataTypes) => {
   // CodeStatus.associate = function(models) {
     // associations can be defined here
   // };
-  return CodeStatus;
+  return codeStatus;
 };
