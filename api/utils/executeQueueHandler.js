@@ -128,6 +128,7 @@ const processMatchCompletion = async (response) => {
       message: (winner === userId2) ? 'you win' : 'you lose',
     }, 'notification');
   }
+  requestUnderway = false;
 
   // send notifications here
 };
@@ -167,7 +168,7 @@ async function sendToCompilebox(userId1, userId2, dll1, dll2, gameId, isAi) {
 
 
 // schedule execution jobs pending in the queue
-setInterval(async () => {
+const checkAndSendForExecution = async () => {
   if (requestUnderway) {
     return null;
   }
@@ -187,4 +188,7 @@ setInterval(async () => {
     return null;
   });
   return x;
-}, 2000);
+};
+
+// this will be replaced in places - a new match request - a request from compilebox
+setInterval(checkAndSendForExecution(), 2000);

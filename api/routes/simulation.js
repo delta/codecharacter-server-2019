@@ -16,8 +16,9 @@ const getUserName = async userId => User.findOne({
   .catch(() => null);
 
 router.get('/gamedone', async (req, res) => {
+  console.log(req.body);
   res.sendStatus(200);
-  processMatchCompletion(res);
+  processMatchCompletion(req);
 });
 router.post('/match/:userId2', async (req, res) => {
   let { userId2 } = req.params;
