@@ -191,4 +191,4 @@ const checkAndSendForExecution = async () => {
 };
 
 // this will be replaced in places - a new match request - a request from compilebox
-setInterval(checkAndSendForExecution(), 2000);
+setInterval(checkAndSendForExecution, 2000);
