@@ -4,7 +4,8 @@ const router = express.Router();
 const git = require('../utils/gitHandlers');
 const Constant = require('../models').constant;
 const Match = require('../models').match;
-const { pushToQueue } = require('../utils/executeQueueHandler');
+const Game = require('../models').game;
+const { pushToQueue, processMatchCompletion } = require('../utils/executeQueueHandler');
 const User = require('../models').user;
 
 const getUserName = async userId => User.findOne({
@@ -14,6 +15,10 @@ const getUserName = async userId => User.findOne({
 }).then(user => user.dataValues.username)
   .catch(() => null);
 
+router.get('/gamedone', async (req, res) => {
+  res.sendStatus(200);
+  processMatchCompletion(res);
+});
 router.post('/match/:userId2', async (req, res) => {
   let { userId2 } = req.params;
   userId2 = Number(userId2);
@@ -69,7 +74,24 @@ router.post('/match/:userId2', async (req, res) => {
     user_id_2: userId2,
     match_log: '',
     status: 'executing',
-  })).then(match => pushToQueue(userId1, userId2, dll1, dll2, false, match.id))
+  })).then(async (match) => {
+    const promises = [];
+    for (let i = 0; i < 5; i += 1) {
+      const game = Game.create({
+        user_id_1: userId1,
+        user_id_2: userId1,
+        match_id: match.id,
+        debug_log_1_path: 'dummypath',
+        debug_log_2_path: 'dummypath',
+        log: '',
+        points1: 0,
+        points2: 0,
+        mapId: i,
+      });
+      promises.push(pushToQueue(userId1, userId2, dll1, dll2, false, game.id));
+    }
+    await Promise.all(promises);
+  })
     .then(() => {
       res.status(200).json({
         message: 'match initiated',
@@ -102,7 +124,7 @@ router.get('/ai/:ai_id', async (req, res) => {
     player_id2: aiId,
     match_log: '',
     status: 'executing',
-  }).then(match => pushToQueue(userId, aiId, dll1, dll2, true, match.null)).then(() => {
+  }).then(match => pushToQueue(userId, aiId, dll1, dll2, true, match.id)).then(() => {
     res.status(200).json({
       message: 'match initiated',
     });

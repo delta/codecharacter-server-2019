@@ -3,7 +3,8 @@ const EloRank = require('elo-rank');
 const compileBox = require('../models').compilebox;
 const { secretString } = require('../config/config');
 const Constant = require('../models').constant;
-const Match = require('../models').match;
+// const Match = require('../models').match;
+const Game = require('../models').game;
 const { ExecuteQueue, Leaderboard } = require('../models');
 const { sendMessage } = require('../utils/socketHandlers');
 
@@ -29,7 +30,7 @@ const getQueueSize = async () => ExecuteQueue.findAll({
 }).then(executeQueueElements => executeQueueElements.length)
   .catch(() => -1);
 
-const pushToQueue = async (userId1, userId2, dll1, dll2, isAi, matchId) => {
+const pushToQueue = async (userId1, userId2, dll1, dll2, isAi, gameId) => {
   const queueLength = await getQueueSize();
   if (queueLength === executeQueueSize) {
     return false;
@@ -40,18 +41,104 @@ const pushToQueue = async (userId1, userId2, dll1, dll2, isAi, matchId) => {
     dll1,
     dll2,
     isAi,
-    matchId,
+    gameId,
   }).then(() => true)
     .catch(() => false);
 };
 
+const processMatchCompletion = async (response) => {
+  const {
+    userId1,
+    userId2,
+    winner,
+    matchLog,
+    errorStatus,
+    gameId,
+    isAi,
+  } = response.body;
+  const user1 = await Leaderboard.find({ where: { user_id: userId1 } });
+  const user2 = await Leaderboard.find({ where: { user_id: userId2 } });
+  const ratingP1Old = user1.rating;
+  const ratingP2Old = user2.rating;
+
+
+  const expectedScoreA = elo.getExpected(ratingP1Old, ratingP2Old);
+  const expectedScoreB = elo.getExpected(ratingP2Old, ratingP1Old);
+  // console.log(response);
+  // initiate 5 games and create 5 promises, wait for them to be resolved, update
+  // each game after completion of each promise,
+  // once all promises are resolved, do this with the match
+  await Game.update({
+    // might be an error log, check errorstatus while creating routes
+    // for match log
+    log: matchLog,
+    verdict: errorStatus,
+  }, {
+    id: gameId,
+  });
+
+
+  // error handlers for match
+  if (errorStatus) {
+    sendMessage(userId1, {
+      message: 'error occured during runtime',
+    }, 'notification');
+    sendMessage(userId2, {
+      message: 'error occured during runtime',
+    }, 'notification');
+  }
+
+  if (!isAi) {
+    // calculate ratings by some methods by getting game scores
+    let ratingP1New;
+    let ratingP2New;
+    if (winner === userId1) {
+      ratingP1New = elo.updateRating(expectedScoreA, 1, ratingP1Old);
+      ratingP2New = elo.updateRating(expectedScoreB, 0, ratingP2Old);
+    } else {
+      ratingP1New = elo.updateRating(expectedScoreA, 0, ratingP1Old);
+      ratingP2New = elo.updateRating(expectedScoreB, 1, ratingP2Old);
+    }
+    await Leaderboard.update({
+      rating: ratingP1New,
+    },
+    {
+      user_id: userId1,
+    });
+    await Leaderboard.update({
+      rating: ratingP2New,
+    },
+    {
+      user_id: userId2,
+    });
+
+    sendMessage(userId1, {
+      winner,
+      message: (winner === userId1) ? 'you win' : 'you lose',
+    }, 'notification');
+
+    sendMessage(userId2, {
+      winner,
+      message: (winner === userId2) ? 'you win' : 'you lose',
+    }, 'notification');
+  } else {
+    // ai, do nothing but notify user about match completion
+    sendMessage(userId1, {
+      winner,
+      message: (winner === userId2) ? 'you win' : 'you lose',
+    }, 'notification');
+  }
+
+  // send notifications here
+};
 module.exports = {
   pushToQueue,
   getQueueSize,
+  processMatchCompletion,
 };
 
 
-async function sendToCompilebox(userId1, userId2, dll1, dll2) {
+async function sendToCompilebox(userId1, userId2, dll1, dll2, gameId, isAi) {
   try {
     const availableBoxes = await compileBox.findAll({
       where: { tasks_running: 10 },
@@ -66,6 +153,8 @@ async function sendToCompilebox(userId1, userId2, dll1, dll2) {
         dll1,
         dll2,
         secretString,
+        gameId,
+        isAi,
       },
       json: true, // Automatically stringifies the body to JSON
     };
@@ -87,75 +176,14 @@ setInterval(async () => {
       return null;
     }
     const {
-      userId1, userId2, matchId, isAi,
+      userId1, userId2, gameId, isAi,
     } = executeQueueElement;
     let { dll1, dll2 } = executeQueueElement;
     dll1 = dll1.toString();
     dll2 = dll2.toString();
     requestUnderway = true;
-    const response = await sendToCompilebox(userId1, userId2, dll1, dll2);
-
-
-    const user1 = await Leaderboard.find({ where: { user_id: userId1 } });
-    const user2 = await Leaderboard.find({ where: { user_id: userId2 } });
-    const ratingP1Old = user1.rating;
-    const ratingP2Old = user2.rating;
-
-
-    const expectedScoreA = elo.getExpected(ratingP1Old, ratingP2Old);
-    const expectedScoreB = elo.getExpected(ratingP2Old, ratingP1Old);
-    // console.log(response);
-    const { winner, matchLog, errorStatus } = response.body;
-    // do something with executeQueueElement and destroy
-    if (!isAi) {
-      // calculate ratings by some methods by getting game scores
-      let ratingP1New;
-      let ratingP2New;
-      if (winner === userId1) {
-        ratingP1New = elo.updateRating(expectedScoreA, 1, ratingP1Old);
-        ratingP2New = elo.updateRating(expectedScoreB, 0, ratingP2Old);
-      } else {
-        ratingP1New = elo.updateRating(expectedScoreA, 0, ratingP1Old);
-        ratingP2New = elo.updateRating(expectedScoreB, 1, ratingP2Old);
-      }
-      await Leaderboard.update({
-        rating: ratingP1New,
-      },
-      {
-        user_id: userId1,
-      });
-      await Leaderboard.update({
-        rating: ratingP2New,
-      },
-      {
-        user_id: userId2,
-      });
-    }
-    // update match status here
-
-    // initiate 5 games and create 5 promises, wait for them to be resolved, update
-    // each game after completion of each promise,
-    // once all promises are resolved, do this with the match
-    await Match.update({
-      match_log: matchLog,
-      verdict: errorStatus,
-    }, {
-      id: matchId,
-    });
-
-    // send notifications here
-    sendMessage(userId1, {
-      winner,
-      message: (winner === userId1) ? 'you win' : 'you lose',
-    }, 'notification');
-
-    sendMessage(userId2, {
-      winner,
-      message: (winner === userId2) ? 'you win' : 'you lose',
-    }, 'notification');
-
+    sendToCompilebox(userId1, userId2, dll1, dll2, gameId, isAi);
     executeQueueElement.destroy();
-    requestUnderway = false;
     return null;
   });
   return x;

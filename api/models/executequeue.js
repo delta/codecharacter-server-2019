@@ -1,5 +1,5 @@
 const User = require('./user');
-const Match = require('./match');
+const Game = require('./game');
 
 module.exports = (sequelize, DataTypes) => {
   const ExecuteQueue = sequelize.define('ExecuteQueue', {
@@ -19,10 +19,10 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id',
       },
     },
-    matchId: {
+    gameId: {
       type: DataTypes.STRING,
       references: {
-        model: Match,
+        model: Game,
         key: 'id',
       },
     },

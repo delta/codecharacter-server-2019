@@ -60,6 +60,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    mapId: DataTypes.INTEGER,
   }, {});
   // game.associate = function (models) {
   //   // associations can be defined here

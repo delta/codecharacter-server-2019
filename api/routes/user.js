@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const User = require('../models').user;
+const { Notification } = require('../models');
 
 const router = express.Router();
 
@@ -85,6 +86,22 @@ router.post('/update', async (req, res) => {
   }
 });
 
+router.get('/notifications', async (req, res) => {
+  // get notifications
+  const notifications = await Notification.findAll({
+    where: {
+      user_id: req.user.id,
+    },
+  });
+
+  // if notifications is defined no error has occured, else it has
+  if (notifications) {
+    res.status(200).json({ notifications });
+  } else {
+    res.status(400);
+  }
+  await Notification.destroy({ where: { user_id: req.user.id } });
+});
 router.post('/updatePassword', async (req, res) => {
   try {
     if (req.body.password) {
