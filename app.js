@@ -3,6 +3,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 const session = require('express-session');
+const cors = require('cors');
 
 const app = express();
 const server = require('http').createServer(app);
@@ -16,6 +17,14 @@ const socketUtils = require('./api/utils/socketHandlers');
 
 global.appPath = path.resolve(__dirname);
 
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'PUT', 'POST', 'DELETE'],
+  allowedHeaders: ['X-Requested-With', 'X-HTTP-Method-Override', 'Content-Type', 'Accept'],
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
 app.use(
   session({
     secret: config.app.sessionSecret,
@@ -26,13 +35,6 @@ app.use(
 
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Credentials', true);
-  res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-  res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
-  next();
-});
 
 app.use(passport.initialize());
 app.use(passport.session());
