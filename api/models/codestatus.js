@@ -1,8 +1,8 @@
 const User = require('./user');
 
 module.exports = (sequelize, DataTypes) => {
-  const CodeStatus = sequelize.define('Code_Status', {
-    user_id: {
+  const CodeStatus = sequelize.define('codestatus', {
+    userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       foreignKey: true,
@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id',
       },
     },
-    latest_src_path: {
+    latestSrcPath: {
       type: DataTypes.TEXT('long'),
     },
     status: {
@@ -27,7 +27,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: false,
     },
-  }, {});
+  }, {
+    freezeTableName: true,
+    tableName: 'codestatus',
+  });
   // CodeStatus.associate = function(models) {
     // associations can be defined here
   // };

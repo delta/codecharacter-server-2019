@@ -24,7 +24,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
-      is_ai: {
+      isAi: {
         type: Sequelize.BOOLEAN,
         defaultValue: false
       },
