@@ -1,14 +1,14 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Code_Statuses', {
+    return queryInterface.createTable('codestatus', {
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         autoIncrement: true,
         primaryKey: true
       },
-      user_id: {
+      userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         foreignKey: true,
@@ -18,7 +18,7 @@ module.exports = {
           key: 'id'
         }
       },
-      latest_src_path: {
+      latestSrcPath: {
         type: Sequelize.TEXT('long')
       },
       status: {
@@ -45,6 +45,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Code_Statuses');
+    return queryInterface.dropTable('codestatus');
   }
 };

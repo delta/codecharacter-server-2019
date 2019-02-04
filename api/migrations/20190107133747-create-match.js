@@ -8,7 +8,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      user_id_1: {
+      userId1: {
         type: Sequelize.INTEGER,
         allowNull: false,
         foreignKey: true,
@@ -17,7 +17,7 @@ module.exports = {
           key: 'id',
         },
       },
-      user_id_2: {
+      userId2: {
         type: Sequelize.INTEGER,
         allowNull: false,
         foreignKey: true,
@@ -26,7 +26,7 @@ module.exports = {
           key: 'id',
         },
       },
-      match_log: {
+      matchLog: {
         type: Sequelize.STRING,
         allowNull: false,
       },

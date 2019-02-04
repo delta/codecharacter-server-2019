@@ -3,7 +3,7 @@ const Match = require('./match');
 
 module.exports = (sequelize, DataTypes) => {
   const game = sequelize.define('game', {
-    user_id_1: {
+    userId1: {
       type: DataTypes.INTEGER,
       allowNull: false,
       foreignKey: true,
@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id',
       },
     },
-    user_id_2: {
+    userId2: {
       type: DataTypes.INTEGER,
       allowNull: false,
       foreignKey: true,
@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id',
       },
     },
-    match_id: {
+    matchId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       foreignKey: true,
@@ -30,11 +30,11 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id',
       },
     },
-    debug_log_1_path: {
+    debugLog1Path: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    debug_log_2_path: {
+    debugLog2Path: {
       type: DataTypes.STRING,
       allowNull: false,
     },

@@ -1,14 +1,14 @@
 'use strict';
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Commits', {
+    return queryInterface.createTable('commits', {
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
         autoIncrement: true,
         primaryKey: true
       },
-      user_id: {
+      userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         foreignKey: true,
@@ -17,11 +17,11 @@ module.exports = {
           key: 'id'
         }
       },
-      commit_hash: {
+      commitHash: {
         type: Sequelize.STRING(255),
         unique: true,
       },
-      code_path: {
+      codePath: {
         type: Sequelize.TEXT('long'),
       },
       createdAt: {
@@ -35,6 +35,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Commits');
+    return queryInterface.dropTable('commits');
   }
 };

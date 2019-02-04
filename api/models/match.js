@@ -2,7 +2,7 @@ const User = require('./user');
 
 module.exports = (sequelize, DataTypes) => {
   const match = sequelize.define('match', {
-    user_id_1: {
+    userId1: {
       type: DataTypes.INTEGER,
       allowNull: false,
       foreignKey: true,
@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id',
       },
     },
-    user_id_2: {
+    userId2: {
       type: DataTypes.INTEGER,
       allowNull: false,
       foreignKey: true,
