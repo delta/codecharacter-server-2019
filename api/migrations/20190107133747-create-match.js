@@ -26,14 +26,9 @@ module.exports = {
           key: 'id',
         },
       },
-      matchLog: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      status: {
+      verdict: {
         type: Sequelize.ENUM,
-        values: ['Idle', 'Waiting', 'Compiling', 'Compiled', 'Error', 'Executing', 'Executed'],
-        defaultValue: 'Idle',
+        values: ['0', '1', '2'],
       },
       createdAt: {
         allowNull: false,
