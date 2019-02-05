@@ -44,9 +44,11 @@
   "scripts": {
     "lint": "eslint .",
     "start": "nodemon app.js",
-    "migrate":"sequelize db:migrate --env=test --migrations-path api/migrations --models-path api/models --config api/config/database.json",
-    "undo-migrate": "sequelize db:migrate:undo:all --env=test --migrations-path api/migrations --models-path api/models --config api/config/database.json",
-    "test": "npm run migrate && mocha --exit --timeout 10000 && npm run undo-migrate"
+    "migrate":"sequelize db:migrate --migrations-path api/migrations --models-path api/models --config api/config/database.json",
+    "migrate-test":"sequelize db:migrate --env=test --migrations-path api/migrations --models-path api/models --config api/config/database.json",
+    "undo-migrate-test": "sequelize db:migrate:undo:all --env=test --migrations-path api/migrations --models-path api/models --config api/config/database.json",
+    "undo-migrate": "sequelize db:migrate:undo:all --migrations-path api/migrations --models-path api/models --config api/config/database.json",
+    "test": "npm run migrate-test && mocha --exit --timeout 10000 && npm run undo-migrate-test"
   },
   "author": "",
   "license": "ISC"
