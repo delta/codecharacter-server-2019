@@ -18,7 +18,7 @@ const socketUtils = require('./api/utils/socketHandlers');
 global.appPath = path.resolve(__dirname);
 
 const corsOptions = {
-  origin: 'http://localhost:3000',
+  origin: config.appBaseURL,
   methods: ['GET', 'PUT', 'POST', 'DELETE'],
   allowedHeaders: ['X-Requested-With', 'X-HTTP-Method-Override', 'Content-Type', 'Accept'],
   credentials: true,
