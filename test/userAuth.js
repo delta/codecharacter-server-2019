@@ -5,6 +5,7 @@ const chai = require('chai');
 const should = chai.should();
 const shell = require('shelljs');
 const chaiHttp = require('chai-http');
+const randomString = require('randomstring');
 
 const server = require('../app');
 const User = require('../api/models').user;
@@ -15,11 +16,12 @@ describe('Test Register', async () => {
   let body;
 
   beforeEach(async () => {
+    const username = randomString.generate(15);
     body = {
-      username: 'testusername',
+      username,
       password: 'testpassword',
       repeatPassword: 'testpassword',
-      email: 'testemail@test.com',
+      email: `${username}@test.com`,
       country: 'IN',
       fullName: 'Mocha Test',
       pragyanId: null,
@@ -84,9 +86,7 @@ describe('Test Register', async () => {
         username: body.username,
       },
     });
-
     await user.destroy();
-
     const userDir = `${appPath}/storage/codes/${user.username}`;
     await shell.rm('-rf', userDir);
   });
