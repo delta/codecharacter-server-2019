@@ -27,7 +27,9 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     isAi: DataTypes.BOOLEAN,
-  }, {});
+  }, {
+    // timestamps: false,
+  });
   // ExecuteQueue.associate = function(models) {
   //   // associations can be defined here
   // };

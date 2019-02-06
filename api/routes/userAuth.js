@@ -5,8 +5,14 @@ const { Op } = require('sequelize');
 const { check, validationResult } = require('express-validator/check');
 const User = require('../models').user;
 const git = require('../utils/gitHandlers');
+const { processMatchCompletion } = require('../utils/executeQueueHandler');
 
 const router = express.Router();
+
+router.post('/gamedone', async (req, res) => {
+  res.sendStatus(200);
+  processMatchCompletion(req);
+});
 
 router.post('/register', [
   check('username')

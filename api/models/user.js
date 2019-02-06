@@ -47,7 +47,9 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       type: DataTypes.INTEGER,
     },
-  }, {});
+  }, {
+    // timestamps: false,
+  });
   // user.associate = function (models) {
   //   // associations can be defined here
   // };

@@ -32,20 +32,24 @@ module.exports.handleConnections = (socket) => {
 };
 
 module.exports.sendMessage = async (userId, message, type) => {
+  const { messageText } = message;
   // get socketIds of connections by userId
+  if (!connections[userId]) {
+    connections[userId] = {};
+  }
   const socketIds = Object.keys(connections[userId]);
 
   // if length of socketIds is 0, add messages to notifications - sww
   if (!socketIds.length) {
     await Notification.create({
-      userId,
       type,
-      message,
+      message: messageText,
+      user_id: userId,
     });
   } else {
     // send message to each socketId
     socketIds.foreach((socketId) => {
-      connections[userId][socketId].emit(type, message);
+      connections[userId][socketId].emit(type, JSON.stringify(message));
     });
   }
 };

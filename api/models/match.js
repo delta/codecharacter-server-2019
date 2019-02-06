@@ -25,7 +25,9 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM,
       values: ['0', '1', '2'],
     },
-  }, {});
+  }, {
+    // timestamps: false,
+  });
   // match.associate = function (models) {
   //   // associations can be defined here
   // };

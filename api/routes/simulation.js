@@ -5,7 +5,7 @@ const git = require('../utils/gitHandlers');
 const Constant = require('../models').constant;
 const Match = require('../models').match;
 const Game = require('../models').game;
-const { pushToQueue, processMatchCompletion } = require('../utils/executeQueueHandler');
+const { pushToQueue } = require('../utils/executeQueueHandler');
 const User = require('../models').user;
 
 const getUserName = async userId => User.findOne({
@@ -15,11 +15,7 @@ const getUserName = async userId => User.findOne({
 }).then(user => user.dataValues.username)
   .catch(() => null);
 
-router.get('/gamedone', async (req, res) => {
-  console.log(req.body);
-  res.sendStatus(200);
-  processMatchCompletion(req);
-});
+
 router.post('/match/:userId2', async (req, res) => {
   let { userId2 } = req.params;
   userId2 = Number(userId2);
@@ -73,7 +69,6 @@ router.post('/match/:userId2', async (req, res) => {
   }).then(() => Match.create({
     user_id_1: userId1,
     user_id_2: userId2,
-    match_log: '',
     status: 'executing',
   })).then(async (match) => {
     const promises = [];
@@ -85,13 +80,26 @@ router.post('/match/:userId2', async (req, res) => {
         debug_log_1_path: 'dummypath',
         debug_log_2_path: 'dummypath',
         log: '',
+        status: 'Idle',
+        verdict: '0',
         points1: 0,
         points2: 0,
         mapId: i,
       });
-      promises.push(pushToQueue(userId1, userId2, dll1, dll2, false, game.id));
+      promises.push(game);
     }
-    await Promise.all(promises);
+    try {
+      const x = await Promise.all(promises);
+      const promises1 = [];
+      for (let i = 0; i < 5; i += 1) {
+        const y = pushToQueue(userId1, userId2, dll1, dll2, false, x.id);
+        promises1.push(y);
+      }
+      await Promise.all(promises1);
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Internal server error!', error });
+      throw new Error();
+    }
   })
     .then(() => {
       res.status(200).json({

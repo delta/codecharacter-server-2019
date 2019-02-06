@@ -11,7 +11,9 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     code: DataTypes.STRING,
-  }, {});
+  }, {
+    // timestamps: false,
+  });
   // CompileQueue.associate = function(models) {
   //   // associations can be defined here
   // };

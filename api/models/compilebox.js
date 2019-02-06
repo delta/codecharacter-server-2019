@@ -6,7 +6,9 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       defaultValue: 10,
     },
-  }, {});
+  }, {
+    // timestamps: false,
+  });
   // compilebox.associate = function(models) {
   //   // associations can be defined here
   // };
