@@ -5,6 +5,7 @@ const { Op } = require('sequelize');
 const { check, validationResult } = require('express-validator/check');
 const User = require('../models').user;
 const git = require('../utils/gitHandlers');
+const socket = require('../utils/socketHandlers');
 
 const router = express.Router();
 
@@ -110,6 +111,7 @@ router.post('/login', async (req, res, next) => {
           error: 'Internal server error',
         });
       }
+      res.cookie('userId', user.id);
       return res.status(200).json({
         type: 'Success',
         error: '',
@@ -120,13 +122,6 @@ router.post('/login', async (req, res, next) => {
   })(req, res, next);
 });
 
-router.post('/logout', (req, res) => {
-  req.logout();
-  res.status(200).json({
-    type: 'Success',
-    error: '',
-  });
-});
 
 router.get('/checkusername/:username', (req, res) => {
   const { username } = req.params;
@@ -145,6 +140,16 @@ router.get('/checkusername/:username', (req, res) => {
     type: 'Error',
     error: 'Internal server error',
   }));
+});
+
+router.post('/logout', (req, res) => {
+  res.cookie('userId', '', { maxAge: Date.now() });
+  socket.disconnectUser(req.user.id);
+  req.logOut();
+  res.status(200).json({
+    type: 'Success',
+    error: '',
+  });
 });
 
 module.exports = router;

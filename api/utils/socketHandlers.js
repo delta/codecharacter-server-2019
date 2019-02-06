@@ -9,7 +9,7 @@ module.exports.handleConnections = (socket) => {
   cookies = cookies.split(';');
   let socketId;
   let userId;
-  cookies.foreach((cookie) => {
+  cookies.forEach((cookie) => {
     // cookies are separated by ' ' and before start of each string, spaces are stripped
     if (cookie.replace(/ /g, '').slice(0, 2) === 'io') {
       [, socketId] = cookie.split('=');
@@ -25,17 +25,24 @@ module.exports.handleConnections = (socket) => {
   if (!connections[userId][socketId]) {
     connections[userId][socketId] = socket;
   }
-
   socket.on('disconnect', disconnectHandler.bind(null, socketId, userId));
 };
 
 module.exports.sendMessage = (userId, message, type) => {
   // get socketIds of connections by userId
   const socketIds = Object.keys(connections[userId]);
-
-  // send message to each socketId
-  socketIds.foreach((socketId) => {
+  // send message to each socketId of user
+  socketIds.forEach((socketId) => {
     connections[userId][socketId].emit(type, message);
+  });
+};
+
+module.exports.disconnectUser = (userId) => {
+  // get socketIds of connections by userId
+  const socketIds = Object.keys(connections[userId]);
+  // send message to each socketId of user
+  socketIds.forEach((socketId) => {
+    delete connections[userId][socketId];
   });
 };
 
