@@ -1,5 +1,5 @@
 const express = require('express');
-const { notification } = require('../models');
+const Notification = require('../models').notification;
 
 const router = express.Router();
 
@@ -7,7 +7,7 @@ router.delete('/delete/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
-    const deletedRows = await notification.destroy({
+    const deletedRows = await Notification.destroy({
       where: {
         id,
         userId,
@@ -35,7 +35,7 @@ router.delete('/delete/type/:type', async (req, res) => {
   try {
     const { type } = req.params;
     const userId = req.user.id;
-    const deletedRows = await notification.destroy({
+    const deletedRows = await Notification.destroy({
       where: {
         type,
         userId,
