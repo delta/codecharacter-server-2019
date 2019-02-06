@@ -4,9 +4,9 @@ const chai = require('chai');
 const should = chai.should();
 const shell = require('shelljs');
 const request = require('supertest');
+const randomString = require('randomstring');
 const User = require('../api/models').user;
 const server = require('../app');
-
 
 async function userLogin(userAgent, userDetails) {
   const { username, password } = userDetails;
@@ -16,11 +16,12 @@ async function userLogin(userAgent, userDetails) {
 }
 
 async function createUser(userAgent) {
+  const username = randomString.generate(15);
   const body = {
-    username: 'testusername',
+    username,
     password: 'testpassword',
     repeatPassword: 'testpassword',
-    email: 'testemail@test.com',
+    email: `${username}@test.com`,
     country: 'IN',
     fullName: 'Mocha Test',
     pragyanId: null,
@@ -85,11 +86,12 @@ describe('Other user profile', async () => {
   beforeEach(async () => {
     body = await createUser(userAgent);
     await userLogin(userAgent, body);
+    const secondUsername = randomString.generate(15);
     secondUser = {
-      username: 'testusername2',
+      username: secondUsername,
       password: 'testpassword',
       repeatPassword: 'testpassword',
-      email: 'testemail2@test.com',
+      email: `${secondUsername}@test.com`,
       country: 'IN',
       fullName: 'Mocha Test2',
       pragyanId: null,
@@ -141,9 +143,10 @@ describe('Update user', async () => {
   });
 
   it('should update user', async () => {
+    const username = randomString.generate(15);
     const updateDetails = {
-      username: 'testusername2',
-      email: 'testemail2@test.com',
+      username,
+      email: `${username}@test.com`,
       country: 'IN',
       fullName: 'Mocha Test2',
     };
