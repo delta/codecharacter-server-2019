@@ -8,6 +8,7 @@ const Game = require('../models').game;
 const { ExecuteQueue } = require('../models');
 const Leaderboard = require('../models').leaderboard;
 const { sendMessage } = require('../utils/socketHandlers');
+const compileBoxUtils = require('./compileBoxUtils');
 
 const elo = new EloRank(15);
 
@@ -25,7 +26,6 @@ Constant.find({
   .catch(() => {
     executeQueueSize = 100;
   });
-let requestUnderway = false;
 const getQueueSize = async () => ExecuteQueue.findAll({
   attributes: ['id'],
 }).then(executeQueueElements => executeQueueElements.length)
@@ -47,6 +47,61 @@ const pushToQueue = async (userId1, userId2, dll1, dll2, isAi, gameId) => {
     .catch(() => { throw new Error(); });
 };
 
+
+async function sendToCompilebox(compileBoxAssigned, userId1, userId2, dll1, dll2, gameId, isAi) {
+  try {
+    const targetBox = await compileBox.find({
+      where: { id: compileBoxAssigned },
+    });
+    const options = {
+      method: 'POST',
+      uri: `${targetBox.url}/execute`,
+      body: {
+        userId1,
+        userId2,
+        dll1,
+        dll2,
+        secretString,
+        gameId,
+        isAi,
+        compileBoxId: targetBox.id,
+      },
+      json: true, // Automatically stringifies the body to JSON
+    };
+    const response = await rp(options);
+    return response;
+  } catch (error) {
+    return error;
+  }
+}
+
+// schedule execution jobs pending in the queue
+const checkAndSendForExecution = async () => {
+  try {
+    const x = await ExecuteQueue.findOne().then(async (executeQueueElement) => {
+      if (!executeQueueElement) {
+        return false;
+      }
+      const compileBoxAssigned = await compileBoxUtils.assignCompileBox();
+      if (compileBoxAssigned === -1) {
+        return false;
+      }
+      const {
+        userId1, userId2, gameId, isAi,
+      } = executeQueueElement;
+      let { dll1, dll2 } = executeQueueElement;
+      dll1 = dll1.toString();
+      dll2 = dll2.toString();
+      sendToCompilebox(compileBoxAssigned, userId1, userId2, dll1, dll2, gameId, isAi);
+      executeQueueElement.destroy();
+      return null;
+    });
+    return x;
+  } catch (error) {
+    return error;
+  }
+};
+
 const processMatchCompletion = async (response) => {
   try {
     const {
@@ -57,6 +112,7 @@ const processMatchCompletion = async (response) => {
       errorStatus,
       gameId,
       isAi,
+      compileBoxId,
     } = response.body;
     const user1 = await Leaderboard.find({ where: { user_id: userId1 } });
     const user2 = await Leaderboard.find({ where: { user_id: userId2 } });
@@ -125,7 +181,8 @@ const processMatchCompletion = async (response) => {
         message: (winner === userId2) ? 'you win' : 'you lose',
       }, 'notification');
     }
-    requestUnderway = false;
+    await compileBoxUtils.makeCompileBoxFree(compileBoxId);
+    checkAndSendForExecution();
   } catch (err) {
     throw new Error();
   }
@@ -136,63 +193,9 @@ module.exports = {
   pushToQueue,
   getQueueSize,
   processMatchCompletion,
+  checkAndSendForExecution,
 };
 
-
-async function sendToCompilebox(userId1, userId2, dll1, dll2, gameId, isAi) {
-  try {
-    const availableBoxes = await compileBox.findAll({
-      where: { tasks_running: 0 },
-    });
-    const targetBox = availableBoxes[0];
-    const options = {
-      method: 'POST',
-      uri: `${targetBox.url}/execute`,
-      body: {
-        userId1,
-        userId2,
-        dll1,
-        dll2,
-        secretString,
-        gameId,
-        isAi,
-      },
-      json: true, // Automatically stringifies the body to JSON
-    };
-    const response = await rp(options);
-    return response;
-  } catch (error) {
-    return error;
-  }
-}
-
-
-// schedule execution jobs pending in the queue
-const checkAndSendForExecution = async () => {
-  try {
-    if (requestUnderway) {
-      return null;
-    }
-    const x = await ExecuteQueue.findOne().then(async (executeQueueElement) => {
-      if (!executeQueueElement) {
-        return null;
-      }
-      const {
-        userId1, userId2, gameId, isAi,
-      } = executeQueueElement;
-      let { dll1, dll2 } = executeQueueElement;
-      dll1 = dll1.toString();
-      dll2 = dll2.toString();
-      requestUnderway = true;
-      sendToCompilebox(userId1, userId2, dll1, dll2, gameId, isAi);
-      executeQueueElement.destroy();
-      return null;
-    });
-    return x;
-  } catch (error) {
-    return error;
-  }
-};
 
 // this will be replaced in places - a new match request - a request from compilebox
-setInterval(checkAndSendForExecution, 2000);
+// setInterval(checkAndSendForExecution, 2000);

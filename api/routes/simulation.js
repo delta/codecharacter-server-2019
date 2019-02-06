@@ -5,7 +5,7 @@ const git = require('../utils/gitHandlers');
 const Constant = require('../models').constant;
 const Match = require('../models').match;
 const Game = require('../models').game;
-const { pushToQueue } = require('../utils/executeQueueHandler');
+const { pushToQueue, checkAndSendForExecution } = require('../utils/executeQueueHandler');
 const User = require('../models').user;
 
 const getUserName = async userId => User.findOne({
@@ -33,11 +33,11 @@ router.post('/match/:userId2', async (req, res) => {
   }).then((constant) => {
     WAIT_TIME_CHALLENGE = constant.value;
     if (!constant) {
-      WAIT_TIME_CHALLENGE = 30;
+      WAIT_TIME_CHALLENGE = 5;
     }
   })
     .catch(() => {
-      WAIT_TIME_CHALLENGE = 30;
+      WAIT_TIME_CHALLENGE = 5;
     });
   Match.findAll({
     where: {
@@ -96,6 +96,7 @@ router.post('/match/:userId2', async (req, res) => {
         promises1.push(y);
       }
       await Promise.all(promises1);
+      checkAndSendForExecution();
     } catch (error) {
       res.status(500).json({ success: false, message: 'Internal server error!', error });
       throw new Error();
