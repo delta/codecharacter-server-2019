@@ -2,9 +2,9 @@ const path = require('path');
 const shell = require('shelljs');
 const git = require('simple-git/promise');
 const fs = require('fs');
-const util = require('util');
+// const util = require('util');
 
-const fsWriteFile = util.promisify(fs.writeFile);
+// const fsWriteFile = util.promisify(fs.writeFile);
 
 const getUserDir = username => `${appPath}/storage/codes/${username}`;
 

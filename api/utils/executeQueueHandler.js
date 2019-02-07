@@ -179,6 +179,8 @@ const processMatchCompletion = async (response) => {
       sendMessage(userId1, {
         winner,
         message: (winner === userId2) ? 'you win' : 'you lose',
+        content: (winner === userId2) ? 'you win' : 'you lose',
+        title: 'Match result',
       }, 'notification');
     }
     await compileBoxUtils.makeCompileBoxFree(compileBoxId);

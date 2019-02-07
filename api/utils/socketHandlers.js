@@ -32,7 +32,7 @@ module.exports.handleConnections = (socket) => {
 };
 
 module.exports.sendMessage = async (userId, message, type) => {
-  const { messageText } = message;
+  const { title, content } = message;
   // get socketIds of connections by userId
   if (!connections[userId]) {
     connections[userId] = {};
@@ -43,8 +43,9 @@ module.exports.sendMessage = async (userId, message, type) => {
   if (!socketIds.length) {
     await Notification.create({
       type,
-      message: messageText,
-      user_id: userId,
+      title,
+      content,
+      userId,
     });
   } else {
     // send message to each socketId
