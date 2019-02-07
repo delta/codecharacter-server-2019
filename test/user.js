@@ -85,7 +85,6 @@ describe('Other user profile', async () => {
   let secondUser;
   beforeEach(async () => {
     body = await createUser(userAgent);
-    await userLogin(userAgent, body);
     const secondUsername = randomString.generate(15);
     secondUser = {
       username: secondUsername,
@@ -99,6 +98,7 @@ describe('Other user profile', async () => {
     await userAgent.post('/user/register')
       .set('content-type', 'application/json')
       .send(secondUser);
+    await userLogin(userAgent, body);
   });
 
   it('should send other user details', async () => {
@@ -121,8 +121,6 @@ describe('Other user profile', async () => {
 
   afterEach(async () => {
     await deleteCreatedUser(body, userAgent);
-    await userAgent.post('/user/logout')
-      .send();
     const user = await User.findOne({
       where: {
         username: secondUser.username,

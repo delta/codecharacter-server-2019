@@ -6,6 +6,7 @@ const { check, validationResult } = require('express-validator/check');
 const User = require('../models').user;
 const git = require('../utils/gitHandlers');
 const socket = require('../utils/socketHandlers');
+const isLoggedIn = require('../middlewares/isLoggedIn');
 
 const router = express.Router();
 
@@ -142,7 +143,7 @@ router.get('/checkusername/:username', (req, res) => {
   }));
 });
 
-router.post('/logout', (req, res) => {
+router.post('/logout', isLoggedIn, (req, res) => {
   res.cookie('userId', '', { maxAge: Date.now() });
   socket.disconnectUser(req.user.id);
   req.logOut();

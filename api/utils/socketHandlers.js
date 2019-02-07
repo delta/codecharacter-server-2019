@@ -38,11 +38,12 @@ module.exports.sendMessage = (userId, message, type) => {
 };
 
 module.exports.disconnectUser = (userId) => {
+  if (connections[userId] === undefined) return;
   // get socketIds of connections by userId
   const socketIds = Object.keys(connections[userId]);
-  // send message to each socketId of user
+  // delete each socketId of user
   socketIds.forEach((socketId) => {
-    delete connections[userId][socketId];
+    disconnectHandler(socketId, userId);
   });
 };
 

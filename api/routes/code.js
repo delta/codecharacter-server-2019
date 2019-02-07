@@ -2,6 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 const git = require('../utils/gitHandlers');
+const socket = require('../utils/socketHandlers');
 
 router.get('/latest', async (req, res) => {
   try {
@@ -22,10 +23,11 @@ router.get('/latest', async (req, res) => {
 
 router.post('/save', async (req, res) => {
   try {
-    const { username } = req.user;
+    const { username, id } = req.user;
     const { code } = req.body;
     git.setFile(username, code);
     await git.add(username);
+    socket.sendMessage(id, 'Saved!', 'Success');
     res.status(200).json({
       type: 'Success',
       error: '',
