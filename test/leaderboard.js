@@ -74,7 +74,7 @@ describe('Test Leaderboard', async () => {
       for (let index = 0; index < numEntries; index += 1) {
         Leaderboard.findOrCreate({
           where: {
-            user_id: 100 + index,
+            userId: 100 + index,
             rating: 100 * index,
             dll1: `dll1${index}`,
             dll2: `dll2${index}`,
@@ -84,7 +84,7 @@ describe('Test Leaderboard', async () => {
       for (let index = 0; index < numEntries; index += 1) {
         Leaderboard.findOrCreate({
           where: {
-            user_id: 110 + index,
+            userId: 110 + index,
             rating: 100 * index + 50,
             dll1: `dll1${index}`,
             dll2: `dll2${index}`,

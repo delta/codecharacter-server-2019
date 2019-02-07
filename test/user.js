@@ -6,6 +6,7 @@ const shell = require('shelljs');
 const request = require('supertest');
 const randomString = require('randomstring');
 const User = require('../api/models').user;
+const codeStatus = require('../api/models').codestatus;
 const server = require('../app');
 
 async function userLogin(userAgent, userDetails) {
@@ -40,6 +41,12 @@ async function deleteCreatedUser(body, userAgent) {
       username: body.username,
     },
   });
+  const code = await codeStatus.findOne({
+    where: {
+      userId: user.id,
+    },
+  });
+  await code.destroy();
   await user.destroy();
   const userDir = `${appPath}/storage/codes/${user.username}`;
   await shell.rm('-rf', userDir);
@@ -126,6 +133,12 @@ describe('Other user profile', async () => {
         username: secondUser.username,
       },
     });
+    const code = await codeStatus.findOne({
+      where: {
+        userId: user.id,
+      },
+    });
+    await code.destroy();
     await user.destroy();
     const userDir = `${appPath}/storage/codes/${secondUser.username}`;
     await shell.rm('-rf', userDir);

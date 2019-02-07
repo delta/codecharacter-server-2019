@@ -8,6 +8,7 @@ const chaiHttp = require('chai-http');
 const request = require('supertest');
 const randomString = require('randomstring');
 
+const codeStatus = require('../api/models').codestatus;
 const server = require('../app');
 const User = require('../api/models').user;
 
@@ -24,7 +25,7 @@ describe('Test Register', async () => {
       repeatPassword: 'testpassword',
       email: `${username}@test.com`,
       country: 'IN',
-      fullName: 'Mocha Test',
+      fullName: 'Register_Mocha Test',
       pragyanId: null,
     };
   });
@@ -41,7 +42,12 @@ describe('Test Register', async () => {
         username: body.username,
       },
     });
-
+    const code = await codeStatus.findOne({
+      where: {
+        userId: user.id,
+      },
+    });
+    await code.destroy();
     await user.destroy();
 
     const userDir = `${appPath}/storage/codes/${user.username}`;
@@ -87,6 +93,12 @@ describe('Test Register', async () => {
         username: body.username,
       },
     });
+    const code = await codeStatus.findOne({
+      where: {
+        userId: user.id,
+      },
+    });
+    await code.destroy();
     await user.destroy();
     const userDir = `${appPath}/storage/codes/${user.username}`;
     await shell.rm('-rf', userDir);
@@ -147,6 +159,12 @@ describe('Test Login', async () => {
         username: registerBody.username,
       },
     });
+    const code = await codeStatus.findOne({
+      where: {
+        userId: user.id,
+      },
+    });
+    await code.destroy();
     await user.destroy();
     const userDir = `${appPath}/storage/codes/${user.username}`;
     await shell.rm('-rf', userDir);
@@ -219,6 +237,12 @@ describe('Test Logout', async () => {
         username: registerBody.username,
       },
     });
+    const code = await codeStatus.findOne({
+      where: {
+        userId: user.id,
+      },
+    });
+    await code.destroy();
     await user.destroy();
     const userDir = `${appPath}/storage/codes/${user.username}`;
     await shell.rm('-rf', userDir);
@@ -261,6 +285,12 @@ describe('Test Check Username', async () => {
         username: correctUsername,
       },
     });
+    const code = await codeStatus.findOne({
+      where: {
+        userId: user.id,
+      },
+    });
+    await code.destroy();
     await user.destroy();
     const userDir = `${appPath}/storage/codes/${user.username}`;
     await shell.rm('-rf', userDir);
