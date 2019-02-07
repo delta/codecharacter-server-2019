@@ -181,11 +181,12 @@ const processMatchCompletion = async (response) => {
         message: (winner === userId2) ? 'you win' : 'you lose',
         content: (winner === userId2) ? 'you win' : 'you lose',
         title: 'Match result',
-      }, 'notification');
+      }, 'Info');
     }
     await compileBoxUtils.makeCompileBoxFree(compileBoxId);
-    checkAndSendForExecution();
+    await checkAndSendForExecution();
   } catch (err) {
+    console.log(err, 'asdasdsd');
     throw new Error();
   }
 

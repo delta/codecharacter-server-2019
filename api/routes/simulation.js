@@ -20,6 +20,7 @@ router.post('/match/:userId2', async (req, res) => {
   let { userId2 } = req.params;
   userId2 = Number(userId2);
   const userId1 = req.user.id;
+  console.log(userId1, userId2);
   const userName1 = req.user.username;
   const userName2 = await getUserName(userId2);
   const dll1 = await git.getFile(userName1, 'one.dll');
@@ -41,8 +42,8 @@ router.post('/match/:userId2', async (req, res) => {
     });
   Match.findAll({
     where: {
-      user_id_1: userId1,
-      user_id_2: { $ne: userId1 },
+      userId1,
+      userId2: { $ne: userId1 },
     },
     order: ['updatedAt'],
     attributes: ['id', 'createdAt', 'updatedAt'],
@@ -67,18 +68,18 @@ router.post('/match/:userId2', async (req, res) => {
     }
     return Promise.resolve(true);
   }).then(() => Match.create({
-    user_id_1: userId1,
-    user_id_2: userId2,
+    userId1,
+    userId2,
     status: 'executing',
   })).then(async (match) => {
     const promises = [];
     for (let i = 0; i < 5; i += 1) {
       const game = Game.create({
-        user_id_1: userId1,
-        user_id_2: userId1,
-        match_id: match.id,
-        debug_log_1_path: 'dummypath',
-        debug_log_2_path: 'dummypath',
+        userId1,
+        userId2,
+        matchId: match.id,
+        debugLog1Path: 'dummypath',
+        debugLog2Path: 'dummypath',
         log: '',
         status: 'Idle',
         verdict: '0',

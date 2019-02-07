@@ -3,7 +3,7 @@ const disconnectHandler = (socketId, userId) => {
   // delete socketId from connections[userId]
   delete connections[userId][socketId];
 };
-const { Notification } = require('../models');
+const Notification = require('../models').notification;
 
 module.exports.handleConnections = (socket) => {
   // get socketId and userId from cookies
@@ -38,15 +38,19 @@ module.exports.sendMessage = async (userId, message, type) => {
     connections[userId] = {};
   }
   const socketIds = Object.keys(connections[userId]);
-
+  console.log(userId, message, type);
   // if length of socketIds is 0, add messages to notifications - sww
   if (!socketIds.length) {
-    await Notification.create({
-      type,
-      title,
-      content,
-      userId,
-    });
+    try {
+      await Notification.create({
+        type,
+        title,
+        content,
+        userId,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   } else {
     // send message to each socketId
     socketIds.foreach((socketId) => {
