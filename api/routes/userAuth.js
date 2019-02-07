@@ -4,7 +4,7 @@ const passport = require('passport');
 const { Op } = require('sequelize');
 const { check, validationResult } = require('express-validator/check');
 const User = require('../models').user;
-const { codeStatus } = require('../models');
+const codeStatus = require('../models').codestatus;
 const git = require('../utils/gitHandlers');
 const socket = require('../utils/socketHandlers');
 const isLoggedIn = require('../middlewares/isLoggedIn');
@@ -69,12 +69,11 @@ router.post('/register', [
       pragyanId: pragyanId || null,
       password: passwordHash,
     });
-
     if (newUser) {
       if (await git.createUserDir(username)) {
         await codeStatus.create({
-          user_id: newUser.user_id,
-          latest_src_path: `${git.getUserDir}/code.cpp`,
+          userId: newUser.id,
+          latestSrcPath: `${git.getUserDir(username)}/code.cpp`,
         });
         return res.status(200).json({
           type: 'Success',
@@ -88,7 +87,6 @@ router.post('/register', [
       error: 'Internal Server Error',
     });
   } catch (err) {
-    console.log('TCL: }catch -> err', err);
     return res.status(500).json({
       type: 'Error',
       error: 'Internal Server Error',
