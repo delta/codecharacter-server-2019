@@ -186,7 +186,6 @@ const processMatchCompletion = async (response) => {
     await compileBoxUtils.makeCompileBoxFree(compileBoxId);
     await checkAndSendForExecution();
   } catch (err) {
-    console.log(err, 'asdasdsd');
     throw new Error();
   }
 

@@ -11,7 +11,6 @@ module.exports.initiateCompileBoxes = async () => {
 
 module.exports.assignCompileBox = async () => {
   const keysArray = Object.keys(compileBoxes);
-  console.log(keysArray);
   let indexFree = -1;
   keysArray.forEach((key) => {
     if (!compileBoxes[key].busy) {

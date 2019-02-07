@@ -38,19 +38,14 @@ module.exports.sendMessage = async (userId, message, type) => {
     connections[userId] = {};
   }
   const socketIds = Object.keys(connections[userId]);
-  console.log(userId, message, type);
   // if length of socketIds is 0, add messages to notifications - sww
   if (!socketIds.length) {
-    try {
-      await Notification.create({
-        type,
-        title,
-        content,
-        userId,
-      });
-    } catch (error) {
-      console.log(error);
-    }
+    await Notification.create({
+      type,
+      title,
+      content,
+      userId,
+    });
   } else {
     // send message to each socketId
     socketIds.foreach((socketId) => {

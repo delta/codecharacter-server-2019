@@ -20,7 +20,6 @@ router.post('/match/:userId2', async (req, res) => {
   let { userId2 } = req.params;
   userId2 = Number(userId2);
   const userId1 = req.user.id;
-  console.log(userId1, userId2);
   const userName1 = req.user.username;
   const userName2 = await getUserName(userId2);
   const dll1 = await git.getFile(userName1, 'one.dll');
