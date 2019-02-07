@@ -3,7 +3,7 @@ const User = require('./user');
 
 module.exports = (sequelize, DataTypes) => {
   const leaderboard = sequelize.define('leaderboard', {
-    user_id: {
+    userId: {
       allowNull: false,
       type: DataTypes.INTEGER,
       unique: true,
@@ -34,8 +34,8 @@ module.exports = (sequelize, DataTypes) => {
     freezeTableName: true,
     tableName: 'leaderboard',
   });
-  // leaderboard.associate = function(models) {
-  //   // associations can be defined here
-  // };
+  leaderboard.associate = (models) => {
+    leaderboard.belongsTo(models.user, { foreignKey: 'userId' });
+  };
   return leaderboard;
 };

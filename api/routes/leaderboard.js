@@ -4,7 +4,6 @@ const { check, validationResult } = require('express-validator/check');
 const Leaderboard = require('../models').leaderboard;
 const User = require('../models').user;
 
-Leaderboard.belongsTo(User, { foreignKey: 'user_id' });
 const router = express.Router();
 router.get('/:start/:finish', [
   check('start')
