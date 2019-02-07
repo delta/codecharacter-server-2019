@@ -5,6 +5,7 @@ const chai = require('chai');
 const should = chai.should();
 const shell = require('shelljs');
 const chaiHttp = require('chai-http');
+const request = require('supertest');
 const randomString = require('randomstring');
 
 const server = require('../app');
@@ -191,6 +192,7 @@ describe('Test Login', async () => {
 });
 
 describe('Test Logout', async () => {
+  const userAgent = request.agent(server);
   const credentials = {
     username: 'username',
     password: 'password',
@@ -206,8 +208,7 @@ describe('Test Logout', async () => {
   };
   // eslint-disable-next-line no-undef
   before(async () => {
-    await chai.request(server)
-      .post('/user/register')
+    await userAgent.post('/user/register')
       .set('content-type', 'application/json')
       .send(registerBody);
   });
@@ -223,11 +224,10 @@ describe('Test Logout', async () => {
     await shell.rm('-rf', userDir);
   });
   it('send 200', async () => {
-    await chai.request(server)
-      .post('/user/login')
+    await userAgent.post('/user/login')
       .set('content-type', 'application/json')
       .send(credentials);
-    const { res } = await chai.request(server)
+    const { res } = await userAgent
       .post('/user/logout')
       .send();
 
