@@ -1,6 +1,5 @@
 const config = {
-  development:
-  {
+  development: {
     app: {
       port: 'Your port number',
       sessionSecret: 'SESSION_SECRET',
@@ -8,8 +7,7 @@ const config = {
     appBaseURL: 'app base url',
     secretString: 'Your secret',
   },
-  production:
-  {
+  production: {
     app: {
       port: 'Your port number',
       sessionSecret: 'SESSION_SECRET',
