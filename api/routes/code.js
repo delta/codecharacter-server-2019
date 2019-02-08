@@ -22,6 +22,27 @@ router.get('/latest', async (req, res) => {
   }
 });
 
+router.get('/lastsave', async (req, res) => {
+  try {
+    const code = await codeStatus.findOne({
+      where: {
+        userId: req.user.id,
+      },
+    });
+    const lastSavedAt = code.lastSavedAt.toUTCString();
+    res.status(200).json({
+      type: 'Success',
+      error: '',
+      lastSavedAt,
+    });
+  } catch (error) {
+    res.status(500).json({
+      type: 'Error',
+      error: 'Internal server error',
+    });
+  }
+});
+
 router.post('/save', async (req, res) => {
   try {
     const { username, id } = req.user;
