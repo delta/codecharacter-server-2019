@@ -49,7 +49,8 @@
     "posttest": "./node_modules/.bin/sequelize db:migrate:undo:all --env=test --migrations-path api/migrations --models-path api/models --config api/config/database.json",
     "test": "mocha --exit --timeout 10000",
     "migrate": "./node_modules/.bin/sequelize db:migrate --migrations-path api/migrations --models-path api/models --config api/config/database.json",
-    "undo-migrate": "./node_modules/.bin/sequelize db:migrate:undo:all --migrations-path api/migrations --models-path api/models --config api/config/database.json"
+    "undo-migrate": "./node_modules/.bin/sequelize db:migrate:undo:all --migrations-path api/migrations --models-path api/models --config api/config/database.json",
+    "docker": "sh start.sh"
   },
   "author": "",
   "license": "ISC"

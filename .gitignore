@@ -5,3 +5,4 @@ api/config/database.json
 storage/*
 npm-debug.log
 !/storage/codes/default/code.cpp
+docker

@@ -11,14 +11,14 @@
     "password": "DB password",
     "database": "DB Name",
     "host": "127.0.0.1",
-    "dialect": "mysql"
+    "dialect": "mysql",
+    "logging": false
   },
   "production": {
     "username": "DB username",
     "password": "DB password",
     "database": "DB Name",
-    "host": "127.0.0.1",
+    "host": "db",
     "dialect": "mysql"
   }
 }
-
