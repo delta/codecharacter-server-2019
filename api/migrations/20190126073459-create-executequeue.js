@@ -24,10 +24,6 @@ module.exports = {
         },
         allowNull: false,
       },
-      gameId: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
       dll1Path: {
         type: Sequelize.STRING,
         allowNull: false,
