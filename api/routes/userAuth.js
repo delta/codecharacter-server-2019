@@ -127,7 +127,6 @@ router.post('/login', async (req, res, next) => {
   })(req, res, next);
 });
 
-
 router.get('/checkusername/:username', (req, res) => {
   const { username } = req.params;
   User.findAll({ where: { username } }).then((users) => {
@@ -146,6 +145,12 @@ router.get('/checkusername/:username', (req, res) => {
     error: 'Internal server error',
   }));
 });
+
+// Return 200 if user is logged in
+router.get('/login', isLoggedIn, (req, res) => res.status(200).json({
+  type: 'Success',
+  error: '',
+}));
 
 router.post('/logout', isLoggedIn, (req, res) => {
   res.cookie('userId', '', { maxAge: Date.now() });
