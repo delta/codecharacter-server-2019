@@ -1,5 +1,6 @@
 const User = require('./user');
 const Match = require('./match');
+const Map = require('./map');
 
 module.exports = (sequelize, DataTypes) => {
   const game = sequelize.define('game', {
@@ -59,6 +60,15 @@ module.exports = (sequelize, DataTypes) => {
     points2: {
       type: DataTypes.INTEGER,
       allowNull: false,
+    },
+    mapId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      foreignKey: true,
+      references: {
+        model: Map,
+        key: 'id',
+      },
     },
   }, {});
   return game;
