@@ -87,6 +87,20 @@ router.post('/register', [
       error: 'Internal Server Error',
     });
   } catch (err) {
+    const user = await User.findOne({
+      where: {
+        username,
+      },
+    });
+    if (user) {
+      await codeStatus.destoy({
+        where: {
+          userId: user.id,
+        },
+      });
+      await git.removeDir(username);
+      await user.destoy();
+    }
     return res.status(500).json({
       type: 'Error',
       error: 'Internal Server Error',
