@@ -35,6 +35,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    status: {
+      type: DataTypes.ENUM,
+      allowNull: false,
+      values: ['QUEUED', 'EXECUTING', 'DONE'],
+      defaultValue: 'QUEUED',
+    },
   }, {
     freezeTableName: true,
     tableName: 'executequeue',
