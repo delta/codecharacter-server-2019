@@ -72,4 +72,9 @@ exports.setFile = async (username, fileText) => {
   return null;
 };
 
+exports.removeDir = async (username) => {
+  const userDir = getUserDir(username);
+  await shell.rm('-rf', userDir);
+};
+
 exports.getUserDir = getUserDir;
