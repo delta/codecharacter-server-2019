@@ -18,6 +18,9 @@ module.exports = {
   }, {
     key: 'DEFAULT_MAP_STORAGE_DIR',
     value: `${appPath}/storage/maps`,
+  }, {
+    key: 'DEFAULT_MATCH_LOG_STORAGE_DIR',
+    value: `${appPath}/storage/matchLog`,
   }], {}),
 
   down: queryInterface => queryInterface.delete('constants', null, {}),
