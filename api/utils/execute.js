@@ -23,7 +23,7 @@ const getUsername = async (userId) => {
   }
 };
 
-const pushToExecuteQueue = async (gameId) => {
+const pushToExecuteQueue = async (gameId, dll1Path, dll2Path) => {
   try {
     const game = await Game.findOne({ where: { id: gameId } });
     const {
@@ -34,8 +34,8 @@ const pushToExecuteQueue = async (gameId) => {
       userId1,
       userId2,
       gameId,
-      dll1Path: '',
-      dll2Path: '',
+      dll1Path,
+      dll2Path,
       status: 'QUEUED',
     });
     return true;
