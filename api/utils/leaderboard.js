@@ -48,7 +48,16 @@ const createLeaderboardEntry = async (userId, username) => {
   await createLeaderboardUserFolder(leaderboardUserDir);
 };
 
+const checkLeaderboardEntryExists = async (userId) => {
+  const leaderboardEntry = await Leaderboard.findOne({
+    where: { userId },
+  });
+
+  return (!!leaderboardEntry);
+};
+
 module.exports = {
   createLeaderboardEntry,
   updateLeaderboard,
+  checkLeaderboardEntryExists,
 };
