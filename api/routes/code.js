@@ -1,10 +1,12 @@
 const express = require('express');
 const git = require('../utils/gitHandlers');
-const codeStatus = require('../models').codestatus;
+const CodeStatus = require('../models').codestatus;
+const Leaderboard = require('../models').leaderboard;
 
 const router = express.Router();
 const socket = require('../utils/socketHandlers');
 const codeStatusUtils = require('../utils/codeStatus');
+const leaderboardUtils = require('../utils/leaderboard');
 
 router.get('/latest', async (req, res) => {
   try {
@@ -25,7 +27,7 @@ router.get('/latest', async (req, res) => {
 
 router.get('/lastsave', async (req, res) => {
   try {
-    const code = await codeStatus.findOne({
+    const code = await CodeStatus.findOne({
       where: {
         userId: req.user.id,
       },
@@ -60,7 +62,7 @@ router.post('/save', async (req, res) => {
     const { code } = req.body;
     git.setFile(username, code);
     await git.add(username);
-    await codeStatus.update({
+    await CodeStatus.update({
       lastSavedAt: new Date(),
     }, {
       where: { userId: req.user.id },
@@ -78,6 +80,33 @@ router.post('/save', async (req, res) => {
   }
 });
 
+router.post('/lock', async (req, res) => {
+  try {
+    const { id, username } = req.user;
+
+    const leaderboardEntry = await Leaderboard.findOne({
+      where: {
+        userId: id,
+      },
+    });
+
+    if (!leaderboardEntry) {
+      await leaderboardUtils.createLeaderboardEntry(id, username);
+    }
+
+    await leaderboardUtils.updateLeaderboard(username);
+
+    res.status(200).json({
+      type: 'Success',
+      error: '',
+    });
+  } catch (err) {
+    res.status(500).json({
+      type: 'Error',
+      error: 'Internal server error',
+    });
+  }
+});
 
 router.post('/commit', async (req, res) => {
   try {
