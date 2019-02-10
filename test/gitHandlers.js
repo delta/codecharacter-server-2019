@@ -39,7 +39,6 @@ describe('Test Git Handlers', async () => {
 
   it('test latestCommit', async () => {
     await fsWriteFile(`${userDir}/code.cpp`, text[0]);
-    await git(userDir).init();
     await git(userDir).add('./*');
     await git(userDir).commit(text[0]);
     const latestCommit = await GitHandler.latestCommit(username);
@@ -48,7 +47,6 @@ describe('Test Git Handlers', async () => {
 
   it('test commitLog', async () => {
     await fsWriteFile(`${userDir}/code.cpp`, text[1]);
-    await git(userDir).init();
     await git(userDir).add('./*');
     await git(userDir).commit(text[1]);
     const commitLog = await GitHandler.commitLog(username);
@@ -82,7 +80,6 @@ describe('Test Git Handlers', async () => {
     await fsWriteFile(`${userDir}/code.cpp`, text[4]);
     let diff = await GitHandler.diffStaged(username);
     chai.assert(diff === '');
-    await git(userDir).init();
     await git(userDir).add('./*');
     diff = await GitHandler.diffStaged(username);
     chai.assert(diff !== '');
@@ -90,7 +87,6 @@ describe('Test Git Handlers', async () => {
 
   it('test commit', async () => {
     await fsWriteFile(`${userDir}/code.cpp`, text[5]);
-    await git(userDir).init();
     await git(userDir).add('./*');
     await GitHandler.commit(username, text[5]);
     const logResult = await git(userDir).log();
