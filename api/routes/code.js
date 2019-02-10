@@ -1,4 +1,6 @@
 const express = require('express');
+const { check } = require('express-validator/check');
+const { handleValidationErrors } = require('../utils/validation');
 const git = require('../utils/gitHandlers');
 const CodeStatus = require('../models').codestatus;
 const Leaderboard = require('../models').leaderboard;
@@ -46,17 +48,22 @@ router.get('/lastsave', async (req, res) => {
   }
 });
 
-router.post('/save', async (req, res) => {
+router.post('/save', [
+  check('code')
+    .exists().withMessage('code is required')
+    .custom(value => typeof value === 'string')
+    .withMessage('code should be a string'),
+], async (req, res) => {
   try {
+    if (handleValidationErrors(req, res)) return null;
     const { username, id } = req.user;
 
     const userCodeStatus = await codeStatusUtils.getUserCodeStatus(id);
     if (userCodeStatus === 'Compiling' || userCodeStatus === 'Waiting') {
-      res.status(200).json({
+      return res.status(200).json({
         type: 'Error',
         error: 'Cannot edit code when compiling',
       });
-      return;
     }
 
     const { code } = req.body;
@@ -68,12 +75,12 @@ router.post('/save', async (req, res) => {
       where: { userId: req.user.id },
     });
     socket.sendMessage(id, 'Saved!', 'Success');
-    res.status(200).json({
+    return res.status(200).json({
       type: 'Success',
       error: '',
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       type: 'Error',
       error: 'Internal server error',
     });
@@ -108,8 +115,12 @@ router.post('/lock', async (req, res) => {
   }
 });
 
-router.post('/commit', async (req, res) => {
+router.post('/commit', [
+  check('commitMessage')
+    .not().isEmpty().withMessage('commitMessage cannot be empty'),
+], async (req, res) => {
   try {
+    if (handleValidationErrors(req, res)) return null;
     const { username } = req.user;
     const { commitMessage } = req.body;
     await git.add(username);
@@ -150,37 +161,50 @@ router.get('/log', async (req, res) => {
   }
 });
 
-router.get('/view/:commitHash', async (req, res) => {
+router.get('/view/:commitHash', [
+  check('commitHash')
+    .exists().withMessage('commitHash is required'),
+], async (req, res) => {
   try {
+    if (handleValidationErrors(req, res)) return null;
     const { username } = req.user;
     const { commitHash } = req.params;
     const fileContent = await git.getFile(username, 'code.cpp', commitHash === 'latest' ? null : commitHash);
-    res.status(200).json({
+    return res.status(200).json({
       type: 'Success',
       error: '',
       code: fileContent,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       type: 'Error',
       error: 'Internal server error',
     });
   }
 });
 
-router.get('/fork/:commitHash', async (req, res) => {
+router.get('/fork/:commitHash', [
+  check('commitHash')
+    .exists().withMessage('commitHash is required')
+    .isLength(40)
+    .withMessage('commitHash should be of 40 characters')
+    .custom(value => typeof value === 'string')
+    .withMessage('commitHash should be a string'),
+
+], async (req, res) => {
   try {
+    if (handleValidationErrors(req, res)) return null;
     const { username } = req.user;
     const { commitHash } = req.params;
     const fileContent = await git.getFile(username, 'code.cpp', commitHash);
     git.setFile(username, fileContent);
     await git.add(username);
-    res.status(200).json({
+    return res.status(200).json({
       type: 'Success',
       error: '',
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       type: 'Error',
       error: 'Internal server error',
     });
