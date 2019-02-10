@@ -3,11 +3,14 @@ process.env.NODE_ENV = 'test';
 const chai = require('chai');
 const request = require('supertest');
 
+const shell = require('shelljs');
 const server = require('../app');
 const User = require('../api/models').user;
 const Notification = require('../api/models').notification;
 const CodeStatus = require('../api/models').codestatus;
 
+// eslint-disable-next-line no-unused-vars
+const should = chai.Should();
 describe('Test Notification', async () => {
   const superAgent = request.agent(server);
   const numEntries = 20;
@@ -68,16 +71,18 @@ describe('Test Notification', async () => {
       },
     });
     const notificationResults = [];
-    for (let index = 0; index < numEntries; index += 1) {
+    for (let index = 1; index <= numEntries; index += 1) {
       const notification = Notification.destroy({
         where: {
-          id: index + 1,
+          id: index,
         },
       });
       notificationResults.push(notification);
     }
     await Promise.all(notificationResults);
     await user.destroy();
+    const userDir = `${appPath}/storage/codes/${user.username}`;
+    await shell.rm('-rf', userDir);
   });
 
   it('Test delete by id', async () => {
@@ -103,7 +108,6 @@ describe('Test Notification', async () => {
     for (let index = 0; index < numEntries; index += 1) {
       const del = superAgent
         .delete(`/notifications/delete/${index + 1}`);
-
       notificationResults.push(del);
     }
     await Promise.all(notificationResults);
@@ -112,7 +116,7 @@ describe('Test Notification', async () => {
         userId: JSON.parse(JSON.stringify(user)).id,
       },
     });
-    chai.assert(JSON.parse(JSON.stringify(notification)).length === 0);
+    JSON.parse(JSON.stringify(notification)).should.have.length(0);
   });
 
   it('Test Delete by Type', async () => {
@@ -128,31 +132,22 @@ describe('Test Notification', async () => {
         username: 'notification_test',
       },
     });
-    let type = 'Info';
-    await superAgent.delete(`/notifications/delete/type/${type}`);
-    let notification = await Notification.findAll({
-      where: {
-        userId: JSON.parse(JSON.stringify(user)).id,
-      },
-    });
-    chai.assert(JSON.parse(JSON.stringify(notification)).length === 15);
-
-    type = 'Success';
-    await superAgent.delete(`/notifications/delete/type/${type}`);
-    notification = await Notification.findAll({
-      where: {
-        userId: JSON.parse(JSON.stringify(user)).id,
-      },
-    });
-    chai.assert(JSON.parse(JSON.stringify(notification)).length === 10);
-
-    type = 'Error';
-    await superAgent.delete(`/notifications/delete/type/${type}`);
-    notification = await Notification.findAll({
-      where: {
-        userId: JSON.parse(JSON.stringify(user)).id,
-      },
-    });
-    chai.assert(JSON.parse(JSON.stringify(notification)).length === 0);
+    const type = ['Info', 'Success', 'Error'];
+    const delResults = [];
+    for (let index = 0; index < 3; index += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await superAgent.delete(`/notifications/delete/type/${type[index]}`);
+      const del = Notification.findAll({
+        where: {
+          userId: JSON.parse(JSON.stringify(user)).id,
+          type: type[index],
+        },
+      });
+      delResults.push(del);
+    }
+    await Promise.all(delResults);
+    for (let index = 0; index < 3; index += 1) {
+      JSON.parse(JSON.stringify(delResults))[index].fulfillmentValue.should.have.length(0);
+    }
   });
 });
