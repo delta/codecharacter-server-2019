@@ -1,5 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const { check } = require('express-validator/check');
+const { handleValidationErrors } = require('../utils/validation');
 const User = require('../models').user;
 
 const router = express.Router();
@@ -19,9 +21,13 @@ router.get('/', (req, res) => {
   });
 });
 
-router.get('/view/:username', async (req, res) => {
+router.get('/view/:username', [
+  check('username')
+    .not().isEmpty().withMessage('Username cannot be empty'),
+], async (req, res) => {
   const { username } = req.params;
   try {
+    if (handleValidationErrors(req, res)) return null;
     const userDetails = await User.findOne({
       where: { username },
       attributes: ['username', 'fullName', 'country'],
@@ -45,26 +51,22 @@ router.get('/view/:username', async (req, res) => {
   }
 });
 
-router.post('/update', async (req, res) => {
+router.post('/update', [
+  check('email')
+    .optional()
+    .isEmail().withMessage('Invalid email')
+    .custom(async value => !(await User.findOne({ where: { email: value } })))
+    .withMessage('Email is already taken'),
+  check('username')
+    .optional()
+    .custom(async value => !(await User.findOne({ where: { username: value } })))
+    .withMessage('Username is already taken'),
+  check('country')
+    .optional()
+    .isAlpha().withMessage('country should contain only letters'),
+], async (req, res) => {
   try {
-    if (req.body.email) {
-      const existingUser = await User.findOne({ where: { email: req.body.email } });
-      if (existingUser) {
-        return res.status(400).json({
-          type: 'Error',
-          error: 'Email is already taken',
-        });
-      }
-    }
-    if (req.body.username) {
-      const existingUser = await User.findOne({ where: { username: req.body.username } });
-      if (existingUser) {
-        return res.status(400).json({
-          type: 'Error',
-          error: 'Username is already taken',
-        });
-      }
-    }
+    if (handleValidationErrors(req, res)) return null;
     const updationDoc = {};
     const fieldsUpdated = ['username', 'email', 'fullName', 'country'];
     fieldsUpdated.forEach((key) => {
@@ -85,32 +87,26 @@ router.post('/update', async (req, res) => {
   }
 });
 
-router.post('/updatePassword', async (req, res) => {
+router.post('/updatePassword', [
+  check('oldPassword')
+    .not().isEmpty().withMessage('Old password missing'),
+  check('password')
+    .not().isEmpty().withMessage('Password cannot be blank'),
+], async (req, res) => {
+  if (handleValidationErrors(req, res)) return null;
   try {
-    if (req.body.password) {
-      if (!req.body.oldPassword) {
-        return res.status(400).json({
-          type: 'Error',
-          error: 'Old password missing',
-        });
-      }
-      const currentUser = await User.findOne({ where: { username: req.user.username } });
-      if (await bcrypt.compare(req.body.oldPassword, currentUser.password)) {
-        const passwordHash = await bcrypt.hash(req.body.password, 10);
-        await User.update({ password: passwordHash }, { where: { id: req.user.id } });
-        return res.status(200).json({
-          type: 'Success',
-          error: '',
-        });
-      }
-      return res.status(400).json({
-        type: 'Error',
-        error: 'Wrong password given',
+    const currentUser = await User.findOne({ where: { username: req.user.username } });
+    if (await bcrypt.compare(req.body.oldPassword, currentUser.password)) {
+      const passwordHash = await bcrypt.hash(req.body.password, 10);
+      await User.update({ password: passwordHash }, { where: { id: req.user.id } });
+      return res.status(200).json({
+        type: 'Success',
+        error: '',
       });
     }
     return res.status(400).json({
       type: 'Error',
-      error: 'Password cannot be blank',
+      error: 'Wrong password given',
     });
   } catch (error) {
     return res.status(500).json({
