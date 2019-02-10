@@ -1,5 +1,6 @@
 const express = require('express');
 const { check, validationResult } = require('express-validator/check');
+const { handleValidationErrors } = require('../utils/validation');
 
 const Leaderboard = require('../models').leaderboard;
 const User = require('../models').user;
@@ -13,29 +14,15 @@ router.get('/:start/:finish', [
   check('finish')
     .not().isEmpty().withMessage('Finish cannot be empty')
     .isInt()
-    .withMessage('Finish must be Integer'),
+    .withMessage('Finish must be Integer')
+    .custom((value, { req }) => parseInt(value, 10) >= parseInt(req.params.start, 10))
+    .withMessage('Start cannot be greater than Finish'),
 ], async (req, res) => {
+  if (handleValidationErrors(req, res)) return null;
   const leaderboardData = [];
   let { start, finish } = req.params;
-  const errors = validationResult(req);
-
   start = parseInt(start, 10);
   finish = parseInt(finish, 10);
-
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      type: 'Error',
-      error: (errors.array())[0],
-    });
-  }
-
-  if (start > finish) {
-    return res.status(400).json({
-      type: 'Error',
-      error: 'Start cannot be greater than Finish',
-    });
-  }
-
   try {
     const leaderboard = await Leaderboard.findAll(
       {

@@ -117,7 +117,7 @@ describe('Test Leaderboard', async () => {
         .get(`/leaderboard/${start}/${finish}`);
 
       res.should.have.status(400);
-      JSON.parse(res.text).error.msg.should.equal('Start must be Integer');
+      JSON.parse(res.text).error.should.equal('Start must be Integer');
     });
 
     it('finish must be int', async () => {
@@ -126,7 +126,7 @@ describe('Test Leaderboard', async () => {
       const { res } = await superAgent
         .get(`/leaderboard/${start}/${finish}`);
       res.should.have.status(400);
-      JSON.parse(res.text).error.msg.should.equal('Finish must be Integer');
+      JSON.parse(res.text).error.should.equal('Finish must be Integer');
     });
 
 
