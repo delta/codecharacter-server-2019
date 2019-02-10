@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       values: ['Info', 'Success', 'Error'],
     },
     userId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: false,
       foreignKey: true,
       references: {

@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) => {
   const leaderboard = sequelize.define('leaderboard', {
     userId: {
       allowNull: false,
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       unique: true,
       foreignKey: true,
       references: {
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     rating: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       defaultValue: 1000,
     },
     dll1: {

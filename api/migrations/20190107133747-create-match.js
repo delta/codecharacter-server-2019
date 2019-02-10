@@ -6,10 +6,10 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.BIGINT
       },
       userId1: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         allowNull: false,
         foreignKey: true,
         references: {
@@ -18,7 +18,7 @@ module.exports = {
         },
       },
       userId2: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         allowNull: false,
         foreignKey: true,
         references: {

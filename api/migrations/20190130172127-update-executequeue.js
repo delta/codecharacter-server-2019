@@ -7,7 +7,7 @@ module.exports = {
       'executequeue',
       'gameId',
       {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         references: {
           model: 'games',
           key: 'id',

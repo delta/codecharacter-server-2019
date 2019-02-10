@@ -4,7 +4,7 @@ const User = require('./user');
 module.exports = (sequelize, DataTypes) => {
   const compileQueue = sequelize.define('compilequeue', {
     userId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       references: {
         model: User,
         key: 'id',

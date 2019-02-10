@@ -6,14 +6,14 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.BIGINT
       },
       userId: {
         allowNull: false,
-        type: Sequelize.INTEGER
+        type: Sequelize.BIGINT
       },
       rating: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         defaultValue: 1000
       },
       dll1: {

@@ -45,7 +45,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     pragyanId: {
       allowNull: true,
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
     },
   }, {});
   // user.associate = function (models) {

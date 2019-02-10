@@ -4,7 +4,7 @@ const Game = require('./game');
 module.exports = (sequelize, DataTypes) => {
   const executeQueue = sequelize.define('executequeue', {
     userId1: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       references: {
         model: User,
         key: 'id',
@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     userId2: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       references: {
         model: User,
         key: 'id',

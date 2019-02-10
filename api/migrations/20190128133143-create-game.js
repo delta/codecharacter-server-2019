@@ -6,10 +6,10 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.BIGINT
       },
       userId1: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         allowNull: false,
         foreignKey: true,
         references: {
@@ -18,7 +18,7 @@ module.exports = {
         },
       },
       userId2: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         allowNull: false,
         foreignKey: true,
         references: {
@@ -27,7 +27,7 @@ module.exports = {
         },
       },
       matchId: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         allowNull: false,
         foreignKey: true,
         references: {
@@ -58,11 +58,11 @@ module.exports = {
         defaultValue: '0',
       },
       points1: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         allowNull: false,
       },
       points2: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         allowNull: false,
       },
       createdAt: {
