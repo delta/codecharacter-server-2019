@@ -5,7 +5,8 @@ const chai = require('chai');
 const should = chai.should();
 const chaiHttp = require('chai-http');
 const request = require('supertest');
-
+const randomString = require('randomstring');
+const CodeStatus = require('../api/models').codestatus;
 const server = require('../app');
 const User = require('../api/models').user;
 const Leaderboard = require('../api/models').leaderboard;
@@ -15,26 +16,16 @@ chai.use(chaiHttp);
 describe('Test Leaderboard', async () => {
   describe('Test Leaderboard by Rank', async () => {
     const superAgent = request.agent(server);
-    const searchKey = 't';
-    // eslint-disable-next-line no-undef
-    after(async () => {
-      const user = await User.findAll();
-      for (let index = 0; index < user.length; index += 1) {
-        user[index].destroy();
-      }
-      const leaderboard = await Leaderboard.findAll();
-      for (let index = 0; index < leaderboard.length; index += 1) {
-        leaderboard[index].destroy();
-      }
-    });
+    const searchKey = 'leaderboardSearchKey';
     // eslint-disable-next-line no-undef
     before(async () => {
       const numEntries = 10;
+      const username = `${randomString.generate(15)}${searchKey}`;
       const registerBody = {
-        username: 'testusername',
+        username,
         password: 'testpassword',
         repeatPassword: 'testpassword',
-        email: 'testemail@test.com',
+        email: `${username}@test.com`,
         country: 'IN',
         fullName: 'Mocha Test',
         pragyanId: null,
@@ -43,7 +34,7 @@ describe('Test Leaderboard', async () => {
         .set('content-type', 'application/json')
         .send(registerBody);
       const loginBody = {
-        username: 'testusername',
+        username,
         password: 'testpassword',
       };
       await superAgent.post('/user/login')
@@ -52,9 +43,9 @@ describe('Test Leaderboard', async () => {
       for (let index = 0; index < numEntries; index += 1) {
         User.findOrCreate({
           where: {
-            username: `testusername${index}`,
+            username: `${randomString.generate(15)}${searchKey}`,
             password: `testpassword${index}`,
-            email: `testemail${index}@testemail.com`,
+            email: `leaderboard_testemail${index}@testemail.com`,
             fullName: `Mocha${index}`,
             id: 100 + index,
           },
@@ -63,9 +54,9 @@ describe('Test Leaderboard', async () => {
       for (let index = 0; index < numEntries; index += 1) {
         User.findOrCreate({
           where: {
-            username: `test${index}`,
+            username: `${randomString.generate(15)}${searchKey}`,
             password: `test${index}`,
-            email: `test${index}@testemail.com`,
+            email: `leaderboard_test${index}@testemail.com`,
             fullName: `test${index}`,
             id: 110 + index,
           },
@@ -93,8 +84,34 @@ describe('Test Leaderboard', async () => {
       }
     });
 
+    // eslint-disable-next-line no-undef
+    after(async () => {
+      const deletions = [];
+      const user = await User.findAll();
+      const leaderboard = await Leaderboard.findAll();
+      for (let index = 0; index < leaderboard.length; index += 1) {
+        if (leaderboard[index].userId > 99 || leaderboard[index].userId < 120) {
+          deletions.push(leaderboard[index].destroy());
+        }
+      }
+      const codeStatus = await CodeStatus.findAll();
+      for (let index = 0; index < codeStatus.length; index += 1) {
+        if (codeStatus[index].userId > 99 || codeStatus[index].userId < 120) {
+          deletions.push(codeStatus[index].destroy());
+        }
+      }
+      await Promise.all(deletions);
+      const userDeletions = [];
+      for (let index = 0; index < user.length; index += 1) {
+        if (user[index].id > 99 || user[index].id < 120) {
+          userDeletions.push(user[index].destroy());
+        }
+      }
+      await Promise.all(userDeletions);
+    });
+
     it('start must be int', async () => {
-      const start = 'a';
+      const start = 'not an integer';
       const finish = 1;
       const { res } = await superAgent
         .get(`/leaderboard/${start}/${finish}`);
@@ -105,7 +122,7 @@ describe('Test Leaderboard', async () => {
 
     it('finish must be int', async () => {
       const start = 0;
-      const finish = 'a';
+      const finish = 'not an integer';
       const { res } = await superAgent
         .get(`/leaderboard/${start}/${finish}`);
       res.should.have.status(400);
