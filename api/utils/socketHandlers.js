@@ -1,8 +1,10 @@
 const connections = { };
+
 const disconnectHandler = (socketId, userId) => {
   // delete socketId from connections[userId]
   delete connections[userId][socketId];
 };
+
 module.exports.handleConnections = (socket) => {
   // get socketId and userId from cookies
   let cookies = socket.handshake.headers.cookie;
@@ -30,6 +32,7 @@ module.exports.handleConnections = (socket) => {
 
 module.exports.sendMessage = (userId, message, type) => {
   // get socketIds of connections by userId
+  if (!connections[userId]) return;
   const socketIds = Object.keys(connections[userId]);
   // send message to each socketId of user
   socketIds.forEach((socketId) => {

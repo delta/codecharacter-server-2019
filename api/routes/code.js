@@ -4,6 +4,7 @@ const codeStatus = require('../models').codestatus;
 
 const router = express.Router();
 const socket = require('../utils/socketHandlers');
+const codeStatusUtils = require('../utils/codeStatus');
 
 router.get('/latest', async (req, res) => {
   try {
@@ -46,6 +47,16 @@ router.get('/lastsave', async (req, res) => {
 router.post('/save', async (req, res) => {
   try {
     const { username, id } = req.user;
+
+    const userCodeStatus = await codeStatusUtils.getUserCodeStatus(id);
+    if (userCodeStatus === 'Compiling' || userCodeStatus === 'Waiting') {
+      res.status(200).json({
+        type: 'Error',
+        error: 'Cannot edit code when compiling',
+      });
+      return;
+    }
+
     const { code } = req.body;
     git.setFile(username, code);
     await git.add(username);
