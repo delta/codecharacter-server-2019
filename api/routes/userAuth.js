@@ -2,7 +2,8 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const passport = require('passport');
 const { Op } = require('sequelize');
-const { check, validationResult } = require('express-validator/check');
+const { check } = require('express-validator/check');
+const { handleValidationErrors } = require('../utils/validation');
 const User = require('../models').user;
 const codeStatus = require('../models').codestatus;
 const git = require('../utils/gitHandlers');
@@ -16,8 +17,10 @@ router.post('/register', [
     .not().isEmpty().withMessage('Username cannot be empty'),
   check('password')
     .not().isEmpty().withMessage('Password cannot be empty'),
-  check('repeatPassword')
-    .not().isEmpty().withMessage('Password cannot be empty'),
+  check('repeatPassword', 'repeatPassword field must have the same value as the password field')
+    .custom((value, { req }) => value === req.body.password)
+    .not().isEmpty()
+    .withMessage('Password cannot be empty'),
   check('email')
     .not().isEmpty().withMessage('Email cannot be empty')
     .isEmail()
@@ -28,24 +31,11 @@ router.post('/register', [
     .isAlpha(),
 ], async (req, res) => {
   const {
-    username, password, email, country, fullName, pragyanId, repeatPassword,
+    username, password, email, country, fullName, pragyanId,
   } = req.body;
 
-  const errors = validationResult(req);
+  if (handleValidationErrors(req, res)) return null;
 
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      type: 'Error',
-      error: (errors.array())[0],
-    });
-  }
-
-  if (password !== repeatPassword) {
-    return res.status(400).json({
-      type: 'Error',
-      error: 'Passwords do not match',
-    });
-  }
 
   try {
     const user = await User.findOne({
@@ -108,7 +98,14 @@ router.post('/register', [
   }
 });
 
-router.post('/login', async (req, res, next) => {
+router.post('/login', [
+  check('username')
+    .not().isEmpty().withMessage('Username cannot be empty'),
+  check('password')
+    .not().isEmpty().withMessage('Password cannot be empty'),
+], async (req, res, next) => {
+  if (handleValidationErrors(req, res)) return null;
+
   passport.authenticate('local', (err, user, info) => {
     if (err) {
       return res.status(500).json({
@@ -136,12 +133,18 @@ router.post('/login', async (req, res, next) => {
         error: '',
       });
     });
-
     return null; // coz eslint forces to have a return at the end
   })(req, res, next);
+  return null; // coz eslint forces to have a return at the end
 });
 
-router.get('/checkusername/:username', (req, res) => {
+
+router.get('/checkusername/:username', [
+  check('username')
+    .not().isEmpty().withMessage('Cannot check for empty username'),
+], (req, res) => {
+  if (handleValidationErrors(req, res)) return null;
+
   const { username } = req.params;
   User.findAll({ where: { username } }).then((users) => {
     if (users.length) {
@@ -158,6 +161,7 @@ router.get('/checkusername/:username', (req, res) => {
     type: 'Error',
     error: 'Internal server error',
   }));
+  return null; // coz eslint forces to have a return at the end
 });
 
 // Return 200 if user is logged in
