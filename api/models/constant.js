@@ -5,7 +5,9 @@ module.exports = (sequelize, DataTypes) => {
     value: {
       type: DataTypes.STRING,
     },
-  }, {});
+  }, {
+    timestamps: false,
+  });
   // constant.associate = function (models) {
   //   // associations can be defined here
   // };
