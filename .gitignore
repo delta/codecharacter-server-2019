@@ -4,5 +4,5 @@ api/config/database.json
 .vscode/
 storage/*
 npm-debug.log
-!/storage/codes/default/code.cpp
+!/storage/codes/default/
 docker

@@ -13,7 +13,7 @@ exports.createUserDir = async (username) => {
   const defaultDir = `${appPath}/storage/codes/default`;
   await shell.mkdir(userDir);
 
-  await shell.cp(`${defaultDir}/code.cpp`, `${userDir}/`);
+  await shell.cp(`${defaultDir}/*`, `${userDir}/`);
 
   await git(userDir).init();
   await git(userDir).add('./*');
@@ -66,15 +66,19 @@ exports.getFile = async (username, filename = 'code.cpp', commitHash = null) => 
   return result;
 };
 
-exports.setFile = async (username, fileText) => {
-  const userDir = `${path.resolve('storage/codes/')}/${username}`;
-  await fsWriteFile(path.resolve(userDir, 'code.cpp'), fileText);
-  return null;
+exports.setFile = async (username, fileName = 'code.cpp', fileText) => {
+  const userDir = getUserDir(username);
+  await fsWriteFile(path.resolve(userDir, fileName), fileText);
 };
 
 exports.removeDir = async (username) => {
   const userDir = getUserDir(username);
   await shell.rm('-rf', userDir);
+};
+
+exports.getFile = async (username, fileName) => {
+  const catResult = shell.cat(`${getUserDir(username)}/${fileName}`);
+  return catResult.stdout;
 };
 
 exports.getUserDir = getUserDir;

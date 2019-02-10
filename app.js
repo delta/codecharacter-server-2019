@@ -14,6 +14,7 @@ const routes = require('./api/routes/index.js');
 const config = require('./api/config/config.js');
 const passportSetup = require('./api/utils/passport');
 const socketUtils = require('./api/utils/socketHandlers');
+const compileBoxUtils = require('./api/utils/compileBox');
 
 global.appPath = path.resolve(__dirname);
 
@@ -33,7 +34,12 @@ app.use(
   }),
 );
 
+compileBoxUtils.initializeCompileBoxes();
+
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+  extended: true,
+}));
 app.use(cookieParser());
 
 app.use(passport.initialize());
