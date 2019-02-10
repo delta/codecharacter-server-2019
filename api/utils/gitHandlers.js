@@ -54,31 +54,24 @@ exports.commit = async (username, commitMessage) => {
   return git(userDir).commit(commitMessage);
 };
 
-exports.getFile = async (username, filename = 'code.cpp', commitHash = null) => {
-  const userDir = getUserDir(username);
+exports.getFile = async (username, filename = 'code.cpp', commitHash = null, dir = getUserDir(username)) => {
   let result;
   if (commitHash) {
-    result = await git(userDir).show([`${commitHash}:${filename}`]);
+    result = await git(dir).show([`${commitHash}:${filename}`]);
   } else {
-    const catResult = await shell.cat(`${userDir}/${filename}`);
+    const catResult = await shell.cat(`${dir}/${filename}`);
     result = catResult.stdout;
   }
   return result;
 };
 
-exports.setFile = async (username, fileName = 'code.cpp', fileText) => {
-  const userDir = getUserDir(username);
-  await fsWriteFile(path.resolve(userDir, fileName), fileText);
+exports.setFile = async (username, fileName = 'code.cpp', fileText, dir = getUserDir(username)) => {
+  await fsWriteFile(path.resolve(dir, fileName), fileText);
 };
 
 exports.removeDir = async (username) => {
   const userDir = getUserDir(username);
   await shell.rm('-rf', userDir);
-};
-
-exports.getFile = async (username, fileName) => {
-  const catResult = shell.cat(`${getUserDir(username)}/${fileName}`);
-  return catResult.stdout;
 };
 
 exports.getUserDir = getUserDir;
