@@ -9,6 +9,7 @@ const sendJob = async () => {
   const compileJob = await compileUtils.getOldestCompileJob();
   if (!compileJob) return;
 
+  await compileUtils.setCompileQueueJobStatus(compileJob.id, 'COMPILING');
   await compileUtils.sendCompileJob(compileJob.userId, idleCompileBoxId);
 
   await CompileQueue.destroy({

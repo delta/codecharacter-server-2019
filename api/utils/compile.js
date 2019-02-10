@@ -33,6 +33,12 @@ const pushToCompileQueue = async (userId) => {
   }
 };
 
+const setCompileQueueJobStatus = async (queueId, status) => CompileQueue.update({
+  status,
+}, {
+  where: { id: queueId },
+});
+
 const getOldestCompileJob = async () => {
   const compileJob = await CompileQueue.findOne({
     order: [
@@ -52,8 +58,8 @@ const sendCompileJob = async (userId, compileBoxId) => {
       };
     }
 
-    codeStatusUtils.setUserCodeStatus(userId, 'Compiling');
-    compileBoxUtils.changeCompileBoxState(compileBoxId, 'BUSY');
+    await codeStatusUtils.setUserCodeStatus(userId, 'Compiling');
+    await compileBoxUtils.changeCompileBoxState(compileBoxId, 'BUSY');
 
     const code = await git.getFile(await getUsername(userId), 'code.cpp');
     const targetCompileBoxUrl = await compileBoxUtils.getUrl(compileBoxId);
@@ -112,4 +118,5 @@ module.exports = {
   sendCompileJob,
   getUsername,
   getOldestCompileJob,
+  setCompileQueueJobStatus,
 };
