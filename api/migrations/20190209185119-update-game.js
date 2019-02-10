@@ -5,7 +5,7 @@ module.exports = {
     return queryInterface.addColumn(
       'games',
       'mapId', {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         references: {
           model: 'maps',
           key: 'id',

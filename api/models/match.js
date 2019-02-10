@@ -3,7 +3,7 @@ const User = require('./user');
 module.exports = (sequelize, DataTypes) => {
   const match = sequelize.define('match', {
     userId1: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: false,
       foreignKey: true,
       references: {
@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     userId2: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: false,
       foreignKey: true,
       references: {

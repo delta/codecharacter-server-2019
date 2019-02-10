@@ -6,7 +6,7 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.BIGINT
       },
       title: {
         type: Sequelize.STRING,
@@ -21,7 +21,7 @@ module.exports = {
         values: ['Info', 'Success', 'Error'],
       },
       userId: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.BIGINT,
         allowNull: false,
         foreignKey: true,
         references: {

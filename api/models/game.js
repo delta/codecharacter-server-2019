@@ -5,7 +5,7 @@ const Map = require('./map');
 module.exports = (sequelize, DataTypes) => {
   const game = sequelize.define('game', {
     userId1: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: false,
       foreignKey: true,
       references: {
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     userId2: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: false,
       foreignKey: true,
       references: {
@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     matchId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: false,
       foreignKey: true,
       references: {
@@ -54,15 +54,15 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: '0',
     },
     points1: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: false,
     },
     points2: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: false,
     },
     mapId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: false,
       foreignKey: true,
       references: {

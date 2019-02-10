@@ -3,7 +3,7 @@ const User = require('./user');
 module.exports = (sequelize, DataTypes) => {
   const codeStatus = sequelize.define('codestatus', {
     userId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.BIGINT,
       allowNull: false,
       foreignKey: true,
       references: {

@@ -5,7 +5,7 @@ module.exports = {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
-      type: Sequelize.INTEGER,
+      type: Sequelize.BIGINT,
     },
     username: {
       allowNull: false,
@@ -44,7 +44,7 @@ module.exports = {
     },
     pragyanId: {
       allowNull: true,
-      type: Sequelize.INTEGER
+      type: Sequelize.BIGINT
     }
   }),
   down: (queryInterface, Sequelize) => queryInterface.dropTable('users'),
