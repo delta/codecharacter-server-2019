@@ -1,4 +1,5 @@
 const User = require('./user');
+const Map = require('./map');
 const Game = require('./game');
 
 module.exports = (sequelize, DataTypes) => {
@@ -20,12 +21,12 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     gameId: {
-      type: DataTypes.STRING,
+      type: DataTypes.BIGINT,
       references: {
         model: Game,
         key: 'id',
       },
-      allowNull: false,
+      allowNull: true,
     },
     dll1Path: {
       type: DataTypes.STRING,
@@ -40,6 +41,19 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       values: ['QUEUED', 'EXECUTING', 'DONE'],
       defaultValue: 'QUEUED',
+    },
+    isSelf: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    mapId: {
+      type: DataTypes.BIGINT,
+      references: {
+        model: Map,
+        key: 'id',
+      },
+      allowNull: false,
     },
   }, {
     freezeTableName: true,
