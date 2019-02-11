@@ -5,6 +5,7 @@ const fs = require('fs');
 const util = require('util');
 
 const fsWriteFile = util.promisify(fs.writeFile);
+const fsExists = util.promisify(fs.exists);
 
 const getUserDir = username => `${appPath}/storage/codes/${username}`;
 
@@ -68,6 +69,8 @@ exports.getFile = async (username, filename = 'code.cpp', commitHash = null, dir
 exports.setFile = async (username, fileName = 'code.cpp', fileText, dir = getUserDir(username)) => {
   await fsWriteFile(path.resolve(dir, fileName), fileText);
 };
+
+exports.checkFileExists = async filePath => fsExists(filePath);
 
 exports.removeDir = async (username) => {
   const userDir = getUserDir(username);
