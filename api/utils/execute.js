@@ -1,112 +1,15 @@
 const rp = require('request-promise');
-const EloRank = require('elo-rank');
 
 const ExecuteQueue = require('../models').executequeue;
 const compileBoxUtils = require('./compileBox');
 const gameUtils = require('./game');
 const constantUtils = require('./constant');
 const socket = require('./socketHandlers');
-const Match = require('../models').match;
-const Leaderboard = require('../models').leaderboard;
 const { getUsername } = require('./user');
 const git = require('./gitHandlers');
+const matchUtils = require('./match');
 const { secretString } = require('../config/config');
 const { getMap } = require('./map');
-
-
-const elo = new EloRank(15);
-
-// Redeclaring to avoid cyclic dependencies
-const setMatchStatus = async (matchId, status) => {
-  await Match.update({
-    status,
-  }, {
-    where: { id: matchId },
-  });
-};
-
-// Redeclaring to avoid cyclic dependencies
-const hasMatchEnded = async (matchId) => {
-  const executeQueueElement = await ExecuteQueue.findOne({
-    where: { matchId },
-  });
-
-  return (!executeQueueElement);
-};
-
-// Redeclaring to avoid cyclic dependencies
-const updateMatchResults = async (matchId, score1, score2) => {
-  const match = await Match.findOne({
-    where: { id: matchId },
-  });
-
-  const finalScore1 = match.score1 + score1;
-  const finalScore2 = match.score2 + score2;
-
-  match.score1 = finalScore1;
-  match.score2 = finalScore2;
-
-  match.status = 'DONE';
-
-  await match.save();
-
-  let user1Status;
-  let user1Type;
-  let user2Status;
-  let user2Type;
-
-  if (await hasMatchEnded(matchId)) {
-    await setMatchStatus(matchId, 'DONE');
-
-    const user1 = await Leaderboard.findOne({ userId: match.userId1 });
-    let rating1 = user1.rating;
-    const user2 = await Leaderboard.findOne({ userId: match.userId2 });
-    let rating2 = user2.rating;
-    const expectedScore1 = elo.getExpected(rating1, rating2);
-    const expectedScore2 = elo.getExpected(rating2, rating1);
-
-    if (finalScore1 > finalScore2) {
-      rating1 = elo.updateRating(expectedScore1, 1, rating1);
-      rating2 = elo.updateRating(expectedScore2, 0, rating2);
-      user1Status = `You won against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
-      user1Type = 'Success';
-      user2Status = `You lost against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
-      user2Type = 'Error';
-    } else if (finalScore2 > finalScore1) {
-      rating1 = elo.updateRating(expectedScore1, 0, rating1);
-      rating2 = elo.updateRating(expectedScore2, 1, rating2);
-      user1Status = `You lost against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
-      user1Type = 'Error';
-      user2Status = `You won against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
-      user2Type = 'Success';
-    } else {
-      rating1 = elo.updateRating(expectedScore1, 1, rating1);
-      rating2 = elo.updateRating(expectedScore2, 1, rating2);
-      user1Status = `You tied against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
-      user1Type = 'Success';
-      user2Status = `You tied against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
-      user2Type = 'Success';
-    }
-    await Leaderboard.update({
-      rating: rating1,
-    }, {
-      where: {
-        userId: match.userId1,
-      },
-    });
-
-    await Leaderboard.update({
-      rating: rating2,
-    }, {
-      where: {
-        userId: match.userId2,
-      },
-    });
-  }
-
-  socket.sendMessage(match.userId1, user1Status, user1Type);
-  socket.sendMessage(match.userId2, user2Status, user2Type);
-};
 
 const pushSelfMatchToQueue = async (userId, mapId) => {
   try {
@@ -152,24 +55,6 @@ const pushCommitMatchToQueue = async (userId, mapId) => {
   }
 };
 
-const pushToExecuteQueue = async (gameId, userId1, userId2, dll1Path, dll2Path, mapId) => {
-  try {
-    await ExecuteQueue.create({
-      userId1,
-      userId2,
-      gameId,
-      dll1Path,
-      dll2Path,
-      status: 'QUEUED',
-      type: 'USER_MATCH',
-      mapId,
-    });
-
-    return true;
-  } catch (err) {
-    return false;
-  }
-};
 
 const setExecuteQueueJobStatus = async (queueId, status) => ExecuteQueue.update({
   status,
@@ -289,7 +174,7 @@ const sendExecuteJob = async (
     if (matchType === 'USER_MATCH') {
       const { matchId, score1, score2 } = await gameUtils.updateGameResults(gameId, results);
 
-      await updateMatchResults(matchId, score1, score2);
+      await matchUtils.updateMatchResults(matchId, score1, score2);
       await gameUtils.updateGameLogs(
         gameId,
         response.player1LogCompressed,
@@ -312,12 +197,10 @@ const sendExecuteJob = async (
 };
 
 module.exports = {
-  pushToExecuteQueue,
   sendExecuteJob,
   getUsername,
   getOldestExecuteJob,
   setExecuteQueueJobStatus,
-  hasMatchEnded,
   pushSelfMatchToQueue,
   pushCommitMatchToQueue,
 };
