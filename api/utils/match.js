@@ -1,13 +1,16 @@
+const EloRank = require('elo-rank');
 const Match = require('../models').match;
+const ExecuteQueue = require('../models').executequeue;
+const Leaderboard = require('../models').leaderboard;
 const leaderboardUtils = require('./leaderboard');
 const userUtils = require('./user');
 const constantUtils = require('./constant');
 const mapUtils = require('./map');
 const gameUtils = require('./game');
-const executeUtils = require('./execute');
 const jobUtils = require('./job');
 const socket = require('./socketHandlers');
 
+const elo = new EloRank(15);
 const checkMatchWaitTime = async (userId) => {
   const lastMatch = await Match.findOne({
     where: { userId1: userId },
@@ -27,6 +30,34 @@ const checkMatchWaitTime = async (userId) => {
   if ((currentTime.getTime() - lastMatchTime.getTime()) < minMatchWaitTime) return false;
 
   return true;
+};
+
+// Declared here to avoid cyclic dependencies
+const pushToExecuteQueue = async (gameId, userId1, userId2, dll1Path, dll2Path, mapId) => {
+  try {
+    await ExecuteQueue.create({
+      userId1,
+      userId2,
+      gameId,
+      dll1Path,
+      dll2Path,
+      status: 'QUEUED',
+      isSelf: false,
+      mapId,
+    });
+
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+
+const hasMatchEnded = async (matchId) => {
+  const executeQueueElement = await ExecuteQueue.findOne({
+    where: { matchId },
+  });
+
+  return (!executeQueueElement);
 };
 
 const createMatch = async (userId1, userId2) => {
@@ -82,7 +113,7 @@ const startMatch = async (userId1, userId2) => {
       mapId,
     );
 
-    await executeUtils.pushToExecuteQueue(
+    await pushToExecuteQueue(
       gameId,
       userId1,
       userId2,
@@ -112,7 +143,7 @@ const setMatchStatus = async (matchId, status) => {
 
 const updateMatchResults = async (matchId, score1, score2) => {
   const match = await Match.findOne({
-    id: matchId,
+    where: { id: matchId },
   });
 
   const finalScore1 = match.score1 + score1;
@@ -121,15 +152,71 @@ const updateMatchResults = async (matchId, score1, score2) => {
   match.score1 = finalScore1;
   match.score2 = finalScore2;
 
+  match.status = 'DONE';
+
   await match.save();
 
-  if (await executeUtils.hasMatchEnded(matchId)) {
+  let user1Status;
+  let user1Type;
+  let user2Status;
+  let user2Type;
+
+  if (await hasMatchEnded(matchId)) {
     await setMatchStatus(matchId, 'DONE');
+
+    const user1 = await Leaderboard.findOne({ userId: match.userId1 });
+    let rating1 = user1.rating;
+    const user2 = await Leaderboard.findOne({ userId: match.userId2 });
+    let rating2 = user2.rating;
+    const expectedScore1 = elo.getExpected(rating1, rating2);
+    const expectedScore2 = elo.getExpected(rating2, rating1);
+
+    if (finalScore1 > finalScore2) {
+      rating1 = elo.updateRating(expectedScore1, 1, rating1);
+      rating2 = elo.updateRating(expectedScore2, 0, rating2);
+      user1Status = `You won against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
+      user1Type = 'Success';
+      user2Status = `You lost against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
+      user2Type = 'Error';
+    } else if (finalScore2 > finalScore1) {
+      rating1 = elo.updateRating(expectedScore1, 0, rating1);
+      rating2 = elo.updateRating(expectedScore2, 1, rating2);
+      user1Status = `You lost against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
+      user1Type = 'Error';
+      user2Status = `You won against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
+      user2Type = 'Success';
+    } else {
+      rating1 = elo.updateRating(expectedScore1, 1, rating1);
+      rating2 = elo.updateRating(expectedScore2, 1, rating2);
+      user1Status = `You tied against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
+      user1Type = 'Success';
+      user2Status = `You tied against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
+      user2Type = 'Success';
+    }
+    await Leaderboard.update({
+      rating: rating1,
+    }, {
+      where: {
+        userId: match.userId1,
+      },
+    });
+
+    await Leaderboard.update({
+      rating: rating2,
+    }, {
+      where: {
+        userId: match.userId2,
+      },
+    });
   }
+
+  socket.sendMessage(match.userId1, user1Status, user1Type);
+  socket.sendMessage(match.userId2, user2Status, user2Type);
 };
 
 module.exports = {
   startMatch,
   updateMatchResults,
   setMatchStatus,
+  hasMatchEnded,
 };
