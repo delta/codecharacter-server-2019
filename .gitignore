@@ -6,3 +6,6 @@ storage/*
 npm-debug.log
 !/storage/codes/default/
 docker
+.idea
+package-lock.json
+pa

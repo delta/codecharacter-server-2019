@@ -11,6 +11,16 @@ const config = {
       event_key: 'somekey',
     },
     sendgridAPIKey: 'key',
+    facebook: {
+      client_id: 'YOUR APP ID',
+      client_secret: 'YOUR APP SECRET',
+      callback_url: '{API URL}/user/callback/facebook',
+    },
+    google: {
+      client_id: 'YOUR APP ID',
+      client_secret: 'YOUR APP SECRET',
+      callback_url: '{API URL}/user/callback/google',
+    },
   },
   production: {
     app: {
@@ -24,6 +34,16 @@ const config = {
       event_key: 'somekey',
     },
     sendgridAPIKey: 'key',
+    facebook: {
+      client_id: 'YOUR APP ID',
+      client_secret: 'YOUR APP SECRET',
+      callback_url: '{API URL}/user/callback/facebook',
+    },
+    google: {
+      client_id: 'YOUR APP ID',
+      client_secret: 'YOUR APP SECRET',
+      callback_url: '{API URL}/user/callback/google',
+    },
   },
   test: {
     app: {
@@ -37,6 +57,16 @@ const config = {
       event_key: 'somekey',
     },
     sendgridAPIKey: 'key',
+    facebook: {
+      client_id: 'YOUR APP ID',
+      client_secret: 'YOUR APP SECRET',
+      callback_url: '{API URL}/user/callback/facebook',
+    },
+    google: {
+      client_id: 'YOUR APP ID',
+      client_secret: 'YOUR APP SECRET',
+      callback_url: '{API URL}/user/callback/google',
+    },
   },
 };
 const env = process.env.NODE_ENV || 'development';
