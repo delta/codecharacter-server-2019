@@ -1,17 +1,16 @@
 const fs = require('fs');
-const path = require('path');
 const Map = require('../models').map;
 const Constant = require('../models').constant;
 
 const getMap = async (mapId) => {
-  const mapStorageDir = await Constant.findOne({ where: { key: 'DEFAULT_MAP_STORAGE_DIR' } });
+  const mapStorageDir = (await Constant.findOne({ where: { key: 'DEFAULT_MAP_STORAGE_DIR' } })).value;
   const map = await Map.findOne({ where: { id: mapId } });
-  const mapText = fs.readFileSync(path.join(mapStorageDir, map.path));
+  const mapText = fs.readFileSync(`${mapStorageDir}/${map.path}`);
   return mapText.toString();
 };
 
 const getMapIds = async () => {
-  const mapIds = await Map.find({
+  const mapIds = await Map.findAll({
     attributes: ['id'],
   });
 
