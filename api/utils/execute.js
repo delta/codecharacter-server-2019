@@ -2,6 +2,7 @@ const rp = require('request-promise');
 const ExecuteQueue = require('../models').executequeue;
 const compileBoxUtils = require('./compileBox');
 const gameUtils = require('./game');
+const socket = require('./socketHandlers');
 const Match = require('../models').match;
 const User = require('../models').user;
 const Game = require('../models').game;
@@ -41,11 +42,34 @@ const updateMatchResults = async (matchId, score1, score2) => {
 
   await match.save();
 
+  let user1Status;
+  let user1Type;
+  let user2Status;
+  let user2Type;
+
   if (await hasMatchEnded(matchId)) {
     await setMatchStatus(matchId, 'DONE');
+    if (finalScore1 > finalScore2) {
+      user1Status = `You won against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
+      user1Type = 'Success';
+      user2Status = `You lost against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
+      user2Type = 'Error';
+    } else if (finalScore2 > finalScore1) {
+      user1Status = `You lost against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
+      user1Type = 'Error';
+      user2Status = `You won against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
+      user2Type = 'Success';
+    } else {
+      user1Status = `You tied against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
+      user1Type = 'Success';
+      user2Status = `You tied against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
+      user2Type = 'Success';
+    }
   }
-};
 
+  socket.sendMessage(match.userId1, user1Status, user1Type);
+  socket.sendMessage(match.userId2, user2Status, user2Type);
+};
 
 const getUsername = async (userId) => {
   try {
@@ -150,7 +174,10 @@ const sendExecuteJob = async (gameId, compileBoxId) => {
     const response = await rp(options);
     await compileBoxUtils.changeCompileBoxState(compileBoxId, 'IDLE');
 
-    if (!response.success) return false;
+    if (!response.success) {
+      socket.sendMessage(userId1, (response.err).toString(), 'Error');
+      return false;
+    }
 
     const results = parseResults(response.results);
 

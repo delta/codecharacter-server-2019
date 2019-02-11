@@ -6,6 +6,7 @@ const mapUtils = require('./map');
 const gameUtils = require('./game');
 const executeUtils = require('./execute');
 const jobUtils = require('./job');
+const socket = require('./socketHandlers');
 
 const checkMatchWaitTime = async (userId) => {
   const lastMatch = await Match.findOne({
@@ -70,17 +71,21 @@ const startMatch = async (userId1, userId2) => {
 
   const mapIds = await mapUtils.getMapIds();
 
-  await mapIds.forEach(async (mapId) => {
+  const gamePromises = mapIds.map(async (mapId) => {
     const gameId = await gameUtils.createGame(
       userId1,
       userId2,
       matchId,
-      mapId.id,
+      mapId,
     );
 
     await executeUtils.pushToExecuteQueue(gameId, user1DllPath, user2DllPath);
     jobUtils.sendJob();
   });
+
+  await Promise.all(gamePromises);
+
+  socket.sendMessage(userId1, `Match against ${userId2} is being executed.`, 'Info');
 
   return {
     success: true,
@@ -109,7 +114,7 @@ const updateMatchResults = async (matchId, score1, score2) => {
 
   await match.save();
 
-  if (executeUtils.hasMatchEnded(matchId)) {
+  if (await executeUtils.hasMatchEnded(matchId)) {
     await setMatchStatus(matchId, 'DONE');
   }
 };
