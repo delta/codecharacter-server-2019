@@ -42,10 +42,11 @@ module.exports = (sequelize, DataTypes) => {
       values: ['QUEUED', 'EXECUTING', 'DONE'],
       defaultValue: 'QUEUED',
     },
-    isSelf: {
-      type: DataTypes.BOOLEAN,
+    type: {
+      type: DataTypes.ENUM,
+      values: ['USER_MATCH', 'SELF_MATCH', 'PREVIOUS_COMMIT_MATCH', 'AI_MATCH'],
       allowNull: false,
-      defaultValue: false,
+      defaultValue: 'USER_MATCH',
     },
     mapId: {
       type: DataTypes.BIGINT,
