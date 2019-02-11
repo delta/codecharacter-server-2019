@@ -2,6 +2,7 @@ const rp = require('request-promise');
 const ExecuteQueue = require('../models').executequeue;
 const compileBoxUtils = require('./compileBox');
 const gameUtils = require('./game');
+const socket = require('./socketHandlers');
 const Match = require('../models').match;
 const User = require('../models').user;
 const Game = require('../models').game;
@@ -43,9 +44,18 @@ const updateMatchResults = async (matchId, score1, score2) => {
 
   if (await hasMatchEnded(matchId)) {
     await setMatchStatus(matchId, 'DONE');
+    if (finalScore1 > finalScore2) {
+      socket.sendMessage(match.userId1, `You won against ${match.userId2} \n ${finalScore1}-${finalScore2}`, 'Success');
+      socket.sendMessage(match.userId2, `You lost against ${match.userId1} \n ${finalScore2}-${finalScore1}`, 'Error');
+    } else if (finalScore2 > finalScore1) {
+      socket.sendMessage(match.userId1, `You lost against ${match.userId2} \n ${finalScore1}-${finalScore2}`, 'Error');
+      socket.sendMessage(match.userId2, `You won against ${match.userId1} \n ${finalScore2}-${finalScore1}`, 'Success');
+    } else {
+      socket.sendMessage(match.userId1, `You tied against ${match.userId2} \n ${finalScore1}-${finalScore2}`, 'Success');
+      socket.sendMessage(match.userId2, `You tied against ${match.userId1} \n ${finalScore2}-${finalScore1}`, 'Success');
+    }
   }
 };
-
 
 const getUsername = async (userId) => {
   try {
@@ -150,7 +160,10 @@ const sendExecuteJob = async (gameId, compileBoxId) => {
     const response = await rp(options);
     await compileBoxUtils.changeCompileBoxState(compileBoxId, 'IDLE');
 
-    if (!response.success) return false;
+    if (!response.success) {
+      socket.sendMessage(userId1, (response.err).toString(), 'Error');
+      return false;
+    }
 
     const results = parseResults(response.results);
 

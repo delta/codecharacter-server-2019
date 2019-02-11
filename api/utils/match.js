@@ -6,6 +6,7 @@ const mapUtils = require('./map');
 const gameUtils = require('./game');
 const executeUtils = require('./execute');
 const jobUtils = require('./job');
+const socket = require('./socketHandlers');
 
 const checkMatchWaitTime = async (userId) => {
   const lastMatch = await Match.findOne({
@@ -78,6 +79,8 @@ const startMatch = async (userId1, userId2) => {
     await executeUtils.pushToExecuteQueue(gameId, user1DllPath, user2DllPath);
     jobUtils.sendJob();
   });
+
+  socket.sendMessage(userId1, `Match against ${userId2} is being executed.`, 'Info');
 
   return {
     success: true,
