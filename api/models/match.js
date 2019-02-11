@@ -46,8 +46,9 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 0,
     },
   }, {});
-  // match.associate = function (models) {
-  //   // associations can be defined here
-  // };
+  match.associate = (models) => {
+    match.belongsTo(models.user, { as: 'user1', foreignKey: 'userId1' });
+    match.belongsTo(models.user, { as: 'user2', foreignKey: 'userId2' });
+  };
   return match;
 };
