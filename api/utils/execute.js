@@ -4,7 +4,7 @@ const compileBoxUtils = require('./compileBox');
 const gameUtils = require('./game');
 const socket = require('./socketHandlers');
 const Match = require('../models').match;
-const User = require('../models').user;
+const { getUsername } = require('./user');
 const Game = require('../models').game;
 const git = require('./gitHandlers');
 const { secretString } = require('../config/config');
@@ -69,21 +69,6 @@ const updateMatchResults = async (matchId, score1, score2) => {
 
   socket.sendMessage(match.userId1, user1Status, user1Type);
   socket.sendMessage(match.userId2, user2Status, user2Type);
-};
-
-const getUsername = async (userId) => {
-  try {
-    const user = await User.findOne({
-      where: {
-        id: userId,
-      },
-    });
-
-    if (user) return user.username;
-    return '';
-  } catch (err) {
-    return '';
-  }
 };
 
 const pushToExecuteQueue = async (gameId, dll1Path, dll2Path) => {

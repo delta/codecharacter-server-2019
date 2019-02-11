@@ -2,25 +2,10 @@ const rp = require('request-promise');
 const CompileQueue = require('../models').compilequeue;
 const compileBoxUtils = require('./compileBox');
 const codeStatusUtils = require('./codeStatus');
-const User = require('../models').user;
 const git = require('./gitHandlers');
 const { secretString } = require('../config/config');
 const { sendMessage } = require('./socketHandlers');
-
-const getUsername = async (userId) => {
-  try {
-    const user = await User.findOne({
-      where: {
-        id: userId,
-      },
-    });
-
-    if (user) return user.username;
-    return '';
-  } catch (err) {
-    return '';
-  }
-};
+const { getUsername } = require('./user');
 
 const pushToCompileQueue = async (userId) => {
   try {

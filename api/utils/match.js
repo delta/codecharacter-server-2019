@@ -39,21 +39,21 @@ const createMatch = async (userId1, userId2) => {
 };
 
 const startMatch = async (userId1, userId2) => {
-  if (!checkMatchWaitTime(userId1)) {
+  if (!(await checkMatchWaitTime(userId1))) {
     return {
       success: false,
       message: 'Cannot initiate match. Too early',
     };
   }
 
-  if (!leaderboardUtils.checkLeaderboardEntryExists(userId1)) {
+  if (!(await leaderboardUtils.checkLeaderboardEntryExists(userId1))) {
     return {
       success: false,
       message: 'User 1 does not exist on leaderboard',
     };
   }
 
-  if (!leaderboardUtils.checkLeaderboardEntryExists(userId2)) {
+  if (!(await leaderboardUtils.checkLeaderboardEntryExists(userId2))) {
     return {
       success: false,
       message: 'User 2 does not exist on leaderboard',
