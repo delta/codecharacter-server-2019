@@ -15,6 +15,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    commitHash: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'latest',
+    },
     status: {
       type: DataTypes.ENUM,
       allowNull: false,

@@ -9,8 +9,13 @@ const executeUtils = require('../utils/execute');
 
 const router = express.Router();
 
-router.post('/compile', async (req, res) => {
+router.post('/compile', [
+  check('commitHash')
+    .not().isEmpty().isAlphanumeric(),
+], async (req, res) => {
   const { id } = req.user;
+  const { commitHash } = req.body;
+
   try {
     if ((await codeStatusUtils.getUserCodeStatus(id)) !== 'Idle') {
       return res.status(400).json({
@@ -19,7 +24,7 @@ router.post('/compile', async (req, res) => {
       });
     }
 
-    await compileUtils.pushToCompileQueue(id);
+    await compileUtils.pushToCompileQueue(id, commitHash);
     jobUtils.sendJob();
 
     return res.status(200).json({
