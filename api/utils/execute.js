@@ -82,7 +82,7 @@ const pushSelfMatchToQueue = async (userId, mapId) => {
       dll1Path: 'dll1.dll',
       dll2Path: 'dll2.dll',
       status: 'QUEUED',
-      isSelf: true,
+      type: 'SELF_MATCH',
       mapId,
     });
 
@@ -104,7 +104,7 @@ const pushToExecuteQueue = async (gameId, userId1, userId2, dll1Path, dll2Path, 
       dll1Path,
       dll2Path,
       status: 'QUEUED',
-      isSelf: false,
+      type: 'USER_MATCH',
       mapId,
     });
 
@@ -145,7 +145,7 @@ const parseResults = (resultString) => {
   };
 };
 
-const sendExecuteJob = async (gameId, compileBoxId, userId1, userId2, mapId, isSelf) => {
+const sendExecuteJob = async (gameId, compileBoxId, userId1, userId2, mapId, matchType) => {
   try {
     if (await compileBoxUtils.getCompileBoxStatus(compileBoxId) === 'BUSY') {
       return {
@@ -154,13 +154,13 @@ const sendExecuteJob = async (gameId, compileBoxId, userId1, userId2, mapId, isS
       };
     }
 
-    if (!isSelf) {
+    if (matchType === 'USER_MATCH') {
       socket.sendMessage(userId1, `Match against ${userId2} is executing.`, 'Match Info');
-    } else {
+    } else if (matchType === 'SELF_MATCH') {
       socket.sendMessage(userId1, `Match against ${userId2} is executing.`, 'Self Match Info');
     }
 
-    if (!isSelf) {
+    if (matchType === 'USER_MATCH') {
       await gameUtils.setGameStatus(gameId, 'Compiling');
       await compileBoxUtils.changeCompileBoxState(compileBoxId, 'BUSY');
     }
@@ -171,11 +171,11 @@ const sendExecuteJob = async (gameId, compileBoxId, userId1, userId2, mapId, isS
     const username1 = await getUsername(userId1);
     const username2 = await getUsername(userId2);
 
-    if (isSelf) {
+    if (matchType === 'SELF_MATCH') {
       const codeStorageDir = await constantUtils.getCodeStorageDir();
       dll1Dir = `${codeStorageDir}/${username1}`;
       dll2Dir = `${codeStorageDir}/${username2}`;
-    } else {
+    } else if (matchType === 'USER_MATCH') {
       const leaderboardStorageDir = await constantUtils.getLeaderboardStorageDir();
       dll1Dir = `${leaderboardStorageDir}/${await getUsername(userId1)}`;
       dll2Dir = `${leaderboardStorageDir}/${await getUsername(userId2)}`;
@@ -203,15 +203,18 @@ const sendExecuteJob = async (gameId, compileBoxId, userId1, userId2, mapId, isS
     await compileBoxUtils.changeCompileBoxState(compileBoxId, 'IDLE');
 
     if (!response.success) {
-      if (isSelf) socket.sendMessage(userId1, (response.err).toString(), 'Self Match Error');
-      else socket.sendMessage(userId1, (response.err).toString(), 'Match Error');
+      if (matchType === 'SELF_MATCH') {
+        socket.sendMessage(userId1, (response.err).toString(), 'Self Match Error');
+      } else if (matchType === 'USER_MATCH') {
+        socket.sendMessage(userId1, (response.err).toString(), 'Match Error');
+      }
 
       return false;
     }
 
     const results = parseResults(response.results);
 
-    if (!isSelf) {
+    if (matchType === 'USER_MATCH') {
       const { matchId, score1, score2 } = await gameUtils.updateGameResults(gameId, results);
 
       await updateMatchResults(matchId, score1, score2);
@@ -221,7 +224,7 @@ const sendExecuteJob = async (gameId, compileBoxId, userId1, userId2, mapId, isS
         response.player2LogCompressed,
         response.log,
       );
-    } else {
+    } else if (matchType === 'SELF_MATCH') {
       socket.sendMessage(userId1, JSON.stringify({
         player1Log: response.player1LogCompressed,
         player2Log: response.player2LogCompressed,

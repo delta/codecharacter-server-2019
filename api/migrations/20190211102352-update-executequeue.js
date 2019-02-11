@@ -4,10 +4,11 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.addColumn(
       'executequeue',
-      'isSelf', {
-        type: Sequelize.BOOLEAN,
+      'type', {
+        type: Sequelize.ENUM,
+        values: ['USER_MATCH', 'SELF_MATCH', 'PREVIOUS_COMMIT_MATCH', 'AI_MATCH'],
         allowNull: false,
-        defaultValue: false,
+        defaultValue: 'USER_MATCH',
       });
 
     await queryInterface.removeColumn('executequeue', 'gameId');
@@ -45,6 +46,6 @@ module.exports = {
       allowNull: false,
     });
 
-    await queryInterface.removeColumn('executequeue', 'isSelf');
+    await queryInterface.removeColumn('executequeue', 'type');
   }
 };
