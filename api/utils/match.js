@@ -92,6 +92,7 @@ const startMatch = async (userId1, userId2) => {
     );
     jobUtils.sendJob();
   });
+  socket.sendMessage(userId1, 'Match added to queue', 'Match Info');
 
   await Promise.all(gamePromises);
 

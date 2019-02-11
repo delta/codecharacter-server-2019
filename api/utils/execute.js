@@ -108,11 +108,11 @@ const pushCommitMatchToQueue = async (userId, mapId) => {
       mapId,
     });
 
-    socket.sendMessage(userId, 'Added self match to queue', 'Self Match Info');
+    socket.sendMessage(userId, 'Added previous commit match to queue', 'previous commit match Info');
 
     return true;
   } catch (err) {
-    socket.sendMessage(userId, 'Something went wrong', 'Self Match Error');
+    socket.sendMessage(userId, 'Something went wrong', 'Previous commit match Match Error');
     return false;
   }
 };
@@ -189,6 +189,8 @@ const sendExecuteJob = async (
       socket.sendMessage(userId1, `Match against ${userId2} is executing.`, 'Match Info');
     } else if (matchType === 'SELF_MATCH') {
       socket.sendMessage(userId1, `Match against ${userId2} is executing.`, 'Self Match Info');
+    } else if (matchType === 'PREVIOUS_COMMIT_MATCH') {
+      socket.sendMessage(userId1, `Match against ${userId2} is executing.`, 'Previous commit Match Info');
     }
 
     if (matchType === 'USER_MATCH') {
@@ -212,7 +214,7 @@ const sendExecuteJob = async (
       dll2Dir = `${leaderboardStorageDir}/${await getUsername(userId2)}`;
     }
 
-    if (matchType === 'PREVIOUS_COMMIT_HASH') {
+    if (matchType === 'PREVIOUS_COMMIT_MATCH') {
       if (!(await git.checkFileExists(`${dll2Dir}/${dll2Path}`))) {
         return false;
       }
@@ -244,6 +246,8 @@ const sendExecuteJob = async (
         socket.sendMessage(userId1, (response.err).toString(), 'Self Match Error');
       } else if (matchType === 'USER_MATCH') {
         socket.sendMessage(userId1, (response.err).toString(), 'Match Error');
+      } else if (matchType === 'PREVIOUS_COMMIT_MATCH') {
+        socket.sendMessage(userId1, (response.err).toString(), 'Previous commit match Error');
       }
 
       return false;

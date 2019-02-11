@@ -29,7 +29,6 @@ const sendJob = async () => {
   if (jobtype === 'compile') {
     await compileUtils.setCompileQueueJobStatus(compileJob.id, 'COMPILING');
     await compileUtils.sendCompileJob(compileJob.userId, idleCompileBoxId, compileJob.commitHash);
-
     await CompileQueue.destroy({
       where: {
         id: compileJob.id,
