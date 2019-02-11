@@ -3,6 +3,7 @@ const compileUtils = require('../utils/compile');
 const codeStatusUtils = require('../utils/codeStatus');
 const jobUtils = require('../utils/job');
 const matchUtils = require('../utils/match');
+const executeUtils = require('../utils/execute');
 
 const router = express.Router();
 
@@ -49,6 +50,33 @@ router.post('/match', async (req, res) => {
     return res.status(400).json({
       type: 'Error',
       error: startMatchResponse.message,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      type: 'Error',
+      error: 'Internal Server Error',
+    });
+  }
+});
+
+router.post('/match/self', async (req, res) => {
+  const { id } = req.user;
+  const { mapId } = req.body;
+
+  try {
+    const result = await executeUtils.startSelfMatch(id, mapId);
+
+    if (result) {
+      jobUtils.sendJob();
+      return res.status(200).json({
+        type: 'Success',
+        error: '',
+      });
+    }
+
+    return res.status(400).json({
+      type: 'Error',
+      error: 'No compiled DLLs',
     });
   } catch (err) {
     return res.status(500).json({

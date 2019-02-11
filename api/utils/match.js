@@ -76,7 +76,14 @@ const startMatch = async (userId1, userId2) => {
       mapId.id,
     );
 
-    await executeUtils.pushToExecuteQueue(gameId, user1DllPath, user2DllPath);
+    await executeUtils.pushToExecuteQueue(
+      gameId,
+      userId1,
+      userId2,
+      user1DllPath,
+      user2DllPath,
+      mapId.id,
+    );
     jobUtils.sendJob();
   });
 

@@ -2,10 +2,10 @@ const rp = require('request-promise');
 const ExecuteQueue = require('../models').executequeue;
 const compileBoxUtils = require('./compileBox');
 const gameUtils = require('./game');
+const constantUtils = require('./constant');
 const socket = require('./socketHandlers');
 const Match = require('../models').match;
 const User = require('../models').user;
-const Game = require('../models').game;
 const git = require('./gitHandlers');
 const { secretString } = require('../config/config');
 const { getMap } = require('./map');
@@ -64,7 +64,6 @@ const getUsername = async (userId) => {
         id: userId,
       },
     });
-
     if (user) return user.username;
     return '';
   } catch (err) {
@@ -72,14 +71,27 @@ const getUsername = async (userId) => {
   }
 };
 
-const pushToExecuteQueue = async (gameId, dll1Path, dll2Path) => {
+const startSelfMatch = async (userId, mapId) => {
   try {
-    const game = await Game.findOne({ where: { id: gameId } });
-    const {
-      userId1,
-      userId2,
-    } = game;
+    await ExecuteQueue.create({
+      userId1: userId,
+      userId2: userId,
+      gameId: null,
+      dll1Path: 'dll1.dll',
+      dll2Path: 'dll2.dll',
+      status: 'QUEUED',
+      isSelf: true,
+      mapId,
+    });
 
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+
+const pushToExecuteQueue = async (gameId, userId1, userId2, dll1Path, dll2Path, mapId) => {
+  try {
     await ExecuteQueue.create({
       userId1,
       userId2,
@@ -87,7 +99,10 @@ const pushToExecuteQueue = async (gameId, dll1Path, dll2Path) => {
       dll1Path,
       dll2Path,
       status: 'QUEUED',
+      isSelf: false,
+      mapId,
     });
+
     return true;
   } catch (err) {
     return false;
@@ -125,7 +140,7 @@ const parseResults = (resultString) => {
   };
 };
 
-const sendExecuteJob = async (gameId, compileBoxId) => {
+const sendExecuteJob = async (gameId, compileBoxId, userId1, userId2, mapId, isSelf) => {
   try {
     if (await compileBoxUtils.getStatus(compileBoxId) === 'BUSY') {
       return {
@@ -134,13 +149,29 @@ const sendExecuteJob = async (gameId, compileBoxId) => {
       };
     }
 
-    await gameUtils.setGameStatus(gameId, 'Compiling');
-    await compileBoxUtils.changeCompileBoxState(compileBoxId, 'BUSY');
-    const game = await Game.findOne({ where: { id: gameId } });
-    const { userId1, userId2, mapId } = game;
+    if (!isSelf) {
+      await gameUtils.setGameStatus(gameId, 'Compiling');
+      await compileBoxUtils.changeCompileBoxState(compileBoxId, 'BUSY');
+    }
 
-    const dll1 = JSON.parse(await git.getFile('', 'dll1.dll', null, `${appPath}/storage/leaderboard/${await getUsername(userId1)}`));
-    const dll2 = JSON.parse(await git.getFile('', 'dll2.dll', null, `${appPath}/storage/leaderboard/${await getUsername(userId2)}`));
+    let dll1Dir;
+    let dll2Dir;
+
+    const username1 = await getUsername(userId1);
+    const username2 = await getUsername(userId2);
+
+    if (isSelf) {
+      const codeStorageDir = await constantUtils.getCodeStorageDir();
+      dll1Dir = `${codeStorageDir}/${username1}`;
+      dll2Dir = `${codeStorageDir}/${username2}`;
+    } else {
+      const leaderboardStorageDir = await constantUtils.getLeaderboardStorageDir();
+      dll1Dir = `${leaderboardStorageDir}/${await getUsername(userId1)}`;
+      dll2Dir = `${leaderboardStorageDir}/${await getUsername(userId2)}`;
+    }
+
+    const dll1 = JSON.parse(await git.getFile('', 'dll1.dll', null, dll1Dir));
+    const dll2 = JSON.parse(await git.getFile('', 'dll2.dll', null, dll2Dir));
     const map = await getMap(mapId);
     const targetCompileBoxUrl = await compileBoxUtils.getUrl(compileBoxId);
 
@@ -167,15 +198,24 @@ const sendExecuteJob = async (gameId, compileBoxId) => {
 
     const results = parseResults(response.results);
 
-    const { matchId, score1, score2 } = await gameUtils.updateGameResults(gameId, results);
+    if (!isSelf) {
+      const { matchId, score1, score2 } = await gameUtils.updateGameResults(gameId, results);
 
-    await updateMatchResults(matchId, score1, score2);
-    await gameUtils.updateGameLogs(
-      gameId,
-      response.player1LogCompressed,
-      response.player2LogCompressed,
-      response.log,
-    );
+      await updateMatchResults(matchId, score1, score2);
+      await gameUtils.updateGameLogs(
+        gameId,
+        response.player1LogCompressed,
+        response.player2LogCompressed,
+        response.log,
+      );
+    } else {
+      socket.sendMessage(userId1, JSON.stringify({
+        player1Log: response.player1LogCompressed,
+        player2Log: response.player2LogCompressed,
+        gameLog: response.log,
+        results,
+      }), 'Match Logs');
+    }
 
     return true;
   } catch (error) {
@@ -193,4 +233,5 @@ module.exports = {
   getOldestExecuteJob,
   setExecuteQueueJobStatus,
   hasMatchEnded,
+  startSelfMatch,
 };
