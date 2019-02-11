@@ -7,11 +7,11 @@ const { secretString } = require('../config/config');
 const socket = require('./socketHandlers');
 const { getUsername } = require('./user');
 
-const pushToCompileQueue = async (userId) => {
+const pushToCompileQueue = async (userId, commitHash) => {
   try {
     const codePath = await codeStatusUtils.getUserCodePath(userId);
     await codeStatusUtils.setUserCodeStatus(userId, 'Waiting');
-    await CompileQueue.create({ userId, codePath });
+    await CompileQueue.create({ userId, codePath, commitHash });
 
     socket.sendMessage(userId, 'Compilation added to the queue', 'Compile Info');
     return true;
@@ -40,7 +40,7 @@ const getOldestCompileJob = async () => {
   }
 };
 
-const sendCompileJob = async (userId, compileBoxId) => {
+const sendCompileJob = async (userId, compileBoxId, commitHash) => {
   try {
     if (await compileBoxUtils.getCompileBoxStatus(compileBoxId) === 'BUSY') {
       return {
@@ -53,7 +53,7 @@ const sendCompileJob = async (userId, compileBoxId) => {
     await codeStatusUtils.setUserCodeStatus(userId, 'Compiling');
     await compileBoxUtils.changeCompileBoxState(compileBoxId, 'BUSY');
 
-    const code = await git.getFile(await getUsername(userId), 'code.cpp');
+    const code = await git.getFile(await getUsername(userId), 'code.cpp', (commitHash !== 'latest' ? commitHash : null));
     const targetCompileBoxUrl = await compileBoxUtils.getUrl(compileBoxId);
 
     const options = {
@@ -87,8 +87,8 @@ const sendCompileJob = async (userId, compileBoxId) => {
     }
 
     const username = await getUsername(userId);
-    await git.setFile(username, 'dll1.dll', JSON.stringify(dll1));
-    await git.setFile(username, 'dll2.dll', JSON.stringify(dll2));
+    await git.setFile(username, (commitHash === 'latest' ? 'dll1.dll' : 'dll1_previous_commit.dll'), JSON.stringify(dll1));
+    await git.setFile(username, (commitHash === 'latest' ? 'dll2.dll' : 'dll2_previous_commit.dll'), JSON.stringify(dll2));
     await codeStatusUtils.setUserCodeStatus(userId, 'Idle');
 
     socket.sendMessage(userId, 'Successfully Compiled!', 'Compile Success');
