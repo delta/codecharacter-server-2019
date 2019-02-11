@@ -6,6 +6,7 @@ const should = chai.should();
 const chaiHttp = require('chai-http');
 const request = require('supertest');
 const randomString = require('randomstring');
+const gitHandlers = require('../api/utils/gitHandlers');
 const CodeStatus = require('../api/models').codestatus;
 const server = require('../app');
 const User = require('../api/models').user;
@@ -102,12 +103,14 @@ describe('Test Leaderboard', async () => {
       }
       await Promise.all(deletions);
       const userDeletions = [];
+      const userDirDeletions = [];
       for (let index = 0; index < user.length; index += 1) {
         if (user[index].id > 99 || user[index].id < 120) {
           userDeletions.push(user[index].destroy());
+          userDirDeletions.push(gitHandlers.removeDir(user[index].username));
         }
       }
-      await Promise.all(userDeletions);
+      await Promise.all([...userDeletions, ...userDirDeletions]);
     });
 
     it('start must be int', async () => {
