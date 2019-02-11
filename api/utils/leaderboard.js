@@ -6,7 +6,7 @@ const git = require('./gitHandlers');
 const createLeaderboardUserFolder = async (userDir) => {
   await shell.mkdir(userDir);
   await shell.touch(`${userDir}/dll1.dll`);
-  await shell.touch(`${userDir}dll2.dll`);
+  await shell.touch(`${userDir}/dll2.dll`);
 };
 
 const updateLeaderboard = async (username) => {

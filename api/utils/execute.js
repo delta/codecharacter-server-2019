@@ -2,11 +2,50 @@ const rp = require('request-promise');
 const ExecuteQueue = require('../models').executequeue;
 const compileBoxUtils = require('./compileBox');
 const gameUtils = require('./game');
+const Match = require('../models').match;
 const User = require('../models').user;
 const Game = require('../models').game;
 const git = require('./gitHandlers');
 const { secretString } = require('../config/config');
 const { getMap } = require('./map');
+
+// Redeclaring to avoid cyclic dependencies
+const setMatchStatus = async (matchId, status) => {
+  await Match.update({
+    status,
+  }, {
+    where: { id: matchId },
+  });
+};
+
+// Redeclaring to avoid cyclic dependencies
+const hasMatchEnded = async (matchId) => {
+  const executeQueueElement = await ExecuteQueue.findOne({
+    where: { matchId },
+  });
+
+  return (!executeQueueElement);
+};
+
+// Redeclaring to avoid cyclic dependencies
+const updateMatchResults = async (matchId, score1, score2) => {
+  const match = await Match.findOne({
+    id: matchId,
+  });
+
+  const finalScore1 = match.score1 + score1;
+  const finalScore2 = match.score2 + score2;
+
+  match.score1 = finalScore1;
+  match.score2 = finalScore2;
+
+  await match.save();
+
+  if (await hasMatchEnded(matchId)) {
+    await setMatchStatus(matchId, 'DONE');
+  }
+};
+
 
 const getUsername = async (userId) => {
   try {
@@ -30,6 +69,7 @@ const pushToExecuteQueue = async (gameId, dll1Path, dll2Path) => {
       userId1,
       userId2,
     } = game;
+
     await ExecuteQueue.create({
       userId1,
       userId2,
@@ -60,6 +100,21 @@ const getOldestExecuteJob = async () => {
   return executeJob;
 };
 
+const parseResults = (resultString) => {
+  const splitValues = resultString.split(' ');
+  const player1Score = Number(splitValues[1]);
+  const player1Status = splitValues[2];
+  const player2Score = Number(splitValues[3]);
+  const player2Status = splitValues[4];
+
+  return {
+    player1Score,
+    player2Score,
+    player1Status,
+    player2Status,
+  };
+};
+
 const sendExecuteJob = async (gameId, compileBoxId) => {
   try {
     if (await compileBoxUtils.getStatus(compileBoxId) === 'BUSY') {
@@ -74,8 +129,8 @@ const sendExecuteJob = async (gameId, compileBoxId) => {
     const game = await Game.findOne({ where: { id: gameId } });
     const { userId1, userId2, mapId } = game;
 
-    const dll1 = await git.getFile(await getUsername(userId1), 'dll1.dll');
-    const dll2 = await git.getFile(await getUsername(userId2), 'dll2.dll');
+    const dll1 = JSON.parse(await git.getFile('', 'dll1.dll', null, `${appPath}/storage/leaderboard/${await getUsername(userId1)}`));
+    const dll2 = JSON.parse(await git.getFile('', 'dll2.dll', null, `${appPath}/storage/leaderboard/${await getUsername(userId2)}`));
     const map = await getMap(mapId);
     const targetCompileBoxUrl = await compileBoxUtils.getUrl(compileBoxId);
 
@@ -87,23 +142,30 @@ const sendExecuteJob = async (gameId, compileBoxId) => {
         dll2,
         map,
         secretString,
-        gameId,
+        matchId: gameId,
       },
       json: true,
     };
 
     const response = await rp(options);
-    // await compileBoxUtils.changeCompileBoxState(compileBoxId, 'IDLE');
-    // this is to be done later when match result are sent via post request
+    await compileBoxUtils.changeCompileBoxState(compileBoxId, 'IDLE');
 
-    const { success } = response;
+    if (!response.success) return false;
 
-    if (success) {
-      return true;
-    }
-    return false;
+    const results = parseResults(response.results);
+
+    const { matchId, score1, score2 } = await gameUtils.updateGameResults(gameId, results);
+
+    await updateMatchResults(matchId, score1, score2);
+    await gameUtils.updateGameLogs(
+      gameId,
+      response.player1LogCompressed,
+      response.player2LogCompressed,
+      response.log,
+    );
+
+    return true;
   } catch (error) {
-    // sendMessage(userId, 'Internal Server Error', 'Compilation Error');
     return {
       type: 'Error',
       error: 'Internal Server Error',
@@ -117,4 +179,5 @@ module.exports = {
   getUsername,
   getOldestExecuteJob,
   setExecuteQueueJobStatus,
+  hasMatchEnded,
 };
