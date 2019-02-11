@@ -10,13 +10,17 @@ const initializeCompileBoxes = async () => {
 };
 
 const getIdleCompileBox = async () => {
-  const compileBox = await CompileBox.findOne({
-    where: { status: 'IDLE' },
-  });
+  try {
+    const compileBox = await CompileBox.findOne({
+      where: { status: 'IDLE' },
+    });
 
-  if (compileBox) return compileBox.id;
+    if (compileBox) return compileBox.id;
 
-  return -1;
+    return -1;
+  } catch (err) {
+    return -1;
+  }
 };
 
 const changeCompileBoxState = async (id, state) => {
@@ -36,7 +40,7 @@ const changeCompileBoxState = async (id, state) => {
   return true;
 };
 
-const getStatus = async (compileBoxId) => {
+const getCompileBoxStatus = async (compileBoxId) => {
   const compileBox = await CompileBox.findOne({
     where: { id: compileBoxId },
   });
@@ -47,19 +51,23 @@ const getStatus = async (compileBoxId) => {
 };
 
 const getUrl = async (compileBoxId) => {
-  const compileBox = await CompileBox.findOne({
-    where: { id: compileBoxId },
-  });
+  try {
+    const compileBox = await CompileBox.findOne({
+      where: { id: compileBoxId },
+    });
 
-  if (compileBox) return compileBox.url;
+    if (compileBox) return compileBox.url;
 
-  return '';
+    return '';
+  } catch (err) {
+    return '';
+  }
 };
 
 module.exports = {
   initializeCompileBoxes,
   getIdleCompileBox,
   changeCompileBoxState,
-  getStatus,
+  getCompileBoxStatus,
   getUrl,
 };

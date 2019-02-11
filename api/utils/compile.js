@@ -4,7 +4,7 @@ const compileBoxUtils = require('./compileBox');
 const codeStatusUtils = require('./codeStatus');
 const git = require('./gitHandlers');
 const { secretString } = require('../config/config');
-const { sendMessage } = require('./socketHandlers');
+const socket = require('./socketHandlers');
 const { getUsername } = require('./user');
 
 const pushToCompileQueue = async (userId) => {
@@ -12,6 +12,8 @@ const pushToCompileQueue = async (userId) => {
     const codePath = await codeStatusUtils.getUserCodePath(userId);
     await codeStatusUtils.setUserCodeStatus(userId, 'Waiting');
     await CompileQueue.create({ userId, codePath });
+
+    socket.sendMessage(userId, 'Compilation added to the queue', 'Compile Info');
     return true;
   } catch (err) {
     return false;
@@ -25,24 +27,29 @@ const setCompileQueueJobStatus = async (queueId, status) => CompileQueue.update(
 });
 
 const getOldestCompileJob = async () => {
-  const compileJob = await CompileQueue.findOne({
-    order: [
-      ['createdAt', 'ASC'],
-    ],
-    limit: 1,
-  });
-  return compileJob;
+  try {
+    const compileJob = await CompileQueue.findOne({
+      order: [
+        ['createdAt', 'ASC'],
+      ],
+      limit: 1,
+    });
+    return compileJob;
+  } catch (err) {
+    throw err;
+  }
 };
 
 const sendCompileJob = async (userId, compileBoxId) => {
   try {
-    if (await compileBoxUtils.getStatus(compileBoxId) === 'BUSY') {
+    if (await compileBoxUtils.getCompileBoxStatus(compileBoxId) === 'BUSY') {
       return {
         type: 'Error',
         error: 'CompileBox not available',
       };
     }
 
+    socket.sendMessage(userId, 'Your code is being compiled...', 'Compile Info');
     await codeStatusUtils.setUserCodeStatus(userId, 'Compiling');
     await compileBoxUtils.changeCompileBoxState(compileBoxId, 'BUSY');
 
@@ -71,7 +78,7 @@ const sendCompileJob = async (userId, compileBoxId) => {
     } = response;
 
     if (!success) {
-      sendMessage(userId, error, 'Compilation Error');
+      socket.sendMessage(userId, JSON.stringify(error), 'Compile Error');
       await codeStatusUtils.setUserCodeStatus(userId, 'Idle');
       return {
         type: 'Error',
@@ -84,13 +91,14 @@ const sendCompileJob = async (userId, compileBoxId) => {
     await git.setFile(username, 'dll2.dll', JSON.stringify(dll2));
     await codeStatusUtils.setUserCodeStatus(userId, 'Idle');
 
-    sendMessage(userId, 'Successfully Compiled!', 'Compilation Success');
+    socket.sendMessage(userId, 'Successfully Compiled!', 'Compile Success');
+
     return {
       type: 'Success',
       error: '',
     };
   } catch (error) {
-    sendMessage(userId, 'Internal Server Error', 'Compilation Error');
+    socket.sendMessage(userId, 'Internal Server Error', 'Compile Error');
     return {
       type: 'Error',
       error: 'Internal Server Error',

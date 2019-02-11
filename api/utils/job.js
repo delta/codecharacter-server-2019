@@ -37,8 +37,14 @@ const sendJob = async () => {
     });
   } else {
     await executeUtils.setExecuteQueueJobStatus(executeJob.id, 'EXECUTING');
-    await executeUtils.sendExecuteJob(executeJob.gameId, idleCompileBoxId);
-
+    await executeUtils.sendExecuteJob(
+      executeJob.gameId,
+      idleCompileBoxId,
+      executeJob.userId1,
+      executeJob.userId2,
+      executeJob.mapId,
+      false,
+    );
     await ExecuteQueue.destroy({
       where: {
         id: executeJob.id,

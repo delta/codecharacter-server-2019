@@ -1,6 +1,6 @@
 const Match = require('../models').match;
 const leaderboardUtils = require('./leaderboard');
-const compileUtils = require('./compile');
+const userUtils = require('./user');
 const constantUtils = require('./constant');
 const mapUtils = require('./map');
 const gameUtils = require('./game');
@@ -40,6 +40,7 @@ const createMatch = async (userId1, userId2) => {
 
 const startMatch = async (userId1, userId2) => {
   if (!(await checkMatchWaitTime(userId1))) {
+    socket.sendMessage(userId1, 'Cannot initiate match. Too early', 'Match Error');
     return {
       success: false,
       message: 'Cannot initiate match. Too early',
@@ -47,6 +48,7 @@ const startMatch = async (userId1, userId2) => {
   }
 
   if (!(await leaderboardUtils.checkLeaderboardEntryExists(userId1))) {
+    socket.sendMessage(userId1, 'User 1 does not exist on leaderboard', 'Match Error');
     return {
       success: false,
       message: 'User 1 does not exist on leaderboard',
@@ -54,6 +56,7 @@ const startMatch = async (userId1, userId2) => {
   }
 
   if (!(await leaderboardUtils.checkLeaderboardEntryExists(userId2))) {
+    socket.sendMessage(userId1, 'User 2 does not exist on leaderboard', 'Match Error');
     return {
       success: false,
       message: 'User 2 does not exist on leaderboard',
@@ -62,8 +65,8 @@ const startMatch = async (userId1, userId2) => {
 
   const matchId = await createMatch(userId1, userId2);
 
-  const username1 = await compileUtils.getUsername(userId1);
-  const username2 = await compileUtils.getUsername(userId2);
+  const username1 = await userUtils.getUsername(userId1);
+  const username2 = await userUtils.getUsername(userId2);
   const storageDir = await constantUtils.getLeaderboardStorageDir();
 
   const user1DllPath = `${storageDir}/${username1}/dll1.cpp`;
@@ -79,14 +82,20 @@ const startMatch = async (userId1, userId2) => {
       mapId,
     );
 
-    await executeUtils.pushToExecuteQueue(gameId, user1DllPath, user2DllPath);
+    await executeUtils.pushToExecuteQueue(
+      gameId,
+      userId1,
+      userId2,
+      user1DllPath,
+      user2DllPath,
+      mapId,
+    );
     jobUtils.sendJob();
   });
 
   await Promise.all(gamePromises);
 
-  socket.sendMessage(userId1, `Match against ${userId2} is being executed.`, 'Info');
-
+  socket.sendMessage(userId1, `Match against ${userId2} added to queue.`, 'Match Info');
   return {
     success: true,
     message: 'Match added to queue',

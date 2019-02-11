@@ -13,8 +13,8 @@ const getMapIds = async () => {
   const mapIds = await Map.findAll({
     attributes: ['id'],
   });
-
-  return mapIds;
+  const ids = mapIds.map(mapId => mapId.id);
+  return ids;
 };
 
 module.exports = {
