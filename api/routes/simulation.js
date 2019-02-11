@@ -13,6 +13,8 @@ router.post('/compile', [
   check('commitHash')
     .not().isEmpty().isAlphanumeric(),
 ], async (req, res) => {
+  if (handleValidationErrors(req, res)) return null;
+
   const { id } = req.user;
   const { commitHash } = req.body;
 
@@ -83,6 +85,40 @@ router.post('/match/self', [
 
   try {
     const result = await executeUtils.pushSelfMatchToQueue(id, mapId);
+
+    if (result) {
+      jobUtils.sendJob();
+      return res.status(200).json({
+        type: 'Success',
+        error: '',
+      });
+    }
+
+    return res.status(400).json({
+      type: 'Error',
+      error: 'No compiled DLLs',
+    });
+  } catch (err) {
+    return res.status(500).json({
+      type: 'Error',
+      error: 'Internal Server Error',
+    });
+  }
+});
+
+// Executes match between current dll and dll of previous compiled commit
+router.post('/match/commit', [
+  check('mapId')
+    .not().isEmpty().withMessage('mapId cannot be empty')
+    .isInt(),
+], async (req, res) => {
+  if (handleValidationErrors(req, res)) return null;
+
+  const { id } = req.user;
+  const { mapId } = req.body;
+
+  try {
+    const result = await executeUtils.pushCommitMatchToQueue(id, mapId);
 
     if (result) {
       jobUtils.sendJob();

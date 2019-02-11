@@ -95,6 +95,28 @@ const pushSelfMatchToQueue = async (userId, mapId) => {
   }
 };
 
+const pushCommitMatchToQueue = async (userId, mapId) => {
+  try {
+    await ExecuteQueue.create({
+      userId1: userId,
+      userId2: userId,
+      gameId: null,
+      dll1Path: 'dll1.dll',
+      dll2Path: 'dll2_previous_commit.dll',
+      status: 'QUEUED',
+      type: 'PREVIOUS_COMMIT_MATCH',
+      mapId,
+    });
+
+    socket.sendMessage(userId, 'Added self match to queue', 'Self Match Info');
+
+    return true;
+  } catch (err) {
+    socket.sendMessage(userId, 'Something went wrong', 'Self Match Error');
+    return false;
+  }
+};
+
 const pushToExecuteQueue = async (gameId, userId1, userId2, dll1Path, dll2Path, mapId) => {
   try {
     await ExecuteQueue.create({
@@ -145,7 +167,16 @@ const parseResults = (resultString) => {
   };
 };
 
-const sendExecuteJob = async (gameId, compileBoxId, userId1, userId2, mapId, matchType) => {
+const sendExecuteJob = async (
+  gameId,
+  compileBoxId,
+  userId1,
+  userId2,
+  mapId,
+  matchType,
+  dll1Path,
+  dll2Path,
+) => {
   try {
     if (await compileBoxUtils.getCompileBoxStatus(compileBoxId) === 'BUSY') {
       return {
@@ -171,7 +202,7 @@ const sendExecuteJob = async (gameId, compileBoxId, userId1, userId2, mapId, mat
     const username1 = await getUsername(userId1);
     const username2 = await getUsername(userId2);
 
-    if (matchType === 'SELF_MATCH') {
+    if (matchType === 'SELF_MATCH' || matchType === 'PREVIOUS_COMMIT_MATCH') {
       const codeStorageDir = await constantUtils.getCodeStorageDir();
       dll1Dir = `${codeStorageDir}/${username1}`;
       dll2Dir = `${codeStorageDir}/${username2}`;
@@ -181,8 +212,14 @@ const sendExecuteJob = async (gameId, compileBoxId, userId1, userId2, mapId, mat
       dll2Dir = `${leaderboardStorageDir}/${await getUsername(userId2)}`;
     }
 
-    const dll1 = JSON.parse(await git.getFile('', 'dll1.dll', null, dll1Dir));
-    const dll2 = JSON.parse(await git.getFile('', 'dll2.dll', null, dll2Dir));
+    if (matchType === 'PREVIOUS_COMMIT_HASH') {
+      if (!(await git.checkFileExists(`${dll2Dir}/${dll2Path}`))) {
+        return false;
+      }
+    }
+
+    const dll1 = JSON.parse(await git.getFile('', dll1Path, null, dll1Dir));
+    const dll2 = JSON.parse(await git.getFile('', dll2Path, null, dll2Dir));
     const map = await getMap(mapId);
     const targetCompileBoxUrl = await compileBoxUtils.getUrl(compileBoxId);
 
@@ -224,7 +261,7 @@ const sendExecuteJob = async (gameId, compileBoxId, userId1, userId2, mapId, mat
         response.player2LogCompressed,
         response.log,
       );
-    } else if (matchType === 'SELF_MATCH') {
+    } else if (matchType === 'SELF_MATCH' || matchType === 'PREVIOUS_COMMIT_MATCH') {
       socket.sendMessage(userId1, JSON.stringify({
         player1Log: response.player1LogCompressed,
         player2Log: response.player2LogCompressed,
@@ -235,10 +272,7 @@ const sendExecuteJob = async (gameId, compileBoxId, userId1, userId2, mapId, mat
 
     return true;
   } catch (error) {
-    return {
-      type: 'Error',
-      error: 'Internal Server Error',
-    };
+    return false;
   }
 };
 
@@ -250,4 +284,5 @@ module.exports = {
   setExecuteQueueJobStatus,
   hasMatchEnded,
   pushSelfMatchToQueue,
+  pushCommitMatchToQueue,
 };

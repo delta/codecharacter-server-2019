@@ -44,6 +44,8 @@ const sendJob = async () => {
       executeJob.userId2,
       executeJob.mapId,
       executeJob.type,
+      executeJob.dll1Path,
+      executeJob.dll2Path,
     );
     await ExecuteQueue.destroy({
       where: {
