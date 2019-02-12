@@ -11,6 +11,13 @@ router.get('/all', async (req, res) => {
       { model: User, as: 'user1' },
       { model: User, as: 'user2' },
     ],
+    where: {
+      $or: [{
+        userId1: req.user.id,
+      }, {
+        userId2: req.user.id,
+      }],
+    },
   });
   const matchData = [];
   matches = parsify(matches);

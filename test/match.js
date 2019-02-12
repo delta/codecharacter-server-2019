@@ -15,12 +15,12 @@ const parsify = obj => JSON.parse(JSON.stringify(obj));
 
 describe('Test Match', async () => {
   const superAgent = request.agent(server);
-  const numEntires = 10;
+  const numEntries = 10;
   let registerResults = [];
   let userIdResults = [];
   // eslint-disable-next-line no-undef
   before(async () => {
-    for (let index = 0; index < numEntires; index += 1) {
+    for (let index = 0; index < numEntries; index += 1) {
       const username = `${randomString.generate(10)}Match`;
       const registerBody = {
         username,
@@ -38,7 +38,7 @@ describe('Test Match', async () => {
     }
     await Promise.all(registerResults);
     registerResults = parsify(registerResults);
-    for (let index = 0; index < numEntires; index += 1) {
+    for (let index = 0; index < numEntries; index += 1) {
       const user = User.findOne({
         where: {
           username: registerResults[index].data.username,
@@ -49,7 +49,7 @@ describe('Test Match', async () => {
     await Promise.all(userIdResults);
     userIdResults = parsify(userIdResults);
     let matches = [];
-    for (let index = 0; index < numEntires - 1; index += 1) {
+    for (let index = 0; index < numEntries - 1; index += 1) {
       const match = Match.findOrCreate({
         where: {
           userId1: userIdResults[index].fulfillmentValue.id,
@@ -63,7 +63,7 @@ describe('Test Match', async () => {
       });
       matches.push(match);
     }
-    for (let index = 0; index < numEntires - 1; index += 1) {
+    for (let index = 0; index < numEntries - 1; index += 1) {
       const match = Match.findOrCreate({
         where: {
           userId1: userIdResults[index].fulfillmentValue.id,
@@ -83,7 +83,7 @@ describe('Test Match', async () => {
   // eslint-disable-next-line no-undef
   after(async () => {
     const matchResults = [];
-    for (let index = 0; index < numEntires - 1; index += 1) {
+    for (let index = 0; index < numEntries - 1; index += 1) {
       const match = Match.destroy({
         where: {
           userId1: userIdResults[index].fulfillmentValue.id,
@@ -94,7 +94,7 @@ describe('Test Match', async () => {
     }
     await Promise.all(matchResults);
     const codeStatusResults = [];
-    for (let index = 0; index < numEntires; index += 1) {
+    for (let index = 0; index < numEntries; index += 1) {
       const code = CodeStatus.destroy({
         where: {
           userId: userIdResults[index].fulfillmentValue.id,
@@ -104,7 +104,7 @@ describe('Test Match', async () => {
     }
     await Promise.all(codeStatusResults);
     const userResults = [];
-    for (let index = 0; index < numEntires; index += 1) {
+    for (let index = 0; index < numEntries; index += 1) {
       const user = User.destroy({
         where: {
           id: userIdResults[index].fulfillmentValue.id,
@@ -125,18 +125,22 @@ describe('Test Match', async () => {
       .send(loginBody);
     let getData = await superAgent.get('/match/all');
     getData = JSON.parse(parsify(parsify(getData).text)).matchData;
+    const user = await User.findOne({
+      where: {
+        username: registerResults[0].data.username,
+      },
+    });
     let matchResult = [];
-    for (let index = 0; index < getData.length; index += 1) {
-      const match = Match.findOne({
-        where: {
-          userId1: getData[index].userId1,
-          userId2: getData[index].userId2,
-        },
-      });
-      matchResult.push(match);
-    }
-    await Promise.all(matchResult);
-    matchResult = parsify(matchResult);
+    const match = await Match.findAll({
+      where: {
+        $or: [{
+          userId1: user.id,
+        }, {
+          userId2: user.id,
+        }],
+      },
+    });
+    matchResult = parsify(match);
     matchResult.length.should.equal(getData.length);
   });
 });
