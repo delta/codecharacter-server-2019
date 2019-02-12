@@ -56,6 +56,10 @@ module.exports = (sequelize, DataTypes) => {
     college: {
       type: DataTypes.STRING,
       allowNull: true,
+    isAdmin: {
+      allowNull: false,
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
   }, {});
   // user.associate = function (models) {
