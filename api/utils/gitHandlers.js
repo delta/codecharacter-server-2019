@@ -3,6 +3,7 @@ const shell = require('shelljs');
 const git = require('simple-git/promise');
 const fs = require('fs');
 const util = require('util');
+const constants = require('./constant');
 
 const fsWriteFile = util.promisify(fs.writeFile);
 const fsExists = util.promisify(fs.exists);
@@ -75,6 +76,11 @@ exports.checkFileExists = async filePath => fsExists(filePath);
 exports.removeDir = async (username) => {
   const userDir = getUserDir(username);
   await shell.rm('-rf', userDir);
+};
+
+exports.removeLeaderboardDir = async (username) => {
+  const userLeaderboardDir = path.resolve(await constants.getLeaderboardStorageDir(), username);
+  await shell.rm('-rf', userLeaderboardDir);
 };
 
 exports.getUserDir = getUserDir;
