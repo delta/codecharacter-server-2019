@@ -108,7 +108,7 @@ const pushCommitMatchToQueue = async (userId, mapId) => {
       mapId,
     });
 
-    socket.sendMessage(userId, 'Added previous commit match to queue', 'previous commit match Info');
+    socket.sendMessage(userId, 'Added previous commit match to queue', 'Previous commit match Info');
 
     return true;
   } catch (err) {
