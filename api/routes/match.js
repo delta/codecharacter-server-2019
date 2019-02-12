@@ -12,16 +12,20 @@ router.get('/all', async (req, res) => {
       { model: User, as: 'user2' },
     ],
   });
+  const MatchEntry = [];
   matches = parsify(matches);
   for (let i = 0; i < matches.length; i += 1) {
-    matches[i] = { ...matches[i], username1: matches[i].user1.username };
-    matches[i] = { ...matches[i], username2: matches[i].user2.username };
-    delete matches[i].updatedAt;
-    delete matches[i].status;
-    delete matches[i].user1;
-    delete matches[i].user2;
+    const match = {};
+    match.usedId1 = matches[i].user1.id;
+    match.userId2 = matches[i].user2.id;
+    match.username1 = matches[i].user1.username;
+    match.username2 = matches[i].user2.username;
+    match.verdict = matches[i].verdict;
+    match.score1 = matches[i].score1;
+    match.score2 = matches[i].score2;
+    MatchEntry.push(match);
   }
-  return res.status(200).json({ type: 'Success', error: '', matchData: parsify(matches) });
+  return res.status(200).json({ type: 'Success', error: '', matchData: MatchEntry });
 });
 
 module.exports = router;
