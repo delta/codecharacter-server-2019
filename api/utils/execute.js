@@ -190,7 +190,7 @@ const sendExecuteJob = async (
     } else if (matchType === 'SELF_MATCH') {
       socket.sendMessage(userId1, `Match against ${userId2} is executing.`, 'Self Match Info');
     } else if (matchType === 'PREVIOUS_COMMIT_MATCH') {
-      socket.sendMessage(userId1, `Match against ${userId2} is executing.`, 'Previous commit Match Info');
+      socket.sendMessage(userId1, `Match against ${userId2} is executing.`, 'Previous commit match Info');
     }
 
     if (matchType === 'USER_MATCH') {
