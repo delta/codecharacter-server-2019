@@ -75,10 +75,28 @@ const sendCompileJob = async (userId, compileBoxId, commitHash) => {
       dll1,
       dll2,
       error,
+      errorType,
     } = response;
-
+    console.log(error);
     if (!success) {
-      socket.sendMessage(userId, JSON.stringify(error), 'Compile Error');
+      if (errorType === 'COMPILE_ERROR') {
+        socket.sendMessage(userId, { type: 'Compile Error', error: JSON.stringify(error) }, 'Compile Error');
+        return {
+          type: 'Error',
+          error: 'COMPILE_ERROR',
+        };
+      } if (errorType === 'UNAUTHORIZED') {
+        socket.sendMessage(userId, { type: 'Server Error', error: 'Internal server error' }, 'Compile Error');
+        return {
+          type: 'Error',
+          error: 'UNAUTHORIZED',
+        };
+      } if (errorType === 'BOX_BUSY') {
+        return {
+          type: 'Error',
+          error: 'BOX_BUSY',
+        };
+      }
       await codeStatusUtils.setUserCodeStatus(userId, 'Idle');
       return {
         type: 'Error',

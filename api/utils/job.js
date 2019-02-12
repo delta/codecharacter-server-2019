@@ -10,7 +10,6 @@ const sendJob = async () => {
 
   const compileJob = await compileUtils.getOldestCompileJob();
   const executeJob = await executeUtils.getOldestExecuteJob();
-
   let jobtype;
   if (compileJob && executeJob) {
     if (compileJob.createdAt.getTime() > executeJob.createdAt.getTime()) {
@@ -27,14 +26,16 @@ const sendJob = async () => {
   }
 
   if (jobtype === 'compile') {
+    const { userId, commitHash } = compileJob;
     await compileUtils.setCompileQueueJobStatus(compileJob.id, 'COMPILING');
-    await compileUtils.sendCompileJob(compileJob.userId, idleCompileBoxId, compileJob.commitHash);
-
-    await CompileQueue.destroy({
-      where: {
-        id: compileJob.id,
-      },
-    });
+    const compileResult = await compileUtils.sendCompileJob(userId, idleCompileBoxId, commitHash);
+    if (compileResult.error !== 'BOX_BUSY') {
+      await CompileQueue.destroy({
+        where: {
+          id: compileJob.id,
+        },
+      });
+    }
   } else {
     await executeUtils.setExecuteQueueJobStatus(executeJob.id, 'EXECUTING');
     await executeUtils.sendExecuteJob(
