@@ -12,20 +12,20 @@ router.get('/all', async (req, res) => {
       { model: User, as: 'user2' },
     ],
   });
-  const MatchEntry = [];
+  const matchData = [];
   matches = parsify(matches);
   for (let i = 0; i < matches.length; i += 1) {
-    const match = {};
-    match.usedId1 = matches[i].user1.id;
-    match.userId2 = matches[i].user2.id;
-    match.username1 = matches[i].user1.username;
-    match.username2 = matches[i].user2.username;
-    match.verdict = matches[i].verdict;
-    match.score1 = matches[i].score1;
-    match.score2 = matches[i].score2;
-    MatchEntry.push(match);
+    const matchEntry = {};
+    matchEntry.usedId1 = matches[i].user1.id;
+    matchEntry.userId2 = matches[i].user2.id;
+    matchEntry.username1 = matches[i].user1.username;
+    matchEntry.username2 = matches[i].user2.username;
+    matchEntry.verdict = matches[i].verdict;
+    matchEntry.score1 = matches[i].score1;
+    matchEntry.score2 = matches[i].score2;
+    matchData.push(matchEntry);
   }
-  return res.status(200).json({ type: 'Success', error: '', matchData: MatchEntry });
+  return res.status(200).json({ type: 'Success', error: '', matchData });
 });
 
 module.exports = router;
