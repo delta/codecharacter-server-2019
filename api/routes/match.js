@@ -42,11 +42,23 @@ router.get('/pro', async (req, res) => {
       model: User,
     },
     order: ['rating'],
+    limit: 10,
   });
   leaderboard = parsify(leaderboard);
+
+  const topPlayers = [];
+  for (let index = 0; index < leaderboard.length; index += 1) {
+    topPlayers.push(leaderboard[index].userId);
+  }
   let allMatches = await Match.findAll({
     where: {
       status: 'DONE',
+      userId1: {
+        $or: topPlayers,
+      },
+      userId2: {
+        $or: topPlayers,
+      },
     },
   });
   allMatches = parsify(allMatches);
@@ -56,17 +68,9 @@ router.get('/pro', async (req, res) => {
     for (let index = 0; index < allMatches.length; index += 1) {
       const match = allMatches[index];
       if (Math.abs(match.score1 - match.score2) === diff) {
-        for (let player = 0; player < leaderboard.length; player += 1) {
-          const curPlayer = leaderboard[player];
-          if (match.userId1 === curPlayer.userId || match.userId2 === curPlayer.userId) {
-            if (!allMatches[index].isUsed) {
-              if (count !== 0) {
-                result.push(match);
-                allMatches[index].isUsed = true;
-                count -= 1;
-              }
-            }
-          }
+        if (count !== 0) {
+          result.push(match);
+          count -= 1;
         }
       }
     }
