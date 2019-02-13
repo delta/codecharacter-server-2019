@@ -30,6 +30,7 @@ describe('Test Leaderboard', async () => {
         country: 'IN',
         fullName: 'Mocha Test',
         pragyanId: null,
+        type: 'Professional',
       };
       await superAgent.post('/user/register')
         .set('content-type', 'application/json')

@@ -29,9 +29,21 @@ router.post('/register', [
     .not().isEmpty().withMessage('Full Name cannot be empty'),
   check('country')
     .isAlpha(),
+  check('type')
+    .exists().withMessage('Type can not be empty')
+    .custom(value => ['Student', 'Professional'].includes(value))
+    .withMessage('Type should be either Student or Professional'),
+  check('college')
+    .custom((value, { req }) => {
+      if (req.body.type === 'Student') {
+        return !!value;
+      }
+      return true;
+    })
+    .withMessage('College is required for type student'),
 ], async (req, res) => {
   const {
-    username, password, email, country, fullName, pragyanId,
+    username, password, email, country, fullName, pragyanId, type, college,
   } = req.body;
 
   if (handleValidationErrors(req, res)) return null;
@@ -58,6 +70,8 @@ router.post('/register', [
       country: country || 'IN',
       pragyanId: pragyanId || null,
       password: passwordHash,
+      type,
+      college,
     });
     if (newUser) {
       if (await git.createUserDir(username)) {

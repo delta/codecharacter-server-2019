@@ -8,11 +8,15 @@ const router = express.Router();
 
 router.get('/', (req, res) => {
   if (req.user) {
-    const { username, fullName, country } = req.user;
+    const {
+      username, fullName, country, type, college,
+    } = req.user;
     return res.status(200).json({
       type: 'Success',
       error: '',
-      userDetails: { username, fullName, country },
+      userDetails: {
+        username, fullName, country, type, college,
+      },
     });
   }
   return res.status(500).json({
@@ -30,7 +34,7 @@ router.get('/view/:username', [
     if (handleValidationErrors(req, res)) return null;
     const userDetails = await User.findOne({
       where: { username },
-      attributes: ['username', 'fullName', 'country'],
+      attributes: ['username', 'fullName', 'country', 'type', 'college'],
     });
     if (!userDetails) {
       return res.status(400).json({
