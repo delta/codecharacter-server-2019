@@ -27,6 +27,7 @@ describe('Test Register', async () => {
       country: 'IN',
       fullName: 'Register_Mocha Test',
       pragyanId: null,
+      type: 'Professional',
     };
   });
 
@@ -144,6 +145,7 @@ describe('Test Login', async () => {
     country: 'IN',
     fullName: 'Mocha',
     pragyanId: null,
+    type: 'Professional',
   };
   // eslint-disable-next-line no-undef
   before(async () => {
@@ -223,6 +225,7 @@ describe('Test Logout', async () => {
     country: 'IN',
     fullName: 'Mocha',
     pragyanId: null,
+    type: 'Professional',
   };
   // eslint-disable-next-line no-undef
   before(async () => {
@@ -270,6 +273,7 @@ describe('Test Check Username', async () => {
     country: 'IN',
     fullName: 'Mocha',
     pragyanId: null,
+    type: 'Professional',
   };
   // eslint-disable-next-line no-undef
   before(async () => {

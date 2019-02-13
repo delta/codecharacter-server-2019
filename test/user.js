@@ -26,6 +26,7 @@ async function createUser(userAgent) {
     country: 'IN',
     fullName: 'Mocha Test',
     pragyanId: null,
+    type: 'Professional',
   };
   await userAgent.post('/user/register')
     .set('content-type', 'application/json')
@@ -78,6 +79,8 @@ describe('Current user profile', () => {
       username: body.username,
       fullName: body.fullName,
       country: body.country,
+      type: body.type,
+      college: body.college || null,
     });
   });
 
@@ -101,6 +104,7 @@ describe('Other user profile', async () => {
       country: 'IN',
       fullName: 'Mocha Test2',
       pragyanId: null,
+      type: 'Professional',
     };
     await userAgent.post('/user/register')
       .set('content-type', 'application/json')
@@ -116,6 +120,8 @@ describe('Other user profile', async () => {
       username: secondUser.username,
       fullName: secondUser.fullName,
       country: secondUser.country,
+      type: secondUser.type,
+      college: secondUser.college || null,
     });
   });
 
