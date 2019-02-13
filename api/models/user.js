@@ -47,6 +47,16 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       type: DataTypes.BIGINT,
     },
+    type: {
+      allowNull: false,
+      type: DataTypes.ENUM,
+      values: ['Student', 'Professional'],
+      defaultValue: 'Professional',
+    },
+    college: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   }, {});
   // user.associate = function (models) {
   //   // associations can be defined here
