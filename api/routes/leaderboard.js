@@ -135,9 +135,9 @@ router.get('/:search/:start/:finish', [
 
 router.get('/timer', async (req, res) => {
   try {
-    const { userId } = req.user;
+    const { id } = req.user;
     const lastMatch = await Match.findOne({
-      where: { userId },
+      where: { userId1: id },
       limit: 1,
       order: [
         ['createdAt', 'DESC'],
