@@ -6,6 +6,7 @@ const codeStatusUtils = require('../utils/codeStatus');
 const jobUtils = require('../utils/job');
 const matchUtils = require('../utils/match');
 const executeUtils = require('../utils/execute');
+const Map = require('../models').map;
 
 const router = express.Router();
 
@@ -132,6 +133,31 @@ router.post('/match/commit', [
       type: 'Error',
       error: 'No compiled DLLs',
     });
+  } catch (err) {
+    return res.status(500).json({
+      type: 'Error',
+      error: 'Internal Server Error',
+    });
+  }
+});
+
+// get all maps available
+router.get('/maps', async (req, res) => {
+  try {
+    const maps = await Map.findAll({
+      attributes: ['id', 'name'],
+    });
+
+    const mapsData = [];
+
+    maps.forEach((map) => {
+      const mapData = {};
+      mapData.mapId = map.mapId;
+      mapData.name = map.name;
+      mapsData.push(mapData);
+    });
+
+    return res.status(200).json({ type: 'Success', error: '', mapsData });
   } catch (err) {
     return res.status(500).json({
       type: 'Error',
