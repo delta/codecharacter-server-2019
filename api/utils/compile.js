@@ -77,7 +77,7 @@ const sendCompileJob = async (userId, compileBoxId, commitHash) => {
       error,
       errorType,
     } = response;
-    console.log(error);
+    await codeStatusUtils.setUserCodeStatus(userId, 'Idle');
     if (!success) {
       if (errorType === 'COMPILE_ERROR') {
         socket.sendMessage(userId, { type: 'Compile Error', error: JSON.stringify(error) }, 'Compile Error');
@@ -87,6 +87,7 @@ const sendCompileJob = async (userId, compileBoxId, commitHash) => {
         };
       } if (errorType === 'UNAUTHORIZED') {
         socket.sendMessage(userId, { type: 'Server Error', error: 'Internal server error' }, 'Compile Error');
+        console.log('secret string mismatch');
         return {
           type: 'Error',
           error: 'UNAUTHORIZED',
@@ -97,7 +98,6 @@ const sendCompileJob = async (userId, compileBoxId, commitHash) => {
           error: 'BOX_BUSY',
         };
       }
-      await codeStatusUtils.setUserCodeStatus(userId, 'Idle');
       return {
         type: 'Error',
         error: '',

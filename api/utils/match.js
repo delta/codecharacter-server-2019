@@ -2,8 +2,8 @@ const EloRank = require('elo-rank');
 const Match = require('../models').match;
 const ExecuteQueue = require('../models').executequeue;
 const Leaderboard = require('../models').leaderboard;
+const Game = require('../models').game;
 const leaderboardUtils = require('./leaderboard');
-const userUtils = require('./user');
 const constantUtils = require('./constant');
 const mapUtils = require('./map');
 const gameUtils = require('./game');
@@ -60,8 +60,11 @@ const pushToExecuteQueue = async (gameId, userId1, userId2, dll1Path, dll2Path, 
 };
 
 const hasMatchEnded = async (matchId) => {
-  const executeQueueElement = await ExecuteQueue.findOne({
+  const games = (await Game.findAll({
     where: { matchId },
+  })).map(game => game.id);
+  const executeQueueElement = await ExecuteQueue.findOne({
+    where: { gameId: [...games] },
   });
 
   return (!executeQueueElement);
@@ -102,13 +105,8 @@ const startMatch = async (userId1, userId2) => {
   }
 
   const matchId = await createMatch(userId1, userId2);
-
-  const username1 = await userUtils.getUsername(userId1);
-  const username2 = await userUtils.getUsername(userId2);
-  const storageDir = await constantUtils.getLeaderboardStorageDir();
-
-  const user1DllPath = `${storageDir}/${username1}/dll1.cpp`;
-  const user2DllPath = `${storageDir}/${username2}/dll2.cpp`;
+  const user1DllPath = 'dll1.dll';
+  const user2DllPath = 'dll2.dll';
 
   const mapIds = await mapUtils.getMapIds();
 
