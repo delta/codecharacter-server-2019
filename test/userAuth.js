@@ -30,7 +30,6 @@ describe('Test Register', async () => {
       type: 'Professional',
     };
   });
-
   it('send 200', async () => {
     const { res } = await chai.request(server)
       .post('/user/register')
@@ -70,9 +69,40 @@ describe('Test Register', async () => {
     const { res } = await chai.request(server)
       .post('/user/register')
       .set('content-type', 'application/json')
-      .send();
-
+      .send(body);
+    JSON.parse(res.text).error.should.equal('Email cannot be empty');
     res.should.have.status(400);
+  });
+
+  it('send 400 (Empty type)', async () => {
+    body.type = null;
+    const { res } = await chai.request(server)
+      .post('/user/register')
+      .set('content-type', 'application/json')
+      .send(body);
+    res.should.have.status(400);
+    JSON.parse(res.text).error.should.equal('Type can not be empty');
+  });
+
+  it('send 400 (Invalid type)', async () => {
+    body.type = 'invalid type';
+    const { res } = await chai.request(server)
+      .post('/user/register')
+      .set('content-type', 'application/json')
+      .send(body);
+    res.should.have.status(400);
+    JSON.parse(res.text).error.should.equal('Type should be either Student or Professional');
+  });
+
+  it('send 400 (College missing for student)', async () => {
+    body.type = 'Student';
+    body.student = '';
+    const { res } = await chai.request(server)
+      .post('/user/register')
+      .set('content-type', 'application/json')
+      .send(body);
+    res.should.have.status(400);
+    JSON.parse(res.text).error.should.equal('College is required for type student');
   });
 
   it('send 400 (Already taken username)', async () => {
@@ -88,7 +118,7 @@ describe('Test Register', async () => {
       .send(duplicateBody);
 
     res.should.have.status(400);
-
+    JSON.parse(res.text).error.should.equal('Username/email already taken');
     const user = await User.findOne({
       where: {
         username: body.username,
@@ -113,6 +143,7 @@ describe('Test Register', async () => {
       .send(body);
 
     res.should.have.status(400);
+    JSON.parse(res.text).error.should.equal('Password cannot be empty');
   });
 
   it('send 400 (Not matching passwords)', async () => {
@@ -121,8 +152,8 @@ describe('Test Register', async () => {
       .post('/user/register')
       .set('content-type', 'application/json')
       .send(body);
-
     res.should.have.status(400);
+    JSON.parse(res.text).error.should.equal('repeatPassword field must have the same value as the password field');
   });
 
   it('send 400 (Invalid Email)', async () => {
@@ -132,6 +163,7 @@ describe('Test Register', async () => {
       .set('content-type', 'application/json')
       .send(body);
     res.should.have.status(400);
+    JSON.parse(res.text).error.should.equal('Invalid Email');
   });
 });
 
