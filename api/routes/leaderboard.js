@@ -1,11 +1,14 @@
 const express = require('express');
 const { check, validationResult } = require('express-validator/check');
 const { handleValidationErrors } = require('../utils/validation');
+const constantUtils = require('../utils/constant');
+const Match = require('../models').match;
 
 const Leaderboard = require('../models').leaderboard;
 const User = require('../models').user;
 
 const router = express.Router();
+
 router.get('/:start/:finish', [
   check('start')
     .not().isEmpty().withMessage('Start cannot be empty')
@@ -122,6 +125,48 @@ router.get('/:search/:start/:finish', [
       });
     }
     return res.status(200).json({ type: 'Success', error: '', searchData });
+  } catch (err) {
+    return res.status(500).json({
+      type: 'Error',
+      error: 'Internal Server Error',
+    });
+  }
+});
+
+router.get('/timer', async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const lastMatch = await Match.findOne({
+      where: { userId },
+      limit: 1,
+      order: [
+        ['createdAt', 'DESC'],
+      ],
+    });
+    if (!lastMatch) {
+      return res.status(200).json({
+        type: 'Success',
+        timer: 0,
+      });
+    }
+
+    const minMatchWaitTime = await constantUtils.minMatchWaitTime();
+
+    const lastMatchTime = new Date(lastMatch.createdAt);
+    const currentTime = new Date();
+
+    if ((currentTime.getTime() - lastMatchTime.getTime()) >= minMatchWaitTime) {
+      return res.status(200)
+        .json({
+          type: 'Success',
+          timer: 0,
+        });
+    }
+    return res.status(200)
+      .json({
+        type: 'Success',
+        timer: (minMatchWaitTime - (currentTime.getTime() - lastMatchTime.getTime())) / 1000,
+      });
   } catch (err) {
     return res.status(500).json({
       type: 'Error',
