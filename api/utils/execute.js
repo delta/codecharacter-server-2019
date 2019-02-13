@@ -85,12 +85,11 @@ const getOldestExecuteJob = async () => {
   return executeJob;
 };
 
-const parseResults = (resultString) => {
-  const splitValues = resultString.split(' ');
-  const player1Score = Number(splitValues[1]);
-  const player1Status = splitValues[2];
-  const player2Score = Number(splitValues[3]);
-  const player2Status = splitValues[4];
+const parseResults = ({ scores }) => {
+  const player1Score = Number(scores[0].score);
+  const player2Score = Number(scores[1].score);
+  const player1Status = scores[0].status;
+  const player2Status = scores[1].status;
 
   return {
     player1Score,
@@ -151,7 +150,6 @@ const sendExecuteJob = async (
         return false;
       }
     }
-
     const dll1 = JSON.parse(await git.getFile('', dll1Path, null, dll1Dir));
     const dll2 = JSON.parse(await git.getFile('', dll2Path, null, dll2Dir));
     const map = await getMap(mapId);
@@ -172,17 +170,30 @@ const sendExecuteJob = async (
 
     const response = await rp(options);
     await compileBoxUtils.changeCompileBoxState(compileBoxId, 'IDLE');
-
-    if (!response.success) {
-      if (matchType === 'SELF_MATCH') {
-        socket.sendMessage(userId1, (response.err).toString(), 'Self Match Error');
-      } else if (matchType === 'USER_MATCH') {
-        socket.sendMessage(userId1, (response.err).toString(), 'Match Error');
-      }
-
-      return false;
+    const errorTypes = {
+      SELF_MATCH: 'Self Match Error',
+      USER_MATCH: 'Match Error',
+      PREVIOUS_COMMIT_MATCH: 'Previous Commit Match Error',
+    };
+    if (response.errorType === 'PLAYER_RUNTIME_ERROR') {
+      socket.sendMessage(userId1, 'Runtime error', errorTypes[matchType]);
+      return {
+        success: false,
+        popFromQueue: true,
+      };
+    } if (['EXECUTE_PROCESS_ERROR', 'UNKNOWN_EXECUTE_ERROR', 'KEY_MISMATCH'].includes(response.errorType)) {
+      console.log(response.error);
+      socket.sendMessage(userId1, 'Internal server error', errorTypes[matchType]);
+      return {
+        success: false,
+        popFromQueue: true,
+      };
+    } if (response.errorType === 'BOX_BUSY') {
+      return {
+        success: false,
+        popFromQueue: false,
+      };
     }
-
     const results = parseResults(response.results);
 
     if (matchType === 'USER_MATCH') {
@@ -204,9 +215,16 @@ const sendExecuteJob = async (
       }), 'Self Match Result');
     }
 
-    return true;
+    return {
+      success: true,
+      popFromQueue: true,
+    };
   } catch (error) {
-    return false;
+    console.log(error);
+    return {
+      success: false,
+      popFromQueue: false,
+    };
   }
 };
 

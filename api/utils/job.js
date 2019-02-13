@@ -38,7 +38,7 @@ const sendJob = async () => {
     }
   } else {
     await executeUtils.setExecuteQueueJobStatus(executeJob.id, 'EXECUTING');
-    await executeUtils.sendExecuteJob(
+    const { popFromQueue } = await executeUtils.sendExecuteJob(
       executeJob.gameId,
       idleCompileBoxId,
       executeJob.userId1,
@@ -48,11 +48,13 @@ const sendJob = async () => {
       executeJob.dll1Path,
       executeJob.dll2Path,
     );
-    await ExecuteQueue.destroy({
-      where: {
-        id: executeJob.id,
-      },
-    });
+    if (popFromQueue) {
+      await ExecuteQueue.destroy({
+        where: {
+          id: executeJob.id,
+        },
+      });
+    }
   }
 
   sendJob();
