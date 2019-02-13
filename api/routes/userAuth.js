@@ -30,7 +30,7 @@ router.post('/register', [
   check('country')
     .isAlpha(),
   check('type')
-    .exists().withMessage('Type can not be empty')
+    .not().isEmpty().withMessage('Type can not be empty')
     .custom(value => ['Student', 'Professional'].includes(value))
     .withMessage('Type should be either Student or Professional'),
   check('college')
