@@ -72,6 +72,7 @@ router.post('/register', [
       password: passwordHash,
       type,
       college,
+      isPragyan: !!pragyanId,
     });
     if (newUser) {
       if (await git.createUserDir(username)) {
@@ -119,7 +120,6 @@ router.post('/login', [
     .not().isEmpty().withMessage('Password cannot be empty'),
 ], async (req, res, next) => {
   if (handleValidationErrors(req, res)) return null;
-
   passport.authenticate('local', (err, user, info) => {
     if (err) {
       return res.status(500).json({
