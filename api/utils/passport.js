@@ -35,7 +35,7 @@ module.exports = (passport) => {
               email: username,
               username: response.message.user_name,
               password: await bcrypt.hash(password, 10),
-              country: response.message.user_country,
+              country: 'IN',
               pragyanId: response.message.user_id,
               isPragyan: true,
               activated: true,

@@ -122,7 +122,6 @@ router.post('/login', [
   if (handleValidationErrors(req, res)) return null;
   passport.authenticate('local', (err, user, info) => {
     if (err) {
-      console.log(err);
       return res.status(500).json({
         type: 'Error',
         error: 'Internal server error',

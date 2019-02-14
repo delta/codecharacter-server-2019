@@ -56,6 +56,7 @@ module.exports = (sequelize, DataTypes) => {
     college: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
     isPragyan: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
