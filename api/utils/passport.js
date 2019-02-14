@@ -33,7 +33,7 @@ module.exports = (passport) => {
             const userCreated = await User.create({
               fullName: response.message.user_fullname,
               email: username,
-              username: response.message.user_name,
+              username,
               password: await bcrypt.hash(password, 10),
               country: 'IN',
               pragyanId: response.message.user_id,
