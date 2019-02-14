@@ -9,6 +9,7 @@ const mapUtils = require('./map');
 const gameUtils = require('./game');
 const jobUtils = require('./job');
 const socket = require('./socketHandlers');
+const notificationUtils = require('./notificationsHandlers');
 
 const elo = new EloRank(15);
 const checkMatchWaitTime = async (userId) => {
@@ -178,6 +179,8 @@ const updateMatchResults = async (matchId, score1, score2) => {
       user1Type = 'Success';
       user2Status = `You lost against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
       user2Type = 'Error';
+      notificationUtils.createNotification('Success', 'You Won', user1Status, match.userId1);
+      notificationUtils.createNotification('Error', 'You Lost', user2Status, match.userId2);
     } else if (finalScore2 > finalScore1) {
       rating1 = elo.updateRating(expectedScore1, 0, rating1);
       rating2 = elo.updateRating(expectedScore2, 1, rating2);
@@ -185,6 +188,8 @@ const updateMatchResults = async (matchId, score1, score2) => {
       user1Type = 'Error';
       user2Status = `You won against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
       user2Type = 'Success';
+      notificationUtils.createNotification('Error', 'You Lost', user1Status, match.userId1);
+      notificationUtils.createNotification('Success', 'You Won', user2Status, match.userId2);
     } else {
       rating1 = elo.updateRating(expectedScore1, 1, rating1);
       rating2 = elo.updateRating(expectedScore2, 1, rating2);
@@ -192,6 +197,8 @@ const updateMatchResults = async (matchId, score1, score2) => {
       user1Type = 'Success';
       user2Status = `You tied against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
       user2Type = 'Success';
+      notificationUtils.createNotification('Success', 'Match Draw', user1Status, match.userId1);
+      notificationUtils.createNotification('Success', 'Match Draw', user2Status, match.userId2);
     }
     await Leaderboard.update({
       rating: rating1,
