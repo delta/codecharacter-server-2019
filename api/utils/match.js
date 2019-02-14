@@ -159,8 +159,10 @@ const updateMatchResults = async (matchId, score1, score2) => {
 
   let user1Status;
   let user1Type;
+  let user1Title;
   let user2Status;
   let user2Type;
+  let user2Title;
 
   if (await hasMatchEnded(matchId)) {
     await setMatchStatus(matchId, 'DONE');
@@ -177,28 +179,28 @@ const updateMatchResults = async (matchId, score1, score2) => {
       rating2 = elo.updateRating(expectedScore2, 0, rating2);
       user1Status = `You won against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
       user1Type = 'Success';
+      user1Title = 'Victory';
       user2Status = `You lost against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
       user2Type = 'Error';
-      notificationUtils.createNotification('Success', 'You Won', user1Status, match.userId1);
-      notificationUtils.createNotification('Error', 'You Lost', user2Status, match.userId2);
+      user2Title = 'Defeat';
     } else if (finalScore2 > finalScore1) {
       rating1 = elo.updateRating(expectedScore1, 0, rating1);
       rating2 = elo.updateRating(expectedScore2, 1, rating2);
       user1Status = `You lost against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
       user1Type = 'Error';
+      user1Title = 'Defeat';
       user2Status = `You won against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
       user2Type = 'Success';
-      notificationUtils.createNotification('Error', 'You Lost', user1Status, match.userId1);
-      notificationUtils.createNotification('Success', 'You Won', user2Status, match.userId2);
+      user2Title = 'Victory';
     } else {
       rating1 = elo.updateRating(expectedScore1, 1, rating1);
       rating2 = elo.updateRating(expectedScore2, 1, rating2);
       user1Status = `You tied against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
       user1Type = 'Success';
+      user1Title = 'Draw';
       user2Status = `You tied against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
       user2Type = 'Success';
-      notificationUtils.createNotification('Success', 'Match Draw', user1Status, match.userId1);
-      notificationUtils.createNotification('Success', 'Match Draw', user2Status, match.userId2);
+      user2Title = 'Draw';
     }
     await Leaderboard.update({
       rating: rating1,
@@ -219,6 +221,8 @@ const updateMatchResults = async (matchId, score1, score2) => {
 
   socket.sendMessage(match.userId1, user1Status, user1Type);
   socket.sendMessage(match.userId2, user2Status, user2Type);
+  notificationUtils.createNotification(user1Type, user1Title, user1Status, match.userId1);
+  notificationUtils.createNotification(user2Type, user2Title, user2Status, match.userId2);
 };
 
 module.exports = {
