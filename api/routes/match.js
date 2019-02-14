@@ -1,4 +1,5 @@
 const express = require('express');
+const { Op } = require('sequelize');
 
 const Match = require('../models').match;
 const Leaderboard = require('../models').leaderboard;
@@ -13,7 +14,7 @@ router.get('/all', async (req, res) => {
       { model: User, as: 'user2' },
     ],
     where: {
-      $or: [{
+      [Op.or]: [{
         userId1: req.user.id,
       }, {
         userId2: req.user.id,
@@ -22,17 +23,17 @@ router.get('/all', async (req, res) => {
   });
   const matchData = [];
   matches = parsify(matches);
-  for (let i = 0; i < matches.length; i += 1) {
+  matches.array.forEach((element) => {
     const matchEntry = {};
-    matchEntry.usedId1 = matches[i].user1.id;
-    matchEntry.userId2 = matches[i].user2.id;
-    matchEntry.username1 = matches[i].user1.username;
-    matchEntry.username2 = matches[i].user2.username;
-    matchEntry.verdict = matches[i].verdict;
-    matchEntry.score1 = matches[i].score1;
-    matchEntry.score2 = matches[i].score2;
+    matchEntry.usedId1 = element.user1.id;
+    matchEntry.userId2 = element.user2.id;
+    matchEntry.username1 = element.user1.username;
+    matchEntry.username2 = element.user2.username;
+    matchEntry.verdict = element.verdict;
+    matchEntry.score1 = element.score1;
+    matchEntry.score2 = element.score2;
     matchData.push(matchEntry);
-  }
+  });
   return res.status(200).json({ type: 'Success', error: '', matchData });
 });
 
@@ -54,10 +55,10 @@ router.get('/pro', async (req, res) => {
     where: {
       status: 'DONE',
       userId1: {
-        $or: topPlayers,
+        [Op.or]: topPlayers,
       },
       userId2: {
-        $or: topPlayers,
+        [Op.or]: topPlayers,
       },
     },
   });
