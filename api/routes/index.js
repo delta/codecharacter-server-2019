@@ -5,7 +5,9 @@ const userRoutes = require('./user');
 const leaderboardRoutes = require('./leaderboard');
 const simulationRoutes = require('./simulation');
 const notificationRoutes = require('./notification');
+const adminRoutes = require('./admin');
 const isLoggedIn = require('../middlewares/isLoggedIn');
+const isAdmin = require('../middlewares/isAdmin');
 
 const router = express.Router();
 
@@ -15,5 +17,6 @@ router.use('/user', userAuthRoutes);
 router.use('/leaderboard', isLoggedIn, leaderboardRoutes);
 router.use('/notifications', isLoggedIn, notificationRoutes);
 router.use('/simulate', isLoggedIn, simulationRoutes);
+router.use('/admin', isLoggedIn, isAdmin, adminRoutes);
 
 module.exports = router;
