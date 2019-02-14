@@ -67,7 +67,7 @@ router.post('/save', [
     }
 
     const { code } = req.body;
-    git.setFile(username, code);
+    git.setFile(username, 'code.cpp', code);
     await git.add(username);
     await CodeStatus.update({
       lastSavedAt: new Date(),
