@@ -5,6 +5,7 @@ const chai = require('chai');
 const should = chai.should();
 const request = require('supertest');
 const randomString = require('randomstring');
+const { Op } = require('sequelize');
 
 const server = require('../app');
 const User = require('../api/models').user;
@@ -30,6 +31,7 @@ describe('Test Match', async () => {
         country: 'IN',
         fullName: 'Mocha Test',
         pragyanId: null,
+        type: 'Professional',
       };
       const registerResult = superAgent.post('/user/register')
         .set('content-type', 'application/json')
@@ -133,7 +135,7 @@ describe('Test Match', async () => {
     let matchResult = [];
     const match = await Match.findAll({
       where: {
-        $or: [{
+        [Op.or]: [{
           userId1: user.id,
         }, {
           userId2: user.id,

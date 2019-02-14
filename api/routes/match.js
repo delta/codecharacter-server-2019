@@ -23,7 +23,7 @@ router.get('/all', async (req, res) => {
   });
   const matchData = [];
   matches = parsify(matches);
-  matches.array.forEach((element) => {
+  matches.forEach((element) => {
     const matchEntry = {};
     matchEntry.usedId1 = element.user1.id;
     matchEntry.userId2 = element.user2.id;
