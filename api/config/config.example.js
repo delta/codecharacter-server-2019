@@ -6,6 +6,10 @@ const config = {
     },
     appBaseURL: 'app base url',
     secretString: 'Your secret',
+    event: {
+      event_id: 5,
+      event_key: 'somekey',
+    },
   },
   production: {
     app: {
@@ -14,6 +18,10 @@ const config = {
     },
     appBaseURL: 'app base url',
     secretString: 'Your secret',
+    event: {
+      event_id: 5,
+      event_key: 'somekey',
+    },
   },
   test: {
     app: {
@@ -22,6 +30,10 @@ const config = {
     },
     appBaseURL: 'app base url',
     secretString: 'Your secret',
+    event: {
+      event_id: 5,
+      event_key: 'somekey',
+    },
   },
 };
 const env = process.env.NODE_ENV || 'development';
