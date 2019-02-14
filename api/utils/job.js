@@ -57,6 +57,15 @@ const sendJob = async () => {
   sendJob();
 };
 
+const startJobs = async () => {
+  const compileJobs = (await CompileQueue.update({ status: 'QUEUED' }, { where: {} }))[0];
+  const executeJobs = (await ExecuteQueue.update({ status: 'QUEUED' }, { where: {} }))[0];
+  for (let i = 0; i < compileJobs + executeJobs; i += 1) {
+    sendJob();
+  }
+};
+
 module.exports = {
   sendJob,
+  startJobs,
 };
