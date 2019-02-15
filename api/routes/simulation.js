@@ -146,14 +146,18 @@ router.get('/maps', async (req, res) => {
   try {
     const maps = await Map.findAll({
       attributes: ['id', 'name'],
+      where: {
+        isHidden: false,
+      },
     });
 
     const mapsData = [];
 
     maps.forEach((map) => {
       const mapData = {};
-      mapData.mapId = map.mapId;
+      mapData.mapId = map.id;
       mapData.name = map.name;
+      mapData.isHidden = map.isHidden;
       mapsData.push(mapData);
     });
 
