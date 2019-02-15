@@ -15,6 +15,7 @@ const config = require('./api/config/config.js');
 const passportSetup = require('./api/utils/passport');
 const socketUtils = require('./api/utils/socketHandlers');
 const compileBoxUtils = require('./api/utils/compileBox');
+const { startJobs } = require('./api/utils/job');
 
 global.appPath = path.resolve(__dirname);
 
@@ -48,7 +49,7 @@ app.use(passport.session());
 passportSetup(passport);
 
 app.use(routes);
-
+startJobs();
 server.listen(config.app.port);
 
 // socket handler functions
