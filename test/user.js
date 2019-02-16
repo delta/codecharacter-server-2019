@@ -27,6 +27,7 @@ async function createUser(userAgent) {
     fullName: 'Mocha Test',
     pragyanId: null,
     type: 'Professional',
+    avatar: 'TIGER',
   };
   await userAgent.post('/user/register')
     .set('content-type', 'application/json')
@@ -81,6 +82,7 @@ describe('Current user profile', () => {
       country: body.country,
       type: body.type,
       college: body.college || null,
+      avatar: body.avatar,
     });
   });
 
@@ -105,6 +107,7 @@ describe('Other user profile', async () => {
       fullName: 'Mocha Test2',
       pragyanId: null,
       type: 'Professional',
+      avatar: 'TIGER',
     };
     await userAgent.post('/user/register')
       .set('content-type', 'application/json')
@@ -122,6 +125,7 @@ describe('Other user profile', async () => {
       country: secondUser.country,
       type: secondUser.type,
       college: secondUser.college || null,
+      avatar: secondUser.avatar,
     });
   });
 

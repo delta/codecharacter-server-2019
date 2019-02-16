@@ -67,6 +67,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    avatar: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'LION',
+    },
   }, {});
   // user.associate = function (models) {
   //   // associations can be defined here
