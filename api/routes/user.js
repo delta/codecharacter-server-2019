@@ -9,13 +9,13 @@ const router = express.Router();
 router.get('/', (req, res) => {
   if (req.user) {
     const {
-      username, fullName, country, type, college,
+      username, fullName, country, type, college, avatar,
     } = req.user;
     return res.status(200).json({
       type: 'Success',
       error: '',
       userDetails: {
-        username, fullName, country, type, college,
+        username, fullName, country, type, college, avatar,
       },
     });
   }
@@ -34,7 +34,7 @@ router.get('/view/:username', [
     if (handleValidationErrors(req, res)) return null;
     const userDetails = await User.findOne({
       where: { username },
-      attributes: ['username', 'fullName', 'country', 'type', 'college'],
+      attributes: ['username', 'fullName', 'country', 'type', 'college', 'avatar'],
     });
     if (!userDetails) {
       return res.status(400).json({
@@ -72,7 +72,7 @@ router.post('/update', [
   try {
     if (handleValidationErrors(req, res)) return null;
     const updationDoc = {};
-    const fieldsUpdated = ['username', 'email', 'fullName', 'country'];
+    const fieldsUpdated = ['username', 'email', 'fullName', 'country', 'avatar'];
     fieldsUpdated.forEach((key) => {
       if (req.body[key]) {
         updationDoc[key] = req.body[key];

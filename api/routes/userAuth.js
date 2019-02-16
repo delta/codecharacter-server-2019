@@ -43,7 +43,7 @@ router.post('/register', [
     .withMessage('College is required for type student'),
 ], async (req, res) => {
   const {
-    username, password, email, country, fullName, pragyanId, type, college,
+    username, password, email, country, fullName, pragyanId, type, college, avatar,
   } = req.body;
 
   if (handleValidationErrors(req, res)) return null;
@@ -72,6 +72,7 @@ router.post('/register', [
       password: passwordHash,
       type,
       college,
+      avatar,
       isPragyan: !!pragyanId,
     });
     if (newUser) {
