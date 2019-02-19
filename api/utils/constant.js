@@ -40,10 +40,19 @@ const getMatchLogDir = async () => {
   return storageDir.value;
 };
 
+const getExecuteQueueLimit = async () => {
+  const limit = await Constant.findOne({
+    where: { key: 'EXECUTE_QUEUE_LIMIT' },
+  });
+
+  return Number(limit.value);
+};
+
 module.exports = {
   minMatchWaitTime,
   initialRating,
   getCodeStorageDir,
   getMatchLogDir,
   getLeaderboardStorageDir,
+  getExecuteQueueLimit,
 };
