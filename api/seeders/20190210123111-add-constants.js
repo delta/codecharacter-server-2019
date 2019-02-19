@@ -10,6 +10,9 @@ module.exports = {
     key: 'INITIAL_RATING',
     value: 1000,
   }, {
+    key: 'EXECUTE_QUEUE_LIMIT',
+    value: 500,
+  }, {
     key: 'DEFAULT_CODE_STORAGE_DIR',
     value: `${appPath}/storage/codes`,
   }, {

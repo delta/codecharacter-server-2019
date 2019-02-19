@@ -36,6 +36,12 @@ const checkMatchWaitTime = async (userId) => {
 // Declared here to avoid cyclic dependencies
 const pushToExecuteQueue = async (gameId, userId1, userId2, dll1Path, dll2Path, mapId) => {
   try {
+    const remainingJobs = await ExecuteQueue.count();
+    const limit = await constantUtils.getExecuteQueueLimit();
+    if (remainingJobs >= limit) {
+      socket.sendMessage(userId1, 'Queue is full. Try again later', 'Match Error');
+      return false;
+    }
     await ExecuteQueue.create({
       userId1,
       userId2,

@@ -11,8 +11,16 @@ const matchUtils = require('./match');
 const { secretString } = require('../config/config');
 const { getMap } = require('./map');
 
+const executeQueueSize = async () => ExecuteQueue.count();
+
 const pushSelfMatchToQueue = async (userId, mapId) => {
   try {
+    const queueSize = await executeQueueSize();
+    const limit = await constantUtils.getExecuteQueueLimit();
+    if (queueSize >= limit) {
+      socket.sendMessage(userId, 'Queue is full. Try again later', 'Match Error');
+      return false;
+    }
     await ExecuteQueue.create({
       userId1: userId,
       userId2: userId,
@@ -35,6 +43,12 @@ const pushSelfMatchToQueue = async (userId, mapId) => {
 
 const pushCommitMatchToQueue = async (userId, mapId) => {
   try {
+    const queueSize = await executeQueueSize();
+    const limit = await constantUtils.getExecuteQueueLimit();
+    if (queueSize >= limit) {
+      socket.sendMessage(userId, 'Queue is full. Try again later', 'Match Error');
+      return false;
+    }
     await ExecuteQueue.create({
       userId1: userId,
       userId2: userId,
@@ -45,7 +59,6 @@ const pushCommitMatchToQueue = async (userId, mapId) => {
       type: 'PREVIOUS_COMMIT_MATCH',
       mapId,
     });
-
     socket.sendMessage(userId, 'Added self match to queue', 'Self Match Info');
 
     return true;
@@ -86,6 +99,7 @@ const parseResults = (resultString) => {
     player2Status,
   };
 };
+
 
 const sendExecuteJob = async (
   gameId,
@@ -203,4 +217,5 @@ module.exports = {
   setExecuteQueueJobStatus,
   pushSelfMatchToQueue,
   pushCommitMatchToQueue,
+  executeQueueSize,
 };
