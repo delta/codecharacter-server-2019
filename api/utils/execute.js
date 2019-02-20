@@ -1,5 +1,6 @@
 const rp = require('request-promise');
 
+const { Op } = require('sequelize');
 const ExecuteQueue = require('../models').executequeue;
 const compileBoxUtils = require('./compileBox');
 const gameUtils = require('./game');
@@ -13,14 +14,32 @@ const { getMap } = require('./map');
 
 const executeQueueSize = async () => ExecuteQueue.count();
 
+const userAlreadyInQueue = async (userId) => {
+  const matchEntry = await ExecuteQueue.findOne({
+    where: {
+      [Op.or]: [{ userId1: userId }, { userId2: userId }],
+      [Op.or]: [{ type: 'SELF_MATCH' }, { type: 'PREVIOUS_COMMIT_MATCH' }],
+    },
+  });
+
+  return (!!matchEntry);
+};
+
 const pushSelfMatchToQueue = async (userId, mapId) => {
   try {
+    if (await userAlreadyInQueue(userId)) {
+      socket.sendMessage(userId, 'Please wait for your previous match to complete', 'Match Error');
+      return false;
+    }
+
     const queueSize = await executeQueueSize();
     const limit = await constantUtils.getExecuteQueueLimit();
+
     if (queueSize >= limit) {
       socket.sendMessage(userId, 'Queue is full. Try again later', 'Match Error');
       return false;
     }
+
     await ExecuteQueue.create({
       userId1: userId,
       userId2: userId,
@@ -32,23 +51,30 @@ const pushSelfMatchToQueue = async (userId, mapId) => {
       mapId,
     });
 
-    socket.sendMessage(userId, 'Added self match to queue', 'Self Match Info');
+    socket.sendMessage(userId, 'Added self match to queue', 'Match Info');
 
     return true;
   } catch (err) {
-    socket.sendMessage(userId, 'Something went wrong', 'Self Match Error');
+    socket.sendMessage(userId, 'Something went wrong', 'Match Error');
     return false;
   }
 };
 
 const pushCommitMatchToQueue = async (userId, mapId) => {
   try {
+    if (await userAlreadyInQueue(userId)) {
+      socket.sendMessage(userId, 'Please wait for your previous match to complete', 'Match Error');
+      return false;
+    }
+
     const queueSize = await executeQueueSize();
     const limit = await constantUtils.getExecuteQueueLimit();
+
     if (queueSize >= limit) {
       socket.sendMessage(userId, 'Queue is full. Try again later', 'Match Error');
       return false;
     }
+
     await ExecuteQueue.create({
       userId1: userId,
       userId2: userId,
@@ -59,11 +85,11 @@ const pushCommitMatchToQueue = async (userId, mapId) => {
       type: 'PREVIOUS_COMMIT_MATCH',
       mapId,
     });
-    socket.sendMessage(userId, 'Added self match to queue', 'Self Match Info');
+    socket.sendMessage(userId, 'Added self match to queue', 'Match Info');
 
     return true;
   } catch (err) {
-    socket.sendMessage(userId, 'Something went wrong', 'Self Match Error');
+    socket.sendMessage(userId, 'Something went wrong', 'Match Error');
     return false;
   }
 };
@@ -121,7 +147,7 @@ const sendExecuteJob = async (
     if (matchType === 'USER_MATCH') {
       socket.sendMessage(userId1, `Match against ${userId2} is executing.`, 'Match Info');
     } else if (matchType === 'SELF_MATCH') {
-      socket.sendMessage(userId1, `Match against ${userId2} is executing.`, 'Self Match Info');
+      socket.sendMessage(userId1, `Match against ${userId2} is executing.`, 'Match Info');
     }
 
     if (matchType === 'USER_MATCH') {
@@ -170,20 +196,16 @@ const sendExecuteJob = async (
 
     const response = await rp(options);
     await compileBoxUtils.changeCompileBoxState(compileBoxId, 'IDLE');
-    const errorTypes = {
-      SELF_MATCH: 'Self Match Error',
-      USER_MATCH: 'Match Error',
-      PREVIOUS_COMMIT_MATCH: 'Previous Commit Match Error',
-    };
+
     if (response.errorType === 'PLAYER_RUNTIME_ERROR') {
-      socket.sendMessage(userId1, 'Runtime error', errorTypes[matchType]);
+      socket.sendMessage(userId1, 'Runtime error', 'Match Error');
       return {
         success: false,
         popFromQueue: true,
       };
     } if (['EXECUTE_PROCESS_ERROR', 'UNKNOWN_EXECUTE_ERROR', 'KEY_MISMATCH'].includes(response.errorType)) {
-      console.log(response.error);
-      socket.sendMessage(userId1, 'Internal server error', errorTypes[matchType]);
+      console.log(gameId, response.error);
+      socket.sendMessage(userId1, 'Internal server error', 'Match Error');
       return {
         success: false,
         popFromQueue: true,
@@ -212,7 +234,7 @@ const sendExecuteJob = async (
         player2Log: response.player2LogCompressed,
         gameLog: response.log,
         results,
-      }), 'Self Match Result');
+      }), 'Match Success');
     }
 
     return {
@@ -223,7 +245,7 @@ const sendExecuteJob = async (
     console.log(error);
     return {
       success: false,
-      popFromQueue: false,
+      popFromQueue: true,
     };
   }
 };
