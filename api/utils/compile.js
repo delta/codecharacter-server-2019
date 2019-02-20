@@ -2,20 +2,39 @@ const rp = require('request-promise');
 const CompileQueue = require('../models').compilequeue;
 const compileBoxUtils = require('./compileBox');
 const codeStatusUtils = require('./codeStatus');
+const constantUtils = require('./constant');
 const git = require('./gitHandlers');
 const { secretString } = require('../config/config');
 const socket = require('./socketHandlers');
 const { getUsername } = require('./user');
 
+const compileQueueSize = async () => CompileQueue.count();
+
 const pushToCompileQueue = async (userId, commitHash) => {
   try {
+    const queueSize = await compileQueueSize();
+    const limit = await constantUtils.getCompileQueueLimit();
+    if (queueSize >= limit) {
+      socket.sendMessage(userId, 'Queue is full. Try again later', 'Compile Error');
+      return {
+        success: false,
+        error: 'QUEUE_FULL',
+      };
+    }
     const codePath = await codeStatusUtils.getUserCodePath(userId);
     await codeStatusUtils.setUserCodeStatus(userId, 'Waiting');
     await CompileQueue.create({ userId, codePath, commitHash });
 
-    return true;
+    socket.sendMessage(userId, 'Compilation added to the queue', 'Compile Info');
+    return {
+      success: true,
+      error: '',
+    };
   } catch (err) {
-    return false;
+    return {
+      success: false,
+      error: 'SERVER_ERROR',
+    };
   }
 };
 
