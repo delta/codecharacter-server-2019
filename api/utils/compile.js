@@ -13,7 +13,6 @@ const pushToCompileQueue = async (userId, commitHash) => {
     await codeStatusUtils.setUserCodeStatus(userId, 'Waiting');
     await CompileQueue.create({ userId, codePath, commitHash });
 
-    socket.sendMessage(userId, 'Compilation added to the queue', 'Compile Info');
     return true;
   } catch (err) {
     return false;
@@ -43,13 +42,11 @@ const getOldestCompileJob = async () => {
 const sendCompileJob = async (userId, compileBoxId, commitHash) => {
   try {
     if (await compileBoxUtils.getCompileBoxStatus(compileBoxId) === 'BUSY') {
-      return {
-        type: 'Error',
-        error: 'CompileBox not available',
-      };
+      socket.sendMessage(userId, 'Internal Server Error', 'Compile Error');
     }
 
     socket.sendMessage(userId, 'Your code is being compiled...', 'Compile Info');
+
     await codeStatusUtils.setUserCodeStatus(userId, 'Compiling');
     await compileBoxUtils.changeCompileBoxState(compileBoxId, 'BUSY');
 
@@ -77,31 +74,20 @@ const sendCompileJob = async (userId, compileBoxId, commitHash) => {
       error,
       errorType,
     } = response;
-    await codeStatusUtils.setUserCodeStatus(userId, 'Idle');
+
     if (!success) {
       if (errorType === 'COMPILE_ERROR') {
-        socket.sendMessage(userId, { type: 'Compile Error', error: JSON.stringify(error) }, 'Compile Error');
-        return {
-          type: 'Error',
-          error: 'COMPILE_ERROR',
-        };
-      } if (errorType === 'UNAUTHORIZED') {
-        socket.sendMessage(userId, { type: 'Server Error', error: 'Internal server error' }, 'Compile Error');
-        console.log('secret string mismatch');
-        return {
-          type: 'Error',
-          error: 'UNAUTHORIZED',
-        };
-      } if (errorType === 'BOX_BUSY') {
-        return {
-          type: 'Error',
-          error: 'BOX_BUSY',
-        };
+        socket.sendMessage(userId, error, 'Compile Error Log');
+      } else if (errorType === 'UNAUTHORIZED') {
+        socket.sendMessage(userId, 'Internal Server Error', 'Compile Error');
+        console.log('Secret string mismatch');
+      } else if (errorType === 'BOX_BUSY') {
+        socket.sendMessage(userId, 'Server is busy... Please try again later.', 'Compile Error');
+      } else {
+        socket.sendMessage(userId, 'Internal Server Error', 'Compile Error');
       }
-      return {
-        type: 'Error',
-        error: '',
-      };
+
+      return;
     }
 
     const username = await getUsername(userId);
@@ -110,17 +96,8 @@ const sendCompileJob = async (userId, compileBoxId, commitHash) => {
     await codeStatusUtils.setUserCodeStatus(userId, 'Idle');
 
     socket.sendMessage(userId, 'Successfully Compiled!', 'Compile Success');
-
-    return {
-      type: 'Success',
-      error: '',
-    };
   } catch (error) {
     socket.sendMessage(userId, 'Internal Server Error', 'Compile Error');
-    return {
-      type: 'Error',
-      error: 'Internal Server Error',
-    };
   }
 };
 

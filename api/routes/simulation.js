@@ -1,6 +1,7 @@
 const express = require('express');
 const { check } = require('express-validator/check');
 const { handleValidationErrors } = require('../utils/validation');
+const socket = require('../utils/socketHandlers');
 const compileUtils = require('../utils/compile');
 const codeStatusUtils = require('../utils/codeStatus');
 const jobUtils = require('../utils/job');
@@ -20,15 +21,24 @@ router.post('/compile', [
   const { commitHash } = req.body;
 
   try {
-    if ((await codeStatusUtils.getUserCodeStatus(id)) !== 'Idle') {
+    const userCodeStatus = (await codeStatusUtils.getUserCodeStatus(id));
+
+    if (userCodeStatus !== 'Idle') {
+      socket.sendMessage(id, 'Code is already in queue. Please wait.', 'Compile Error');
+
       return res.status(400).json({
         type: 'Error',
-        error: 'Job already in queue',
+        error: 'Code is already being compiled.',
       });
     }
 
-    await compileUtils.pushToCompileQueue(id, commitHash);
-    jobUtils.sendJob();
+    const result = await compileUtils.pushToCompileQueue(id, commitHash);
+    if (result) {
+      socket.sendMessage(id, 'Code has been added to the queue... Please wait.', 'Compile Info');
+      jobUtils.sendJob();
+    } else {
+      socket.sendMessage(id, 'Internal Server Error. Please try again later.', 'Compile Error');
+    }
 
     return res.status(200).json({
       type: 'Success',

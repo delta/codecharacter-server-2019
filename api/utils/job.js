@@ -1,5 +1,6 @@
 const compileUtils = require('./compile');
 const executeUtils = require('./execute');
+const codeStatusUtils = require('./codeStatus');
 const compileBoxUtils = require('./compileBox');
 const CompileQueue = require('../models').compilequeue;
 const ExecuteQueue = require('../models').executequeue;
@@ -10,6 +11,7 @@ const sendJob = async () => {
 
   const compileJob = await compileUtils.getOldestCompileJob();
   const executeJob = await executeUtils.getOldestExecuteJob();
+
   let jobtype;
   if (compileJob && executeJob) {
     if (compileJob.createdAt.getTime() > executeJob.createdAt.getTime()) {
@@ -27,15 +29,14 @@ const sendJob = async () => {
 
   if (jobtype === 'compile') {
     const { userId, commitHash } = compileJob;
+
     await compileUtils.setCompileQueueJobStatus(compileJob.id, 'COMPILING');
-    const compileResult = await compileUtils.sendCompileJob(userId, idleCompileBoxId, commitHash);
-    if (compileResult.error !== 'BOX_BUSY') {
-      await CompileQueue.destroy({
-        where: {
-          id: compileJob.id,
-        },
-      });
-    }
+    await compileUtils.sendCompileJob(userId, idleCompileBoxId, commitHash);
+
+    await codeStatusUtils.setUserCodeStatus(userId, 'Idle');
+    await CompileQueue.destroy({
+      where: { id: compileJob.id },
+    });
   } else {
     await executeUtils.setExecuteQueueJobStatus(executeJob.id, 'EXECUTING');
     const { popFromQueue } = await executeUtils.sendExecuteJob(
