@@ -187,7 +187,7 @@ describe('Test Leaderboard', async () => {
       const { searchData } = JSON.parse(res.text);
       (searchData.length).should.equal(numEntries);
       searchData.forEach((data) => {
-        data.username.includes(searchKey).should.equal(true);
+        data.username.should.include(searchKey);
       });
     });
   });
