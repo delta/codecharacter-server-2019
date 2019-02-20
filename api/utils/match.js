@@ -145,7 +145,7 @@ const setMatchStatus = async (matchId, status) => {
   });
 };
 
-const updateMatchResults = async (matchId, score1, score2) => {
+const updateMatchResults = async (matchId, score1, score2, interestingness) => {
   const match = await Match.findOne({
     where: { id: matchId },
   });
@@ -155,6 +155,8 @@ const updateMatchResults = async (matchId, score1, score2) => {
 
   match.score1 = finalScore1;
   match.score2 = finalScore2;
+
+  match.interestingness += interestingness;
 
   match.status = 'DONE';
 

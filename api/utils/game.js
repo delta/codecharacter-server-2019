@@ -89,6 +89,7 @@ const updateGameResults = async (gameId, results) => {
 
   game.points1 = results.player1Score;
   game.points2 = results.player2Score;
+  game.interestringness += results.interestringness;
 
   game.status = 'Executed';
 
