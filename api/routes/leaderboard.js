@@ -73,9 +73,11 @@ router.get('/:search/:start/:finish', [
     .withMessage('Finish must be Integer'),
 ], async (req, res) => {
   let { start, finish } = req.params;
-  const { search } = req.params;
+  let { search: searchPattern } = req.params;
+
   const errors = validationResult(req);
-  let count = 0;
+
+  if (searchPattern === '*') searchPattern = '';
 
   start = parseInt(start, 10);
   finish = parseInt(finish, 10);
@@ -94,32 +96,34 @@ router.get('/:search/:start/:finish', [
   }
 
   try {
-    const leaderboard = await Leaderboard.findAll(
-      {
-        include: [
-          {
-            model: User,
-            attributes: ['username', 'fullName', 'country'],
-          },
-        ],
-        order: ['rating'],
-        attributes: ['rating'],
-      },
-    );
+    const leaderboard = await Leaderboard.findAll({
+      include: [
+        {
+          model: User,
+          attributes: ['username', 'fullName', 'country', 'id'],
+        },
+      ],
+      order: ['rating'],
+      attributes: ['rating'],
+    });
 
+    let count = 1;
     const searchData = [];
     if (leaderboard && leaderboard.length > 0) {
       finish = Math.min(finish, leaderboard.length);
+
       leaderboard.forEach((leaderboardElement, index) => {
-        if (leaderboardElement.user.username.includes(search)) {
+        if (leaderboardElement.user.username.includes(searchPattern)) {
           const searchElement = {};
           searchElement.rank = index + 1;
+          searchElement.id = leaderboard[index].user.id;
           searchElement.rating = leaderboardElement.rating;
           searchElement.fullName = leaderboardElement.user.fullName;
           searchElement.country = leaderboardElement.user.country;
           searchElement.username = leaderboardElement.user.username;
-          if ((count + 1) >= start && (count + 1) <= finish) {
-            searchData[count - start + 1] = leaderboardElement;
+
+          if (count >= start && count <= finish) {
+            searchData[count - start] = searchElement;
           }
           count += 1;
         }

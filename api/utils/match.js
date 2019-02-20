@@ -7,9 +7,8 @@ const leaderboardUtils = require('./leaderboard');
 const constantUtils = require('./constant');
 const mapUtils = require('./map');
 const gameUtils = require('./game');
-const jobUtils = require('./job');
 const socket = require('./socketHandlers');
-const notificationUtils = require('./notificationsHandlers');
+const notificationUtils = require('./notifications');
 
 const elo = new EloRank(15);
 const checkMatchWaitTime = async (userId) => {
@@ -63,6 +62,7 @@ const hasMatchEnded = async (matchId) => {
   const games = (await Game.findAll({
     where: { matchId },
   })).map(game => game.id);
+
   const executeQueueElement = await ExecuteQueue.findOne({
     where: { gameId: [...games] },
   });
@@ -126,7 +126,6 @@ const startMatch = async (userId1, userId2) => {
       user2DllPath,
       mapId,
     );
-    jobUtils.sendJob();
   });
 
   await Promise.all(gamePromises);
@@ -182,28 +181,28 @@ const updateMatchResults = async (matchId, score1, score2) => {
       rating1 = elo.updateRating(expectedScore1, 1, rating1);
       rating2 = elo.updateRating(expectedScore2, 0, rating2);
       user1Status = `You won against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
-      user1Type = 'Success';
+      user1Type = 'Match Result Success';
       user1Title = 'Victory';
       user2Status = `You lost against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
-      user2Type = 'Error';
+      user2Type = 'Match Result Error';
       user2Title = 'Defeat';
     } else if (finalScore2 > finalScore1) {
       rating1 = elo.updateRating(expectedScore1, 0, rating1);
       rating2 = elo.updateRating(expectedScore2, 1, rating2);
       user1Status = `You lost against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
-      user1Type = 'Error';
+      user1Type = 'Match Result Error';
       user1Title = 'Defeat';
       user2Status = `You won against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
-      user2Type = 'Success';
+      user2Type = 'Match Result Success';
       user2Title = 'Victory';
     } else {
       rating1 = elo.updateRating(expectedScore1, 1, rating1);
       rating2 = elo.updateRating(expectedScore2, 1, rating2);
       user1Status = `You tied against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
-      user1Type = 'Success';
+      user1Type = 'Match Result Success';
       user1Title = 'Draw';
       user2Status = `You tied against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
-      user2Type = 'Success';
+      user2Type = 'Match Result Success';
       user2Title = 'Draw';
     }
     await Leaderboard.update({
@@ -221,12 +220,13 @@ const updateMatchResults = async (matchId, score1, score2) => {
         userId: match.userId2,
       },
     });
-  }
 
-  socket.sendMessage(match.userId1, user1Status, user1Type);
-  socket.sendMessage(match.userId2, user2Status, user2Type);
-  notificationUtils.createNotification(user1Type, user1Title, user1Status, match.userId1);
-  notificationUtils.createNotification(user2Type, user2Title, user2Status, match.userId2);
+    socket.sendMessage(match.userId1, user1Status, user1Type);
+    socket.sendMessage(match.userId2, user2Status, user2Type);
+
+    await notificationUtils.createNotification(user1Type, user1Title, user1Status, match.userId1);
+    await notificationUtils.createNotification(user2Type, user2Title, user2Status, match.userId2);
+  }
 };
 
 module.exports = {

@@ -8,7 +8,6 @@ const constantUtils = require('./constant');
 const socket = require('./socketHandlers');
 const { getUsername } = require('./user');
 const git = require('./gitHandlers');
-const matchUtils = require('./match');
 const { secretString } = require('../config/config');
 const { getMap } = require('./map');
 
@@ -220,14 +219,22 @@ const sendExecuteJob = async (
     if (matchType === 'USER_MATCH') {
       const { matchId, score1, score2 } = await gameUtils.updateGameResults(gameId, results);
 
-      await matchUtils.updateMatchResults(matchId, score1, score2);
       await gameUtils.updateGameLogs(
         gameId,
         response.player1LogCompressed,
         response.player2LogCompressed,
         response.log,
       );
-    } else if (matchType === 'SELF_MATCH' || matchType === 'PREVIOUS_COMMIT_MATCH') {
+      return {
+        success: true,
+        popFromQueue: true,
+        matchId,
+        score1,
+        score2,
+      };
+    }
+
+    if (matchType === 'SELF_MATCH' || matchType === 'PREVIOUS_COMMIT_MATCH') {
       socket.sendMessage(userId1, JSON.stringify({
         player1Log: response.player1LogCompressed,
         player2Log: response.player2LogCompressed,

@@ -66,6 +66,7 @@ router.post('/match', [
     const startMatchResponse = await matchUtils.startMatch(id, opponentId);
 
     if (startMatchResponse.success) {
+      jobUtils.sendJob();
       return res.status(200).json({
         type: 'Success',
         error: '',

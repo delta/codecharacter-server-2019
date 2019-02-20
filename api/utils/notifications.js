@@ -11,6 +11,6 @@ const createNotification = async (type, title, content, userId) => {
   }
 };
 
-exports = {
+module.exports = {
   createNotification,
 };
