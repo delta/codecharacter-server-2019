@@ -43,6 +43,7 @@ router.get('/:start/:finish', [
     finish = Math.min(finish, leaderboard.length);
     for (let index = start - 1; index < finish; index += 1) {
       const leaderboardElement = {};
+      leaderboardElement.userId = leaderboard[index].user.id;
       leaderboardElement.rank = index + 1;
       leaderboardElement.rating = leaderboard[index].rating;
       leaderboardElement.fullName = leaderboard[index].user.fullName;
