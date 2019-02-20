@@ -28,7 +28,7 @@ router.post('/compile', [
 
       return res.status(400).json({
         type: 'Error',
-        error: 'Code is already being compiled.',
+        error: 'Code is already being compiled. Please wait.',
       });
     }
 
@@ -107,9 +107,10 @@ router.post('/match/self', [
 
     return res.status(400).json({
       type: 'Error',
-      error: 'No compiled DLLs',
+      error: '',
     });
   } catch (err) {
+    socket.sendMessage(id, 'Internal Server Error', 'Match Error');
     return res.status(500).json({
       type: 'Error',
       error: 'Internal Server Error',

@@ -36,7 +36,7 @@ const pushSelfMatchToQueue = async (userId, mapId) => {
     const limit = await constantUtils.getExecuteQueueLimit();
 
     if (queueSize >= limit) {
-      socket.sendMessage(userId, 'Queue is full. Try again later', 'Match Error');
+      socket.sendMessage(userId, 'Server is currently busy. Please try again later.', 'Match Error');
       return false;
     }
 
@@ -55,7 +55,7 @@ const pushSelfMatchToQueue = async (userId, mapId) => {
 
     return true;
   } catch (err) {
-    socket.sendMessage(userId, 'Something went wrong', 'Match Error');
+    socket.sendMessage(userId, 'Internal Server Error', 'Match Error');
     return false;
   }
 };
@@ -71,7 +71,7 @@ const pushCommitMatchToQueue = async (userId, mapId) => {
     const limit = await constantUtils.getExecuteQueueLimit();
 
     if (queueSize >= limit) {
-      socket.sendMessage(userId, 'Queue is full. Try again later', 'Match Error');
+      socket.sendMessage(userId, 'Server is currently busy. Please try again later.', 'Match Error');
       return false;
     }
 
@@ -89,11 +89,10 @@ const pushCommitMatchToQueue = async (userId, mapId) => {
 
     return true;
   } catch (err) {
-    socket.sendMessage(userId, 'Something went wrong', 'Match Error');
+    socket.sendMessage(userId, 'Internal Server Error', 'Match Error');
     return false;
   }
 };
-
 
 const setExecuteQueueJobStatus = async (queueId, status) => ExecuteQueue.update({
   status,
