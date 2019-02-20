@@ -56,6 +56,13 @@ const getExecuteQueueLimit = async () => {
   return Number(limit.value);
 };
 
+const getCompileQueueLimit = async () => {
+  const limit = await Constant.findOne({
+    where: { key: 'COMPILE_QUEUE_LIMIT' },
+  });
+
+  return Number(limit.value);
+};
 module.exports = {
   minMatchWaitTime,
   initialRating,
@@ -64,4 +71,5 @@ module.exports = {
   getLeaderboardStorageDir,
   getExecuteQueueLimit,
   getAiStorageDir,
+  getCompileQueueLimit,
 };

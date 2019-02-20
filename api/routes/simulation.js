@@ -33,17 +33,26 @@ router.post('/compile', [
       });
     }
 
-    const result = await compileUtils.pushToCompileQueue(id, commitHash);
-    if (result) {
+    const pushResult = await compileUtils.pushToCompileQueue(id, commitHash);
+    if (pushResult.success) {
       socket.sendMessage(id, 'Code has been added to the queue... Please wait.', 'Compile Info');
       jobUtils.sendJob();
-    } else {
-      socket.sendMessage(id, 'Internal Server Error. Please try again later.', 'Compile Error');
+      return res.status(200).json({
+        type: 'Success',
+        error: '',
+      });
     }
-
-    return res.status(200).json({
-      type: 'Success',
-      error: '',
+    if (pushResult.error === 'QUEUE_FULL') {
+      socket.sendMessage(id, 'Queue full. Please try again later.', 'Compile Error');
+      return res.status(500).json({
+        type: 'Error',
+        error: 'Compile Queue full',
+      });
+    }
+    socket.sendMessage(id, 'Internal Server Error. Please try again later.', 'Compile Error');
+    return res.status(400).json({
+      type: 'Error',
+      error: 'Internal Server Error',
     });
   } catch (err) {
     return res.status(500).json({
