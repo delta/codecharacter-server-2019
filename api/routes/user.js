@@ -1,6 +1,11 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const { check } = require('express-validator/check');
+const shell = require('shelljs');
+const path = require('path');
+const constants = require('../utils/constant');
+const gitHandlers = require('../utils/gitHandlers');
+const CodeStatus = require('../models').codestatus;
 const { handleValidationErrors } = require('../utils/validation');
 const User = require('../models').user;
 
@@ -71,6 +76,7 @@ router.post('/update', [
 ], async (req, res) => {
   try {
     if (handleValidationErrors(req, res)) return null;
+    const { username } = req.body;
     const updationDoc = {};
     const fieldsUpdated = ['username', 'email', 'fullName', 'country', 'avatar'];
     fieldsUpdated.forEach((key) => {
@@ -78,6 +84,23 @@ router.post('/update', [
         updationDoc[key] = req.body[key];
       }
     });
+    if (username) {
+      const oldUsername = req.user.username;
+      const oldUserDir = await gitHandlers.getUserDir(oldUsername);
+      const newUserDir = await gitHandlers.getUserDir(username);
+      const baseLeaderboardDir = await constants.getLeaderboardStorageDir();
+      const newLeaderboardDir = path.resolve(baseLeaderboardDir, username);
+      const oldLeaderboardDir = path.resolve(baseLeaderboardDir, oldUsername);
+      await Promise.all([
+        shell.mv(oldUserDir, newUserDir),
+        shell.mv(oldLeaderboardDir, newLeaderboardDir),
+        CodeStatus.update({
+          latestSrcPath: `${gitHandlers.getUserDir(username)}/code.cpp`,
+        }, {
+          where: { userId: req.user.id },
+        }),
+      ]);
+    }
     await User.update(updationDoc, { where: { id: req.user.id } });
     return res.status(200).json({
       type: 'Success',
