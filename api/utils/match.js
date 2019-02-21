@@ -189,6 +189,8 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
         user2Status = `You lost against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
         user2Type = 'Match Result Error';
         user2Title = 'Defeat';
+
+        match.verdict = 1;
       } else if (finalScore2 > finalScore1) {
         rating1 = elo.updateRating(expectedScore1, 0, rating1);
         rating2 = elo.updateRating(expectedScore2, 1, rating2);
@@ -198,6 +200,8 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
         user2Status = `You won against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
         user2Type = 'Match Result Success';
         user2Title = 'Victory';
+
+        match.verdict = 2;
       } else {
         rating1 = elo.updateRating(expectedScore1, 1, rating1);
         rating2 = elo.updateRating(expectedScore2, 1, rating2);
@@ -207,6 +211,8 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
         user2Status = `You tied against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
         user2Type = 'Match Result Success';
         user2Title = 'Draw';
+
+        match.verdict = 0;
       }
       await Leaderboard.update({
         rating: rating1,
@@ -223,6 +229,8 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
           userId: match.userId2,
         },
       });
+
+      await match.save();
 
       socket.sendMessage(match.userId1, user1Status, user1Type);
       socket.sendMessage(match.userId2, user2Status, user2Type);
