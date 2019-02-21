@@ -2,7 +2,8 @@ const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcrypt');
 const Sequelize = require('sequelize');
 const rp = require('request-promise');
-
+const codeStatus = require('../models').codestatus;
+const git = require('../utils/gitHandlers');
 const User = require('../models').user;
 const config = require('../config/config.js');
 
@@ -40,6 +41,12 @@ module.exports = (passport) => {
               isPragyan: true,
               activated: true,
             });
+            if (await git.createUserDir(username)) {
+              await codeStatus.create({
+                userId: userCreated.id,
+                latestSrcPath: `${git.getUserDir(username)}/code.cpp`,
+              });
+            }
             if (userCreated) {
               return done(null, userCreated, 'Success');
             }
