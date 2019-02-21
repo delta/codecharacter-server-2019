@@ -9,7 +9,8 @@ module.exports = {
         type: Sequelize.BIGINT
       },
       message: {
-        type: Sequelize.TEXT('long')
+        type: Sequelize.TEXT('long'),
+        allowNull: false
       },
       createdAt: {
         allowNull: false,

@@ -5,8 +5,5 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
   }, {});
-  // globalnotification.associate = function(models) {
-  //   // associations can be defined here
-  // };
   return globalnotification;
 };
