@@ -190,7 +190,7 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
         user2Type = 'Match Result Error';
         user2Title = 'Defeat';
 
-        match.verdict = 1;
+        match.verdict = '1';
       } else if (finalScore2 > finalScore1) {
         rating1 = elo.updateRating(expectedScore1, 0, rating1);
         rating2 = elo.updateRating(expectedScore2, 1, rating2);
@@ -201,7 +201,7 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
         user2Type = 'Match Result Success';
         user2Title = 'Victory';
 
-        match.verdict = 2;
+        match.verdict = '2';
       } else {
         rating1 = elo.updateRating(expectedScore1, 1, rating1);
         rating2 = elo.updateRating(expectedScore2, 1, rating2);
@@ -212,7 +212,7 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
         user2Type = 'Match Result Success';
         user2Title = 'Draw';
 
-        match.verdict = 0;
+        match.verdict = '0';
       }
       await Leaderboard.update({
         rating: rating1,
