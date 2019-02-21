@@ -1,3 +1,4 @@
+const matchUtils = require('./match');
 const compileUtils = require('./compile');
 const executeUtils = require('./execute');
 const codeStatusUtils = require('./codeStatus');
@@ -40,7 +41,12 @@ const sendJob = async () => {
   } else {
     await executeUtils.setExecuteQueueJobStatus(executeJob.id, 'EXECUTING');
 
-    const { popFromQueue } = await executeUtils.sendExecuteJob(
+    const {
+      popFromQueue,
+      matchId,
+      score1,
+      score2,
+    } = await executeUtils.sendExecuteJob(
       executeJob.gameId,
       idleCompileBoxId,
       executeJob.userId1,
@@ -57,6 +63,9 @@ const sendJob = async () => {
           id: executeJob.id,
         },
       });
+      if (executeJob.type === 'USER_MATCH') {
+        await matchUtils.updateMatchResults(matchId, score1, score2);
+      }
     }
   }
 
