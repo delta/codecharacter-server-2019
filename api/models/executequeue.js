@@ -1,6 +1,7 @@
 const User = require('./user');
 const Map = require('./map');
 const Game = require('./game');
+const Ai = require('./ai');
 
 module.exports = (sequelize, DataTypes) => {
   const executeQueue = sequelize.define('executequeue', {
@@ -55,6 +56,15 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id',
       },
       allowNull: false,
+    },
+    aiId: {
+      type: DataTypes.BIGINT,
+      references: {
+        model: Ai,
+        key: 'id',
+      },
+      allowNull: true,
+      defaultValue: null,
     },
   }, {
     freezeTableName: true,

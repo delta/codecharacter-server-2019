@@ -24,6 +24,9 @@ module.exports = {
   }, {
     key: 'DEFAULT_MATCH_LOG_STORAGE_DIR',
     value: `${appPath}/storage/matchLog`,
+  }, {
+    key: 'DEFAULT_AI_STORAGE_DIR',
+    value: `${appPath}/storage/ais`,
   }], {}),
 
   down: queryInterface => queryInterface.delete('constants', null, {}),
