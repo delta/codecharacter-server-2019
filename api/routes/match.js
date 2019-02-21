@@ -2,7 +2,11 @@ const express = require('express');
 const { Op } = require('sequelize');
 
 const Match = require('../models').match;
+const Game = require('../models').game;
 const User = require('../models').user;
+
+const git = require('../utils/gitHandlers');
+const constantUtils = require('../utils/constant');
 
 const router = express.Router();
 const parsify = obj => JSON.parse(JSON.stringify(obj));
@@ -20,12 +24,20 @@ router.get('/all', async (req, res) => {
         userId2: req.user.id,
       }],
     },
+    order: [['createdAt', 'DESC']],
   });
 
   const matchData = [];
   matches = parsify(matches);
 
-  matches.forEach((match) => {
+  await Promise.all(matches.map(async (match) => {
+    const gameIds = await Game.findAll({
+      where: {
+        matchId: match.id,
+      },
+      attributes: ['id'],
+    });
+
     const matchEntry = {};
     matchEntry.usedId1 = match.user1.id;
     matchEntry.userId2 = match.user2.id;
@@ -34,9 +46,10 @@ router.get('/all', async (req, res) => {
     matchEntry.verdict = match.verdict;
     matchEntry.score1 = match.score1;
     matchEntry.score2 = match.score2;
+    matchEntry.games = gameIds;
     matchEntry.playedAt = (new Date(match.updatedAt)).toUTCString();
     matchData.push(matchEntry);
-  });
+  }));
 
   return res.status(200).json({ type: 'Success', error: '', matchData });
 });
@@ -51,13 +64,20 @@ router.get('/pro', async (req, res) => {
     where: {
       status: 'DONE',
     },
-    order: [['interestingness', 'DESC']],
+    order: [['interestingness', 'DESC'], ['createdAt', 'DESC']],
     limit: 10,
   });
 
   proMatchesData = parsify(proMatchesData);
 
-  proMatchesData.forEach((proMatch) => {
+  await Promise.all(proMatchesData.map(async (proMatch) => {
+    const gameIds = await Game.findAll({
+      where: {
+        matchId: proMatch.id,
+      },
+      attributes: ['id'],
+    });
+
     const matchEntry = {};
     matchEntry.usedId1 = proMatch.user1.id;
     matchEntry.userId2 = proMatch.user2.id;
@@ -67,10 +87,51 @@ router.get('/pro', async (req, res) => {
     matchEntry.score1 = proMatch.score1;
     matchEntry.score2 = proMatch.score2;
     matchEntry.playedAt = (new Date(proMatch.updatedAt)).toUTCString();
+    matchEntry.games = gameIds;
     proMatches.push(matchEntry);
-  });
+  }));
 
   return res.status(200).json({ type: 'Success', error: '', matchData: proMatches });
+});
+
+router.get('/log/:gameId', async (req, res) => {
+  try {
+    let { gameId } = req.params;
+
+    gameId = Number(gameId);
+    const game = await Game.findOne({
+      where: {
+        id: gameId,
+      },
+    });
+
+    if (!game) {
+      return res.status(400).json({
+        type: 'Error',
+        error: 'Game does not exist',
+      });
+    }
+
+    const matchLogDir = await constantUtils.getMatchLogDir();
+    const player1Log = await git.getFile(null, game.debugLog1Path, null, matchLogDir);
+    const player2Log = await git.getFile(null, game.debugLog2Path, null, matchLogDir);
+    const gameLog = await git.getFile(null, game.log, null, matchLogDir);
+
+    return res.status(200).json({
+      type: 'Success',
+      error: '',
+      logs: {
+        player1Log,
+        player2Log,
+        gameLog,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      type: 'Error',
+      error: 'Internal Server Error',
+    });
+  }
 });
 
 module.exports = router;

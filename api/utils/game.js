@@ -42,9 +42,9 @@ const updateGameLogs = async (
 
   const logStorageDir = await constantUtils.getMatchLogDir();
 
-  await git.setFile('', game.debugLog1Path, JSON.stringify(debugLog1), logStorageDir);
-  await git.setFile('', game.debugLog2Path, JSON.stringify(debugLog2), logStorageDir);
-  await git.setFile('', game.log, JSON.stringify(log), logStorageDir);
+  await git.setFile('', game.debugLog1Path, debugLog1, logStorageDir);
+  await git.setFile('', game.debugLog2Path, debugLog2, logStorageDir);
+  await git.setFile('', game.log, log, logStorageDir);
 };
 
 const setGameStatus = async (gameId, status) => {
