@@ -25,16 +25,16 @@ router.get('/all', async (req, res) => {
   const matchData = [];
   matches = parsify(matches);
 
-  matches.forEach((element) => {
+  matches.forEach((match) => {
     const matchEntry = {};
-    matchEntry.usedId1 = element.user1.id;
-    matchEntry.userId2 = element.user2.id;
-    matchEntry.username1 = element.user1.username;
-    matchEntry.username2 = element.user2.username;
-    matchEntry.verdict = element.verdict;
-    matchEntry.score1 = element.score1;
-    matchEntry.score2 = element.score2;
-    matchEntry.playedAt = (new Date(element.updatedAt)).toUTCString();
+    matchEntry.usedId1 = match.user1.id;
+    matchEntry.userId2 = match.user2.id;
+    matchEntry.username1 = match.user1.username;
+    matchEntry.username2 = match.user2.username;
+    matchEntry.verdict = match.verdict;
+    matchEntry.score1 = match.score1;
+    matchEntry.score2 = match.score2;
+    matchEntry.playedAt = (new Date(match.updatedAt)).toUTCString();
     matchData.push(matchEntry);
   });
 
