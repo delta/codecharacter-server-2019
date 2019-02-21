@@ -8,6 +8,7 @@ const jobUtils = require('../utils/job');
 const matchUtils = require('../utils/match');
 const executeUtils = require('../utils/execute');
 const Map = require('../models').map;
+const Ai = require('../models').ai;
 
 const router = express.Router();
 
@@ -153,6 +154,42 @@ router.post('/match/commit', [
   }
 });
 
+router.post('/match/ai', [
+  check('mapId')
+    .not().isEmpty().withMessage('mapId cannot be empty')
+    .isInt(),
+  check('aiId')
+    .not().isEmpty().withMessage('aiId cannot be empty')
+    .isInt(),
+], async (req, res) => {
+  if (handleValidationErrors(req, res)) return null;
+
+  const { id } = req.user;
+  const { mapId, aiId } = req.body;
+
+  try {
+    const result = await executeUtils.pushAiMatchToQueue(id, aiId, mapId);
+
+    if (result) {
+      jobUtils.sendJob();
+      return res.status(200).json({
+        type: 'Success',
+        error: '',
+      });
+    }
+
+    return res.status(400).json({
+      type: 'Error',
+      error: 'No compiled DLLs',
+    });
+  } catch (err) {
+    return res.status(500).json({
+      type: 'Error',
+      error: 'Internal Server Error',
+    });
+  }
+});
+
 // get all maps available
 router.get('/maps', async (req, res) => {
   try {
@@ -174,6 +211,21 @@ router.get('/maps', async (req, res) => {
     });
 
     return res.status(200).json({ type: 'Success', error: '', mapsData });
+  } catch (err) {
+    return res.status(500).json({
+      type: 'Error',
+      error: 'Internal Server Error',
+    });
+  }
+});
+
+router.get('/ais', async (req, res) => {
+  try {
+    const ais = await Ai.findAll({});
+
+    const aiIds = ais.map(ai => ai.id);
+
+    return res.status(200).json({ type: 'Success', error: '', aiIds });
   } catch (err) {
     return res.status(500).json({
       type: 'Error',
