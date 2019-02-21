@@ -40,6 +40,14 @@ const getMatchLogDir = async () => {
   return storageDir.value;
 };
 
+const getAiStorageDir = async () => {
+  const storageDir = await Constant.findOne({
+    where: { key: 'DEFAULT_AI_STORAGE_DIR' },
+  });
+
+  return storageDir.value;
+};
+
 const getExecuteQueueLimit = async () => {
   const limit = await Constant.findOne({
     where: { key: 'EXECUTE_QUEUE_LIMIT' },
@@ -55,4 +63,5 @@ module.exports = {
   getMatchLogDir,
   getLeaderboardStorageDir,
   getExecuteQueueLimit,
+  getAiStorageDir,
 };

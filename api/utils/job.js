@@ -52,6 +52,7 @@ const sendJob = async () => {
       idleCompileBoxId,
       executeJob.userId1,
       executeJob.userId2,
+      executeJob.aiId,
       executeJob.mapId,
       executeJob.type,
       executeJob.dll1Path,

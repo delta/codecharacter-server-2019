@@ -2,6 +2,7 @@ const rp = require('request-promise');
 
 const { Op } = require('sequelize');
 const ExecuteQueue = require('../models').executequeue;
+const Ai = require('../models').ai;
 const compileBoxUtils = require('./compileBox');
 const gameUtils = require('./game');
 const constantUtils = require('./constant');
@@ -10,6 +11,16 @@ const { getUsername } = require('./user');
 const git = require('./gitHandlers');
 const { secretString } = require('../config/config');
 const { getMap } = require('./map');
+
+const getAiName = async (aiId) => {
+  const ai = await Ai.findOne({
+    where: { id: aiId },
+  });
+
+  if (!ai) return '';
+
+  return ai.name;
+};
 
 const executeQueueSize = async () => ExecuteQueue.count();
 
@@ -22,6 +33,55 @@ const userAlreadyInQueue = async (userId) => {
   });
 
   return (!!matchEntry);
+};
+
+const checkAiExists = async (aiId) => {
+  const ai = await Ai.findOne({
+    where: { id: aiId },
+  });
+
+  return (!!ai);
+};
+
+const pushAiMatchToQueue = async (userId, aiId, mapId) => {
+  try {
+    if (await userAlreadyInQueue(userId)) {
+      socket.sendMessage(userId, 'Please wait for your previous match to complete', 'Match Error');
+      return false;
+    }
+
+    const queueSize = await executeQueueSize();
+    const limit = await constantUtils.getExecuteQueueLimit();
+
+    if (queueSize >= limit) {
+      socket.sendMessage(userId, 'Server is currently busy. Please try again later.', 'Match Error');
+      return false;
+    }
+
+    if (!(await checkAiExists(aiId))) {
+      socket.sendMessage(userId, 'Ai does not exist.', 'Match Error');
+      return false;
+    }
+
+    await ExecuteQueue.create({
+      userId1: userId,
+      userId2: userId,
+      gameId: null,
+      dll1Path: 'dll1.dll',
+      dll2Path: 'dll2.dll',
+      status: 'QUEUED',
+      type: 'AI_MATCH',
+      mapId,
+      aiId,
+    });
+
+    socket.sendMessage(userId, 'Added AI match to queue', 'Match Info');
+
+    return true;
+  } catch (err) {
+    socket.sendMessage(userId, 'Internal Server Error', 'Match Error');
+    return false;
+  }
 };
 
 const pushSelfMatchToQueue = async (userId, mapId) => {
@@ -84,7 +144,7 @@ const pushCommitMatchToQueue = async (userId, mapId) => {
       type: 'PREVIOUS_COMMIT_MATCH',
       mapId,
     });
-    socket.sendMessage(userId, 'Added self match to queue', 'Match Info');
+    socket.sendMessage(userId, 'Added previous commit match to queue', 'Match Info');
 
     return true;
   } catch (err) {
@@ -130,6 +190,7 @@ const sendExecuteJob = async (
   compileBoxId,
   userId1,
   userId2,
+  aiId,
   mapId,
   matchType,
   dll1Path,
@@ -147,10 +208,14 @@ const sendExecuteJob = async (
       socket.sendMessage(userId1, `Match against ${userId2} is executing.`, 'Match Info');
     } else if (matchType === 'SELF_MATCH') {
       socket.sendMessage(userId1, `Match against ${userId2} is executing.`, 'Match Info');
+    } else if (matchType === 'AI_MATCH') {
+      socket.sendMessage(userId1, `Match against AI ${aiId} is executing.`, 'Match Info');
+    } else if (matchType === 'PREVIOUS_COMMIT_MATCH') {
+      socket.sendMessage(userId1, 'Match against previous commit is executing.', 'Match Info');
     }
 
     if (matchType === 'USER_MATCH') {
-      await gameUtils.setGameStatus(gameId, 'Compiling');
+      await gameUtils.setGameStatus(gameId, 'Executing');
       await compileBoxUtils.changeCompileBoxState(compileBoxId, 'BUSY');
     }
 
@@ -168,13 +233,17 @@ const sendExecuteJob = async (
       const leaderboardStorageDir = await constantUtils.getLeaderboardStorageDir();
       dll1Dir = `${leaderboardStorageDir}/${await getUsername(userId1)}`;
       dll2Dir = `${leaderboardStorageDir}/${await getUsername(userId2)}`;
+    } else if (matchType === 'AI_MATCH') {
+      const aiStorageDir = await constantUtils.getAiStorageDir();
+      const codeStorageDir = await constantUtils.getCodeStorageDir();
+      dll1Dir = `${codeStorageDir}/${await getUsername(userId1)}`;
+      dll2Dir = `${aiStorageDir}/${await await getAiName(aiId)}`;
     }
 
-    if (matchType === 'PREVIOUS_COMMIT_HASH') {
-      if (!(await git.checkFileExists(`${dll2Dir}/${dll2Path}`))) {
-        return false;
-      }
+    if (!(await git.checkFileExists(`${dll2Dir}/${dll2Path}`))) {
+      return false;
     }
+
     const dll1 = JSON.parse(await git.getFile('', dll1Path, null, dll1Dir));
     const dll2 = JSON.parse(await git.getFile('', dll2Path, null, dll2Dir));
     const map = await getMap(mapId);
@@ -240,14 +309,12 @@ const sendExecuteJob = async (
       };
     }
 
-    if (matchType === 'SELF_MATCH' || matchType === 'PREVIOUS_COMMIT_MATCH') {
-      socket.sendMessage(userId1, JSON.stringify({
-        player1Log: response.player1LogCompressed,
-        player2Log: response.player2LogCompressed,
-        gameLog: response.log,
-        results,
-      }), 'Match Success');
-    }
+    socket.sendMessage(userId1, JSON.stringify({
+      player1Log: response.player1LogCompressed,
+      player2Log: response.player2LogCompressed,
+      gameLog: response.log,
+      results,
+    }), 'Match Success');
 
     return {
       success: true,
@@ -268,5 +335,6 @@ module.exports = {
   setExecuteQueueJobStatus,
   pushSelfMatchToQueue,
   pushCommitMatchToQueue,
+  pushAiMatchToQueue,
   executeQueueSize,
 };
