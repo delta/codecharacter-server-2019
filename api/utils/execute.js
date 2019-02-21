@@ -109,7 +109,7 @@ const getOldestExecuteJob = async () => {
   return executeJob;
 };
 
-const parseResults = ({ scores }) => {
+const parseResults = ({ scores, interestingness }) => {
   const player1Score = Number(scores[0].score);
   const player2Score = Number(scores[1].score);
   const player1Status = scores[0].status;
@@ -120,6 +120,7 @@ const parseResults = ({ scores }) => {
     player2Score,
     player1Status,
     player2Status,
+    interestingness: Number(interestingness),
   };
 };
 
@@ -217,7 +218,11 @@ const sendExecuteJob = async (
     const results = parseResults(response.results);
 
     if (matchType === 'USER_MATCH') {
-      const { matchId, score1, score2 } = await gameUtils.updateGameResults(gameId, results);
+      const {
+        matchId,
+        score1,
+        score2,
+      } = await gameUtils.updateGameResults(gameId, results);
 
       await gameUtils.updateGameLogs(
         gameId,
@@ -231,6 +236,7 @@ const sendExecuteJob = async (
         matchId,
         score1,
         score2,
+        interestingness: results.interestingness,
       };
     }
 
@@ -248,7 +254,6 @@ const sendExecuteJob = async (
       popFromQueue: true,
     };
   } catch (error) {
-    console.log(error);
     return {
       success: false,
       popFromQueue: true,

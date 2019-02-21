@@ -89,13 +89,18 @@ const updateGameResults = async (gameId, results) => {
 
   game.points1 = results.player1Score;
   game.points2 = results.player2Score;
+  game.interestingness += results.interestingness;
 
   game.status = 'Executed';
 
   const { matchId } = game;
   await game.save();
 
-  return { matchId, score1, score2 };
+  return {
+    matchId,
+    score1,
+    score2,
+  };
 };
 
 module.exports = {

@@ -46,6 +46,7 @@ const sendJob = async () => {
       matchId,
       score1,
       score2,
+      interestingness,
     } = await executeUtils.sendExecuteJob(
       executeJob.gameId,
       idleCompileBoxId,
@@ -64,7 +65,7 @@ const sendJob = async () => {
         },
       });
       if (executeJob.type === 'USER_MATCH') {
-        await matchUtils.updateMatchResults(matchId, score1, score2);
+        await matchUtils.updateMatchResults(matchId, score1, score2, interestingness);
       }
     }
   }
