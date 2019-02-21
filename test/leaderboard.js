@@ -10,6 +10,7 @@ const gitHandlers = require('../api/utils/gitHandlers');
 const CodeStatus = require('../api/models').codestatus;
 const server = require('../app');
 const User = require('../api/models').user;
+const Match = require('../api/models').match;
 const Leaderboard = require('../api/models').leaderboard;
 
 chai.use(chaiHttp);
@@ -101,6 +102,10 @@ describe('Test Leaderboard', async () => {
         if (codeStatus[index].userId > 99 || codeStatus[index].userId < 120) {
           deletions.push(codeStatus[index].destroy());
         }
+      }
+      const matches = await Match.findAll();
+      for (let index = 0; index < matches.length; index += 1) {
+        deletions.push(matches[index].destroy());
       }
       await Promise.all(deletions);
       const userDeletions = [];
