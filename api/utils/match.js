@@ -146,88 +146,92 @@ const setMatchStatus = async (matchId, status) => {
 };
 
 const updateMatchResults = async (matchId, score1, score2, interestingness) => {
-  const match = await Match.findOne({
-    where: { id: matchId },
-  });
+  try {
+    const match = await Match.findOne({
+      where: { id: matchId },
+    });
 
-  const finalScore1 = match.score1 + score1;
-  const finalScore2 = match.score2 + score2;
+    const finalScore1 = match.score1 + score1;
+    const finalScore2 = match.score2 + score2;
 
-  match.score1 = finalScore1;
-  match.score2 = finalScore2;
+    match.score1 = finalScore1;
+    match.score2 = finalScore2;
 
-  match.interestingness += interestingness;
+    match.interestingness += interestingness;
 
-  match.status = 'DONE';
+    match.status = 'DONE';
 
-  await match.save();
+    await match.save();
 
-  let user1Status;
-  let user1Type;
-  let user1Title;
-  let user2Status;
-  let user2Type;
-  let user2Title;
+    let user1Status;
+    let user1Type;
+    let user1Title;
+    let user2Status;
+    let user2Type;
+    let user2Title;
 
-  if (await hasMatchEnded(matchId)) {
-    await setMatchStatus(matchId, 'DONE');
+    if (await hasMatchEnded(matchId)) {
+      await setMatchStatus(matchId, 'DONE');
 
-    const user1 = await Leaderboard.findOne({ userId: match.userId1 });
-    let rating1 = user1.rating;
-    const user2 = await Leaderboard.findOne({ userId: match.userId2 });
-    let rating2 = user2.rating;
-    const expectedScore1 = elo.getExpected(rating1, rating2);
-    const expectedScore2 = elo.getExpected(rating2, rating1);
+      const user1 = await Leaderboard.findOne({ userId: match.userId1 });
+      let rating1 = user1.rating;
+      const user2 = await Leaderboard.findOne({ userId: match.userId2 });
+      let rating2 = user2.rating;
+      const expectedScore1 = elo.getExpected(rating1, rating2);
+      const expectedScore2 = elo.getExpected(rating2, rating1);
 
-    if (finalScore1 > finalScore2) {
-      rating1 = elo.updateRating(expectedScore1, 1, rating1);
-      rating2 = elo.updateRating(expectedScore2, 0, rating2);
-      user1Status = `You won against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
-      user1Type = 'Match Result Success';
-      user1Title = 'Victory';
-      user2Status = `You lost against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
-      user2Type = 'Match Result Error';
-      user2Title = 'Defeat';
-    } else if (finalScore2 > finalScore1) {
-      rating1 = elo.updateRating(expectedScore1, 0, rating1);
-      rating2 = elo.updateRating(expectedScore2, 1, rating2);
-      user1Status = `You lost against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
-      user1Type = 'Match Result Error';
-      user1Title = 'Defeat';
-      user2Status = `You won against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
-      user2Type = 'Match Result Success';
-      user2Title = 'Victory';
-    } else {
-      rating1 = elo.updateRating(expectedScore1, 1, rating1);
-      rating2 = elo.updateRating(expectedScore2, 1, rating2);
-      user1Status = `You tied against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
-      user1Type = 'Match Result Success';
-      user1Title = 'Draw';
-      user2Status = `You tied against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
-      user2Type = 'Match Result Success';
-      user2Title = 'Draw';
+      if (finalScore1 > finalScore2) {
+        rating1 = elo.updateRating(expectedScore1, 1, rating1);
+        rating2 = elo.updateRating(expectedScore2, 0, rating2);
+        user1Status = `You won against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
+        user1Type = 'Match Result Success';
+        user1Title = 'Victory';
+        user2Status = `You lost against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
+        user2Type = 'Match Result Error';
+        user2Title = 'Defeat';
+      } else if (finalScore2 > finalScore1) {
+        rating1 = elo.updateRating(expectedScore1, 0, rating1);
+        rating2 = elo.updateRating(expectedScore2, 1, rating2);
+        user1Status = `You lost against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
+        user1Type = 'Match Result Error';
+        user1Title = 'Defeat';
+        user2Status = `You won against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
+        user2Type = 'Match Result Success';
+        user2Title = 'Victory';
+      } else {
+        rating1 = elo.updateRating(expectedScore1, 1, rating1);
+        rating2 = elo.updateRating(expectedScore2, 1, rating2);
+        user1Status = `You tied against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
+        user1Type = 'Match Result Success';
+        user1Title = 'Draw';
+        user2Status = `You tied against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
+        user2Type = 'Match Result Success';
+        user2Title = 'Draw';
+      }
+      await Leaderboard.update({
+        rating: rating1,
+      }, {
+        where: {
+          userId: match.userId1,
+        },
+      });
+
+      await Leaderboard.update({
+        rating: rating2,
+      }, {
+        where: {
+          userId: match.userId2,
+        },
+      });
+
+      socket.sendMessage(match.userId1, user1Status, user1Type);
+      socket.sendMessage(match.userId2, user2Status, user2Type);
+
+      await notificationUtils.createNotification(user1Type, user1Title, user1Status, match.userId1);
+      await notificationUtils.createNotification(user2Type, user2Title, user2Status, match.userId2);
     }
-    await Leaderboard.update({
-      rating: rating1,
-    }, {
-      where: {
-        userId: match.userId1,
-      },
-    });
-
-    await Leaderboard.update({
-      rating: rating2,
-    }, {
-      where: {
-        userId: match.userId2,
-      },
-    });
-
-    socket.sendMessage(match.userId1, user1Status, user1Type);
-    socket.sendMessage(match.userId2, user2Status, user2Type);
-
-    await notificationUtils.createNotification(user1Type, user1Title, user1Status, match.userId1);
-    await notificationUtils.createNotification(user2Type, user2Title, user2Status, match.userId2);
+  } catch (err) {
+    console.log(err);
   }
 };
 

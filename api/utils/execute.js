@@ -120,7 +120,7 @@ const parseResults = ({ scores, interestingness }) => {
     player2Score,
     player1Status,
     player2Status,
-    interestingness,
+    interestingness: Number(interestingness),
   };
 };
 
@@ -222,7 +222,6 @@ const sendExecuteJob = async (
         matchId,
         score1,
         score2,
-        interestingness,
       } = await gameUtils.updateGameResults(gameId, results);
 
       await gameUtils.updateGameLogs(
@@ -237,7 +236,7 @@ const sendExecuteJob = async (
         matchId,
         score1,
         score2,
-        interestingness,
+        interestingness: results.interestingness,
       };
     }
 
@@ -255,7 +254,6 @@ const sendExecuteJob = async (
       popFromQueue: true,
     };
   } catch (error) {
-    console.log(error);
     return {
       success: false,
       popFromQueue: true,
