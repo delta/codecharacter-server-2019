@@ -9,6 +9,7 @@ const constantUtils = require('./constant');
 const socket = require('./socketHandlers');
 const { getUsername } = require('./user');
 const git = require('./gitHandlers');
+const userUtils = require('./user');
 const { secretString } = require('../config/config');
 const { getMap } = require('./map');
 
@@ -205,9 +206,9 @@ const sendExecuteJob = async (
     }
 
     if (matchType === 'USER_MATCH') {
-      socket.sendMessage(userId1, `Match against ${userId2} is executing.`, 'Match Info');
+      socket.sendMessage(userId1, `Match against ${await userUtils.getUsername(userId2)} is executing.`, 'Match Info');
     } else if (matchType === 'SELF_MATCH') {
-      socket.sendMessage(userId1, `Match against ${userId2} is executing.`, 'Match Info');
+      socket.sendMessage(userId1, `Match against ${await userUtils.getUsername(userId2)} is executing.`, 'Match Info');
     } else if (matchType === 'AI_MATCH') {
       socket.sendMessage(userId1, `Match against AI ${aiId} is executing.`, 'Match Info');
     } else if (matchType === 'PREVIOUS_COMMIT_MATCH') {
