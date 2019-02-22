@@ -65,7 +65,16 @@ router.post('/compile', [
 router.post('/match', [
   check('opponentId')
     .not().isEmpty().withMessage('opponentId cannot be empty')
-    .isInt(),
+    .isInt()
+    .withMessage('Not an integer')
+    .custom((value, { req }) => {
+      if (value === req.user.id) {
+        socket.sendMessage(req.user.id, 'Cannot match up against self', 'Match Error');
+        return false;
+      }
+      return true;
+    })
+    .withMessage('Cannot match up against self'),
 ], async (req, res) => {
   if (handleValidationErrors(req, res)) return null;
 
