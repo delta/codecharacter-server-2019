@@ -20,20 +20,31 @@ router.get('/:start/:finish', [
     .withMessage('Finish must be Integer')
     .custom((value, { req }) => parseInt(value, 10) >= parseInt(req.params.start, 10))
     .withMessage('Start cannot be greater than Finish'),
+  check('type')
+    .optional()
+    .custom(async value => ['Student', 'Professional'].includes(value))
+    .withMessage('Invalid type'),
 ], async (req, res) => {
   if (handleValidationErrors(req, res)) return null;
   const leaderboardData = [];
   let { start, finish } = req.params;
+  const { type } = req.query;
   start = parseInt(start, 10);
   finish = parseInt(finish, 10);
+  const joinOptions = {
+    model: User,
+    attributes: ['username', 'fullName', 'country', 'avatar'],
+  };
+
+  if (type) {
+    joinOptions.where = { type };
+  }
+
   try {
     const leaderboard = await Leaderboard.findAll(
       {
         include: [
-          {
-            model: User,
-            attributes: ['username', 'fullName', 'country', 'avatar'],
-          },
+          joinOptions,
         ],
         order: ['rating'],
         attributes: ['rating'],
@@ -49,7 +60,7 @@ router.get('/:start/:finish', [
       leaderboardElement.fullName = leaderboard[index].user.fullName;
       leaderboardElement.country = leaderboard[index].user.country;
       leaderboardElement.username = leaderboard[index].user.username;
-      leaderboardElement.avatar = leaderboardElement.user.avatar;
+      leaderboardElement.avatar = leaderboard[index].user.avatar;
 
       leaderboardData.push(leaderboardElement);
     }
@@ -73,9 +84,14 @@ router.get('/:search/:start/:finish', [
     .not().isEmpty().withMessage('Finish cannot be empty')
     .isInt()
     .withMessage('Finish must be Integer'),
+  check('type')
+    .optional()
+    .custom(async value => ['Student', 'Professional'].includes(value))
+    .withMessage('Invalid type'),
 ], async (req, res) => {
   let { start, finish } = req.params;
   let { search: searchPattern } = req.params;
+  const { type } = req.query;
 
   const errors = validationResult(req);
 
@@ -96,14 +112,18 @@ router.get('/:search/:start/:finish', [
       error: 'Start cannot be greater than Finish',
     });
   }
+  const joinOptions = {
+    model: User,
+    attributes: ['username', 'fullName', 'country', 'id', 'avatar'],
+  };
 
+  if (type) {
+    joinOptions.where = { type };
+  }
   try {
     const leaderboard = await Leaderboard.findAll({
       include: [
-        {
-          model: User,
-          attributes: ['username', 'fullName', 'country', 'id', 'avatar'],
-        },
+        joinOptions,
       ],
       order: ['rating'],
       attributes: ['rating'],
@@ -123,7 +143,7 @@ router.get('/:search/:start/:finish', [
           searchElement.fullName = leaderboardElement.user.fullName;
           searchElement.country = leaderboardElement.user.country;
           searchElement.username = leaderboardElement.user.username;
-          searchElement.avatar = leaderboard.user.avatar;
+          searchElement.avatar = leaderboardElement.user.avatar;
 
           if (count >= start && count <= finish) {
             searchData[count - start] = searchElement;
