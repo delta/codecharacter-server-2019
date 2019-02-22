@@ -3,6 +3,7 @@ const Match = require('../models').match;
 const ExecuteQueue = require('../models').executequeue;
 const Leaderboard = require('../models').leaderboard;
 const Game = require('../models').game;
+const userUtils = require('../utils/user');
 const leaderboardUtils = require('./leaderboard');
 const constantUtils = require('./constant');
 const mapUtils = require('./map');
@@ -130,7 +131,7 @@ const startMatch = async (userId1, userId2) => {
 
   await Promise.all(gamePromises);
 
-  socket.sendMessage(userId1, `Match against ${userId2} added to queue.`, 'Match Info');
+  socket.sendMessage(userId1, `Match against ${await userUtils.getUsername(userId2)} added to queue.`, 'Match Info');
   return {
     success: true,
     message: 'Match added to queue',

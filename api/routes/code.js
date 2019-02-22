@@ -117,7 +117,9 @@ router.post('/lock', async (req, res) => {
 
 router.post('/commit', [
   check('commitMessage')
-    .not().isEmpty().withMessage('commitMessage cannot be empty'),
+    .not().isEmpty().withMessage('commitMessage cannot be empty')
+    .isLength({ min: 1, max: 50 })
+    .withMessage('Commit message must be 1-50 characters long'),
 ], async (req, res) => {
   try {
     if (handleValidationErrors(req, res)) return null;
