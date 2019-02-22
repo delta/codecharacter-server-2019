@@ -14,7 +14,11 @@ const router = express.Router();
 
 router.post('/register', [
   check('username')
-    .not().isEmpty().withMessage('Username cannot be empty'),
+    .not().isEmpty().withMessage('Username cannot be empty')
+    .isAlphanumeric()
+    .withMessage('Username must be alphanumeric')
+    .isLength({ min: 5, max: 50 })
+    .withMessage('Username must be 5-50 characters long'),
   check('password')
     .not().isEmpty().withMessage('Password cannot be empty'),
   check('repeatPassword', 'repeatPassword field must have the same value as the password field')
