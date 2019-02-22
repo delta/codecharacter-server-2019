@@ -1,13 +1,17 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const passport = require('passport');
+const randomString = require('randomstring');
+const sendgridMail = require('@sendgrid/mail');
 const { Op } = require('sequelize');
 const { check } = require('express-validator/check');
+const config = require('../config/config');
 const { handleValidationErrors } = require('../utils/validation');
 const User = require('../models').user;
 const codeStatus = require('../models').codestatus;
 const git = require('../utils/gitHandlers');
 const socket = require('../utils/socketHandlers');
+const notificationUtils = require('../utils/notifications');
 const isLoggedIn = require('../middlewares/isLoggedIn');
 
 const router = express.Router();
@@ -76,6 +80,25 @@ router.post('/register', [
       isPragyan: !!pragyanId,
     });
     if (newUser) {
+      const tokenSource = randomString.generate(20);
+      await User.update({
+        activationToken: await bcrypt.hash(tokenSource, 10),
+      }, {
+        where: { id: newUser.id },
+      });
+      sendgridMail.setApiKey(config.sendgridAPIKey);
+      const msg = {
+        to: newUser.email,
+        from: 'codecharacter@pragyan.org',
+        subject: 'Activate your Code Character account',
+        html:
+          `<p>Hello ${newUser.fullName}, </p>
+            <p>Please click the following link to verify your account :</p>
+            <p><a href="https://code.pragyan.org/api/user/verify/${newUser.username}/${tokenSource}">https://code.pragyan.org/api/user/verify/${newUser.username}/${tokenSource}</a></p>
+            <p>Happy coding!</p>
+          `,
+      };
+      sendgridMail.send(msg);
       if (await git.createUserDir(username)) {
         await codeStatus.create({
           userId: newUser.id,
@@ -99,13 +122,13 @@ router.post('/register', [
       },
     });
     if (user) {
-      await codeStatus.destoy({
+      await codeStatus.destroy({
         where: {
           userId: user.id,
         },
       });
       await git.removeDir(username);
-      await user.destoy();
+      await user.destroy();
     }
     return res.status(500).json({
       type: 'Error',
@@ -193,6 +216,22 @@ router.post('/logout', isLoggedIn, (req, res) => {
     type: 'Success',
     error: '',
   });
+});
+
+router.get('/verify/:username/:tokenSource', async (req, res) => {
+  const { username, tokenSource } = req.params;
+  const user = await User.findOne({
+    where: {
+      username,
+    },
+  });
+  if (await bcrypt.compare(tokenSource, user.activationToken)) {
+    socket.sendMessage(user.id, 'Your account has been activated', 'Activation success');
+    await User.update({ activated: true }, { where: { id: user.id } });
+    await notificationUtils.createNotification('Success', 'Email verification', 'Email verified successfully', user.id);
+    return res.status(200).redirect('https://code.pragyan.org');
+  }
+  return res.status(400).redirect('https://code.pragyan.org');
 });
 
 module.exports = router;

@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     activated: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true,
+      defaultValue: false,
     },
     activationToken: DataTypes.STRING,
     expiry: DataTypes.DATE,
