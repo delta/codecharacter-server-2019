@@ -32,7 +32,7 @@ router.get('/:start/:finish', [
         include: [
           {
             model: User,
-            attributes: ['username', 'fullName', 'country'],
+            attributes: ['username', 'fullName', 'country', 'avatar'],
           },
         ],
         order: ['rating'],
@@ -49,6 +49,8 @@ router.get('/:start/:finish', [
       leaderboardElement.fullName = leaderboard[index].user.fullName;
       leaderboardElement.country = leaderboard[index].user.country;
       leaderboardElement.username = leaderboard[index].user.username;
+      leaderboardElement.avatar = leaderboardElement.user.avatar;
+
       leaderboardData.push(leaderboardElement);
     }
     return res.status(200).json({ type: 'Success', error: '', leaderboardData });
@@ -100,7 +102,7 @@ router.get('/:search/:start/:finish', [
       include: [
         {
           model: User,
-          attributes: ['username', 'fullName', 'country', 'id'],
+          attributes: ['username', 'fullName', 'country', 'id', 'avatar'],
         },
       ],
       order: ['rating'],
@@ -121,6 +123,7 @@ router.get('/:search/:start/:finish', [
           searchElement.fullName = leaderboardElement.user.fullName;
           searchElement.country = leaderboardElement.user.country;
           searchElement.username = leaderboardElement.user.username;
+          searchElement.avatar = leaderboard.user.avatar;
 
           if (count >= start && count <= finish) {
             searchData[count - start] = searchElement;
