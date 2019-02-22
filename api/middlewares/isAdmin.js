@@ -8,7 +8,7 @@ module.exports = async (req, res, next) => {
       },
     });
 
-    if (user) return next();
+    if (user.isAdmin) return next();
     return res.status(401).json({
       type: 'Error',
       error: 'Not an admin',
