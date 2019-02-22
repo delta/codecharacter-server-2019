@@ -1,6 +1,6 @@
 const path = require('path');
 
-const appPath = path.resolve('../');
+const appPath = path.resolve('.');
 
 module.exports = {
   up: queryInterface => queryInterface.bulkInsert('constants', [{

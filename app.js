@@ -7,7 +7,9 @@ const cors = require('cors');
 
 const app = express();
 const server = require('http').createServer(app);
-const io = require('socket.io')(server);
+const io = require('socket.io')(server, {
+  transports: ['websocket'],
+});
 const cookieParser = require('cookie-parser');
 
 const routes = require('./api/routes/index.js');

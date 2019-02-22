@@ -1,21 +1,23 @@
-version: '3'
+version: '2.1'
 services:
   server:
     container_name: codecharacter_server
     build: .
     ports:
-      - 8001:3001
+      - 9018:3001
     depends_on:
       - db
+    volumes:
+      - ./docker/storage:/usr/src/app/storage
 
   db:
     container_name: codecharacter_db
     image: mariadb
     environment:
-      MYSQL_ROOT_PASSWORD: MYSQL_ROOT_PASSWORD
-      MYSQL_DATABASE: MYSQL_DATABASE
+      MYSQL_ROOT_PASSWORD: "sFy,hBue,=`3k-F)"
+      MYSQL_DATABASE: "codecharacter"
     volumes:
-      - ./docker/mysql:/var/lib/mysql/data
+      - ./docker/mysql/codecharacter:/var/lib/mysql/mysql/codecharacter
 
   phpmyadmin:
     container_name: codecharacter_pma
@@ -23,6 +25,6 @@ services:
     env_file:
       - .env
     ports:
-      - 8002:80
+      - 9020:80
     depends_on:
       - db
