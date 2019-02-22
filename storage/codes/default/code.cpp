@@ -1,6 +1,14 @@
-#include <bits/stdc++.h>
-using namespace std;
+#include "player_code/player_code.h"
+#include <algorithm>
+#include <iostream>
+#include <vector>
 
-int main() {
-    return 0;
+namespace player_code {
+
+using namespace player_state;
+
+State PlayerCode::Update(State state) {
+	// TODO: Put sample player code here
+	return state;
 }
+} // namespace player_code
