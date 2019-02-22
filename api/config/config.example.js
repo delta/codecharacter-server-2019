@@ -10,6 +10,7 @@ const config = {
       event_id: 5,
       event_key: 'somekey',
     },
+    sendgridAPIKey: 'key',
   },
   production: {
     app: {
@@ -22,6 +23,7 @@ const config = {
       event_id: 5,
       event_key: 'somekey',
     },
+    sendgridAPIKey: 'key',
   },
   test: {
     app: {
@@ -34,6 +36,7 @@ const config = {
       event_id: 5,
       event_key: 'somekey',
     },
+    sendgridAPIKey: 'key',
   },
 };
 const env = process.env.NODE_ENV || 'development';
