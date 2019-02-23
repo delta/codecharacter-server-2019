@@ -46,7 +46,7 @@ router.get('/:start/:finish', [
         include: [
           joinOptions,
         ],
-        order: ['rating'],
+        order: [['rating', 'DESC']],
         attributes: ['rating'],
       },
     );
@@ -132,7 +132,7 @@ router.get('/:search/:start/:finish', [
       include: [
         joinOptions,
       ],
-      order: ['rating'],
+      order: [['rating', 'DESC']],
       attributes: ['rating'],
     });
 
