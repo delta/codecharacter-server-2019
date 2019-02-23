@@ -77,10 +77,10 @@ const updateGameResults = async (gameId, results) => {
   let score1 = 0;
   let score2 = 0;
 
-  if (results.score1 > results.score2) {
+  if (results.player1Score > results.player2Score) {
     game.verdict = '1';
     score1 += 1;
-  } else if (results.score2 > results.score1) {
+  } else if (results.player2Score > results.player1Score) {
     game.verdict = '2';
     score2 += 1;
   } else {
