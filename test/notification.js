@@ -53,8 +53,9 @@ describe('Test Notification', async () => {
           id: index + 1,
           title: `notification_title_${index}`,
           content: `notification_content_${index}`,
-          type: getType(index),
+          group: getType(index),
           userId: user.id,
+          category: 'PERSONAL',
         },
       });
       notificationResults.push(notification);
@@ -122,15 +123,15 @@ describe('Test Notification', async () => {
     await superAgent.post('/user/login')
       .set('content-type', 'application/json')
       .send(loginBody);
-    const type = ['Info', 'Success', 'Error'];
+    const group = ['Info', 'Success', 'Error'];
     const delPromises = [];
     for (let index = 0; index < 3; index += 1) {
       // eslint-disable-next-line no-await-in-loop
-      await superAgent.delete(`/notifications/delete/type/${type[index]}`);
+      await superAgent.delete(`/notifications/delete/type/${group[index]}`);
       const del = Notification.findAll({
         where: {
           userId: user.id,
-          type: type[index],
+          group: group[index],
         },
       });
       delPromises.push(del);

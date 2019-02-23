@@ -1,9 +1,9 @@
 const Notification = require('../models').notification;
 
-const createNotification = async (type, title, content, userId) => {
+const createNotification = async (category, group, title, content, userId) => {
   try {
     await Notification.create({
-      type, title, content, userId,
+      category, group, title, content, userId,
     });
     return true;
   } catch (err) {

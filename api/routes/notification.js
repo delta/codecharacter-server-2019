@@ -41,17 +41,17 @@ router.delete('/delete/:id', [
   }
 });
 
-router.delete('/delete/type/:type', [
-  check('type')
-    .exists().withMessage('Notification type is required'),
+router.delete('/delete/type/:group', [
+  check('group')
+    .exists().withMessage('Notification group is required'),
 ], async (req, res) => {
   try {
     if (handleValidationErrors(req, res)) return null;
-    const { type } = req.params;
+    const { group } = req.params;
     const userId = req.user.id;
     const deletedRows = await Notification.destroy({
       where: {
-        type,
+        group,
         userId,
       },
     });

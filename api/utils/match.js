@@ -236,8 +236,8 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
       socket.sendMessage(match.userId1, user1Status, user1Type);
       socket.sendMessage(match.userId2, user2Status, user2Type);
 
-      await notificationUtils.createNotification(user1Type, user1Title, user1Status, match.userId1);
-      await notificationUtils.createNotification(user2Type, user2Title, user2Status, match.userId2);
+      await notificationUtils.createNotification('MATCH', user1Type, user1Title, user1Status, match.userId1);
+      await notificationUtils.createNotification('MATCH', user2Type, user2Title, user2Status, match.userId2);
     }
   } catch (err) {
     console.log(err);
