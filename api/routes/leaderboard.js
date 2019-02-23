@@ -3,7 +3,7 @@ const { check, validationResult } = require('express-validator/check');
 const { handleValidationErrors } = require('../utils/validation');
 const constantUtils = require('../utils/constant');
 const Match = require('../models').match;
-
+const leaderboardUtils = require('../utils/leaderboard');
 const Leaderboard = require('../models').leaderboard;
 const User = require('../models').user;
 
@@ -33,7 +33,7 @@ router.get('/:start/:finish', [
   finish = parseInt(finish, 10);
   const joinOptions = {
     model: User,
-    attributes: ['username', 'fullName', 'country', 'avatar'],
+    attributes: ['id', 'username', 'fullName', 'country', 'avatar'],
   };
 
   if (type) {
@@ -52,6 +52,10 @@ router.get('/:start/:finish', [
     );
 
     finish = Math.min(finish, leaderboard.length);
+
+    const fetchWinLossData = leaderboard.map(item => leaderboardUtils.getWinLossData(item.user.id));
+    const winLossData = await Promise.all(fetchWinLossData);
+
     for (let index = start - 1; index < finish; index += 1) {
       const leaderboardElement = {};
       leaderboardElement.userId = leaderboard[index].user.id;
@@ -61,6 +65,9 @@ router.get('/:start/:finish', [
       leaderboardElement.country = leaderboard[index].user.country;
       leaderboardElement.username = leaderboard[index].user.username;
       leaderboardElement.avatar = leaderboard[index].user.avatar;
+      leaderboardElement.numWin = winLossData[index].win;
+      leaderboardElement.numLoss = winLossData[index].loss;
+      leaderboardElement.numTie = winLossData[index].tie;
 
       leaderboardData.push(leaderboardElement);
     }
@@ -134,6 +141,9 @@ router.get('/:search/:start/:finish', [
     if (leaderboard && leaderboard.length > 0) {
       finish = Math.min(finish, leaderboard.length);
 
+      const fetchWinData = leaderboard.map(item => leaderboardUtils.getWinLossData(item.user.id));
+      const winLossData = await Promise.all(fetchWinData);
+
       leaderboard.forEach((leaderboardElement, index) => {
         if (leaderboardElement.user.username.includes(searchPattern)) {
           const searchElement = {};
@@ -144,7 +154,9 @@ router.get('/:search/:start/:finish', [
           searchElement.country = leaderboardElement.user.country;
           searchElement.username = leaderboardElement.user.username;
           searchElement.avatar = leaderboardElement.user.avatar;
-
+          searchElement.numWin = winLossData[index].win;
+          searchElement.numLoss = winLossData[index].loss;
+          searchElement.numTie = winLossData[index].tie;
           if (count >= start && count <= finish) {
             searchData[count - start] = searchElement;
           }

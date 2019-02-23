@@ -1,6 +1,8 @@
 const shell = require('shelljs');
+const { Op } = require('sequelize');
 const Leaderboard = require('../models').leaderboard;
 const Constant = require('../models').constant;
+const Match = require('../models').match;
 const git = require('./gitHandlers');
 
 const createLeaderboardUserFolder = async (userDir) => {
@@ -56,8 +58,29 @@ const checkLeaderboardEntryExists = async (userId) => {
   return (!!leaderboardEntry);
 };
 
+const getWinLossData = async (userId) => {
+  const win = await Match.count({
+    where: {
+      [Op.or]: [{ userId1: userId, verdict: '1' }, { userId2: userId, verdict: '2' }],
+    },
+  });
+  const loss = await Match.count({
+    where: {
+      [Op.or]: [{ userId1: userId, verdict: '2' }, { userId2: userId, verdict: '1' }],
+    },
+  });
+  const tie = await Match.count({
+    where: {
+      [Op.or]: [{ userId1: userId, verdict: '0' }, { userId2: userId, verdict: '0' }],
+    },
+  });
+  return { win, tie, loss };
+};
+
+
 module.exports = {
   createLeaderboardEntry,
   updateLeaderboard,
+  getWinLossData,
   checkLeaderboardEntryExists,
 };
