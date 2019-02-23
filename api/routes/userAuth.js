@@ -232,7 +232,7 @@ router.get('/verify/:username/:tokenSource', async (req, res) => {
   if (await bcrypt.compare(tokenSource, user.activationToken)) {
     socket.sendMessage(user.id, 'Your account has been activated', 'Activation success');
     await User.update({ activated: true }, { where: { id: user.id } });
-    await notificationUtils.createNotification('Success', 'Email verification', 'Email verified successfully', user.id);
+    await notificationUtils.createNotification('PERSONAL', 'Success', 'Email verification', 'Email verified successfully', user.id);
     return res.status(200).redirect('https://code.pragyan.org');
   }
   return res.status(400).redirect('https://code.pragyan.org');

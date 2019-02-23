@@ -10,9 +10,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    type: {
+    group: {
       type: DataTypes.ENUM,
       values: ['Info', 'Success', 'Error'],
+    },
+    category: {
+      type: DataTypes.STRING,
     },
     userId: {
       type: DataTypes.BIGINT,
