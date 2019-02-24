@@ -177,9 +177,10 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
       let user2Title;
 
       const user1 = await Leaderboard.findOne({ userId: match.userId1 });
-      let rating1 = user1.rating;
       const user2 = await Leaderboard.findOne({ userId: match.userId2 });
+      let rating1 = user1.rating;
       let rating2 = user2.rating;
+
       const expectedScore1 = elo.getExpected(rating1, rating2);
       const expectedScore2 = elo.getExpected(rating2, rating1);
 
@@ -206,8 +207,8 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
 
         match.verdict = '2';
       } else {
-        rating1 = elo.updateRating(expectedScore1, 1, rating1);
-        rating2 = elo.updateRating(expectedScore2, 1, rating2);
+        rating1 = elo.updateRating(expectedScore1, 0, rating1);
+        rating2 = elo.updateRating(expectedScore2, 0, rating2);
         user1Status = `You tied against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
         user1Type = 'Match Result Success';
         user1Title = 'Draw';
