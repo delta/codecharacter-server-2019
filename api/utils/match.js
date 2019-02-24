@@ -39,7 +39,7 @@ const pushToExecuteQueue = async (gameId, userId1, userId2, dll1Path, dll2Path, 
     const remainingJobs = await ExecuteQueue.count();
     const limit = await constantUtils.getExecuteQueueLimit();
     if (remainingJobs >= limit) {
-      socket.sendMessage(userId1, 'Queue is full. Try again later', 'Match Error');
+      socket.sendMessage(userId1, 'Server is busy. Please try again later', 'Match Error');
       return false;
     }
     await ExecuteQueue.create({
@@ -131,7 +131,6 @@ const startMatch = async (userId1, userId2) => {
 
   await Promise.all(gamePromises);
 
-  socket.sendMessage(userId1, `Match against ${await userUtils.getUsername(userId2)} added to queue.`, 'Match Info');
   return {
     success: true,
     message: 'Match added to queue',

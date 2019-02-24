@@ -25,7 +25,7 @@ router.post('/compile', [
     const userCodeStatus = (await codeStatusUtils.getUserCodeStatus(id));
 
     if (userCodeStatus !== 'Idle') {
-      socket.sendMessage(id, 'Code is already in queue. Please wait.', 'Compile Error');
+      socket.sendMessage(id, 'Code is already being compiled. Please wait.', 'Compile Error');
 
       return res.status(400).json({
         type: 'Error',
@@ -35,7 +35,6 @@ router.post('/compile', [
 
     const pushResult = await compileUtils.pushToCompileQueue(id, commitHash);
     if (pushResult.success) {
-      socket.sendMessage(id, 'Code has been added to the queue... Please wait.', 'Compile Info');
       jobUtils.sendJob();
       return res.status(200).json({
         type: 'Success',
@@ -43,7 +42,7 @@ router.post('/compile', [
       });
     }
     if (pushResult.error === 'QUEUE_FULL') {
-      socket.sendMessage(id, 'Queue full. Please try again later.', 'Compile Error');
+      socket.sendMessage(id, 'Server is busy. Please try again later.', 'Compile Error');
       return res.status(500).json({
         type: 'Error',
         error: 'Compile Queue full',

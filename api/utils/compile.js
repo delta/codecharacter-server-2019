@@ -15,7 +15,7 @@ const pushToCompileQueue = async (userId, commitHash) => {
     const queueSize = await compileQueueSize();
     const limit = await constantUtils.getCompileQueueLimit();
     if (queueSize >= limit) {
-      socket.sendMessage(userId, 'Queue is full. Try again later', 'Compile Error');
+      socket.sendMessage(userId, 'Server is busy. Please try again later', 'Compile Error');
       return {
         success: false,
         error: 'QUEUE_FULL',
