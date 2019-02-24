@@ -17,7 +17,22 @@ const getMapIds = async () => {
   return ids;
 };
 
+const getMapName = async (mapId) => {
+  const map = await Map.findOne({
+    where: {
+      id: mapId,
+    },
+  });
+
+  if (map) {
+    return map.name;
+  }
+
+  return '';
+};
+
 module.exports = {
   getMap,
   getMapIds,
+  getMapName,
 };

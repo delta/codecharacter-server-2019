@@ -123,7 +123,7 @@ router.post('/commit', [
 ], async (req, res) => {
   try {
     if (handleValidationErrors(req, res)) return null;
-    const { username } = req.user;
+    const { username, id } = req.user;
     const { commitMessage } = req.body;
     await git.add(username);
     const diff = await git.diffStaged(username);
@@ -133,7 +133,10 @@ router.post('/commit', [
         error: 'No changes have been made',
       });
     }
+
     await git.commit(username, commitMessage);
+    socket.sendMessage(id, `Commit "${commitMessage}" has been saved`, 'Success');
+
     return res.status(200).json({
       type: 'Success',
       error: '',

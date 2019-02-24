@@ -198,10 +198,10 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
       } else if (finalScore2 > finalScore1) {
         rating1 = elo.updateRating(expectedScore1, 0, rating1);
         rating2 = elo.updateRating(expectedScore2, 1, rating2);
-        user1Status = `You lost against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
+        user1Status = `You lost against ${await userUtils.getUsername(match.userId2)} \n ${finalScore1}-${finalScore2}`;
         user1Type = 'Match Result Error';
         user1Title = 'Defeat';
-        user2Status = `You won against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
+        user2Status = `You won against ${await userUtils.getUsername(match.userId1)} \n ${finalScore2}-${finalScore1}`;
         user2Type = 'Match Result Success';
         user2Title = 'Victory';
 
@@ -209,10 +209,10 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
       } else {
         rating1 = elo.updateRating(expectedScore1, 0, rating1);
         rating2 = elo.updateRating(expectedScore2, 0, rating2);
-        user1Status = `You tied against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
+        user1Status = `You tied against ${await userUtils.getUsername(match.userId2)} \n ${finalScore1}-${finalScore2}`;
         user1Type = 'Match Result Success';
         user1Title = 'Draw';
-        user2Status = `You tied against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
+        user2Status = `You tied against ${await userUtils.getUsername(match.userId1)} \n ${finalScore2}-${finalScore1}`;
         user2Type = 'Match Result Success';
         user2Title = 'Draw';
 
