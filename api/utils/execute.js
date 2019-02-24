@@ -76,8 +76,6 @@ const pushAiMatchToQueue = async (userId, aiId, mapId) => {
       aiId,
     });
 
-    socket.sendMessage(userId, 'Added AI match to queue', 'Match Info');
-
     return true;
   } catch (err) {
     socket.sendMessage(userId, 'Internal Server Error', 'Match Error');
@@ -111,8 +109,6 @@ const pushSelfMatchToQueue = async (userId, mapId) => {
       mapId,
     });
 
-    socket.sendMessage(userId, 'Added self match to queue', 'Match Info');
-
     return true;
   } catch (err) {
     socket.sendMessage(userId, 'Internal Server Error', 'Match Error');
@@ -145,7 +141,6 @@ const pushCommitMatchToQueue = async (userId, mapId) => {
       type: 'PREVIOUS_COMMIT_MATCH',
       mapId,
     });
-    socket.sendMessage(userId, 'Added previous commit match to queue', 'Match Info');
 
     return true;
   } catch (err) {

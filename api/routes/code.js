@@ -201,9 +201,11 @@ router.get('/fork/:commitHash', [
     if (handleValidationErrors(req, res)) return null;
     const { username } = req.user;
     const { commitHash } = req.params;
+
     const fileContent = await git.getFile(username, 'code.cpp', commitHash);
-    await git.setFile(username, fileContent);
+    await git.setFile(username, 'code.cpp', fileContent);
     await git.add(username);
+
     return res.status(200).json({
       type: 'Success',
       error: '',
