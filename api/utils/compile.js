@@ -25,7 +25,6 @@ const pushToCompileQueue = async (userId, commitHash) => {
     await codeStatusUtils.setUserCodeStatus(userId, 'Waiting');
     await CompileQueue.create({ userId, codePath, commitHash });
 
-    socket.sendMessage(userId, 'Compilation added to the queue', 'Compile Info');
     return {
       success: true,
       error: '',

@@ -202,7 +202,7 @@ router.get('/fork/:commitHash', [
     const { username } = req.user;
     const { commitHash } = req.params;
     const fileContent = await git.getFile(username, 'code.cpp', commitHash);
-    git.setFile(username, fileContent);
+    await git.setFile(username, fileContent);
     await git.add(username);
     return res.status(200).json({
       type: 'Success',
@@ -211,7 +211,7 @@ router.get('/fork/:commitHash', [
   } catch (err) {
     return res.status(500).json({
       type: 'Error',
-      error: 'Internal server error',
+      error: 'Internal Server Error',
     });
   }
 });

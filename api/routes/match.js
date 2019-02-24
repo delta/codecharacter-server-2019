@@ -101,6 +101,7 @@ router.get('/pro', async (req, res) => {
 router.get('/log/:gameId', async (req, res) => {
   try {
     let { gameId } = req.params;
+    const { id } = req.user;
 
     gameId = Number(gameId);
     const game = await Game.findOne({
@@ -128,6 +129,7 @@ router.get('/log/:gameId', async (req, res) => {
         player1Log,
         player2Log,
         gameLog,
+        matchPlayerId: ((id === game.userId1) ? 1 : 2),
       },
     });
   } catch (err) {
