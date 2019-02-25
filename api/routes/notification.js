@@ -3,7 +3,6 @@ const { check } = require('express-validator/check');
 const { Op } = require('sequelize');
 const { handleValidationErrors } = require('../utils/validation');
 const Notification = require('../models').notification;
-const isAdmin = require('../middlewares/isAdmin');
 const GlobalNotification = require('../models').globalnotification;
 const DeletedGlobalNotifications = require('../models').globalnotificationsdeleted;
 
@@ -64,26 +63,6 @@ router.delete('/delete/type/:type', [
     return res.status(400).json({
       type: 'Error',
       error: 'Notification does not exist',
-    });
-  } catch (error) {
-    return res.status(500).json({
-      type: 'Error',
-      error: 'Internal server error',
-    });
-  }
-});
-
-router.post('/global/', isAdmin, [
-  check('message')
-    .not().isEmpty().withMessage('Message cannot be empty'),
-], async (req, res) => {
-  if (handleValidationErrors(req, res)) return null;
-  try {
-    const { message } = req.body;
-    await GlobalNotification.create({ message });
-    return res.status(200).json({
-      type: 'Success',
-      error: '',
     });
   } catch (error) {
     return res.status(500).json({

@@ -17,6 +17,19 @@ const sendMessage = (userId, message, type) => {
   });
 };
 
+const broadcastNotification = (notificationId, message) => {
+  const userIds = Object.keys(connections);
+
+  userIds.forEach((userId) => {
+    const socketIds = Object.keys(connections[userId]);
+    // send message to each socketId of user
+    socketIds.forEach((socketId) => {
+      connections[userId][socketId].emit('Info', message);
+    });
+    NotificationUtils.deleteGlobalNotification(notificationId, userId);
+  });
+};
+
 const handleConnections = async (socket) => {
   try {
     // get socketId and userId from cookies
@@ -43,8 +56,9 @@ const handleConnections = async (socket) => {
 
     const unreadGlobalNotifications = await NotificationUtils.getUnreadGlobalNotifications();
 
-    unreadGlobalNotifications.forEach((Notification) => {
-      sendMessage(userId, Notification.message, 'Info');
+    unreadGlobalNotifications.forEach((notification) => {
+      sendMessage(userId, notification.message, 'Info');
+      NotificationUtils.deleteGlobalNotification(notification.id);
     });
 
     socket.on('disconnect', disconnectHandler.bind(null, socketId, userId));
@@ -68,4 +82,5 @@ module.exports = {
   handleConnections,
   disconnectUser,
   connections,
+  broadcastNotification,
 };

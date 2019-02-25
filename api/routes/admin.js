@@ -1,9 +1,13 @@
 const express = require('express');
+const { check } = require('express-validator/check');
 const { Op } = require('sequelize');
 const User = require('../models').user;
 const models = require('../models');
 const { sendJob } = require('../utils/job');
 const { removeDir, removeLeaderboardDir } = require('../utils/gitHandlers');
+const { handleValidationErrors } = require('../utils/validation');
+const GlobalNotification = require('../models').globalnotification;
+const socket = require('../utils/socketHandlers');
 
 const router = express.Router();
 
@@ -74,6 +78,29 @@ router.delete('/delete/:username', async (req, res) => {
 router.post('/startjob', async (req, res) => {
   try {
     sendJob();
+    return res.status(200).json({
+      type: 'Success',
+      error: '',
+    });
+  } catch (error) {
+    return res.status(500).json({
+      type: 'Error',
+      error: 'Internal server error',
+    });
+  }
+});
+
+router.post('/notification', [
+  check('message')
+    .not().isEmpty().withMessage('Message cannot be empty'),
+], async (req, res) => {
+  if (handleValidationErrors(req, res)) return null;
+  try {
+    const { message } = req.body;
+    const Notification = await GlobalNotification.create({ message });
+
+    await socket.broadcastNotification(Notification.id, Notification.message);
+
     return res.status(200).json({
       type: 'Success',
       error: '',
