@@ -11,6 +11,7 @@ const CodeStatus = require('../api/models').codestatus;
 const server = require('../app');
 const User = require('../api/models').user;
 const Match = require('../api/models').match;
+const Notification = require('../api/models').notification;
 const Leaderboard = require('../api/models').leaderboard;
 
 chai.use(chaiHttp);
@@ -89,8 +90,11 @@ describe('Test Leaderboard', async () => {
 
     // eslint-disable-next-line no-undef
     after(async () => {
-      const deletions = [];
-      const user = await User.findAll();
+      let deletions = [];
+      const users = await User.findAll();
+      deletions = users
+        .filter(user => user.id > 99 && user.id < 120)
+        .map(user => Notification.destroy({ where: { userId: user.id } }));
       const leaderboard = await Leaderboard.findAll();
       for (let index = 0; index < leaderboard.length; index += 1) {
         if (leaderboard[index].userId > 99 || leaderboard[index].userId < 120) {
@@ -110,10 +114,10 @@ describe('Test Leaderboard', async () => {
       await Promise.all(deletions);
       const userDeletions = [];
       const userDirDeletions = [];
-      for (let index = 0; index < user.length; index += 1) {
-        if (user[index].id > 99 || user[index].id < 120) {
-          userDeletions.push(user[index].destroy());
-          userDirDeletions.push(gitHandlers.removeDir(user[index].username));
+      for (let index = 0; index < users.length; index += 1) {
+        if (users[index].id > 99 || users[index].id < 120) {
+          userDeletions.push(users[index].destroy());
+          userDirDeletions.push(gitHandlers.removeDir(users[index].username));
         }
       }
       await Promise.all([...userDeletions, ...userDirDeletions]);

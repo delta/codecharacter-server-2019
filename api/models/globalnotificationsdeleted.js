@@ -16,7 +16,6 @@ module.exports = (sequelize, DataTypes) => {
     notificationId: {
       allowNull: false,
       type: DataTypes.BIGINT,
-      unique: true,
       foreignKey: true,
       references: {
         model: GlobalNotification,
