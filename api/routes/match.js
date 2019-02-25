@@ -12,6 +12,8 @@ const router = express.Router();
 const parsify = obj => JSON.parse(JSON.stringify(obj));
 
 router.get('/all', async (req, res) => {
+  const { id } = req.user;
+
   let matches = await Match.findAll({
     include: [
       { model: User, as: 'user1' },
@@ -19,9 +21,9 @@ router.get('/all', async (req, res) => {
     ],
     where: {
       [Op.or]: [{
-        userId1: req.user.id,
+        userId1: id,
       }, {
-        userId2: req.user.id,
+        userId2: id,
       }],
     },
     order: [['createdAt', 'DESC']],
@@ -31,11 +33,11 @@ router.get('/all', async (req, res) => {
   matches = parsify(matches);
 
   await Promise.all(matches.map(async (match) => {
-    const gameIds = await Game.findAll({
+    const games = await Game.findAll({
       where: {
         matchId: match.id,
       },
-      attributes: ['id'],
+      attributes: ['id', 'mapId', 'status', 'verdict'],
     });
 
     const matchEntry = {};
@@ -48,7 +50,15 @@ router.get('/all', async (req, res) => {
     matchEntry.verdict = match.verdict;
     matchEntry.score1 = match.score1;
     matchEntry.score2 = match.score2;
-    matchEntry.games = gameIds;
+    matchEntry.games = games.map((game) => {
+      let verdict = (id === game.userId2) ? '2' : '0';
+      verdict = (id === game.userId1) ? '1' : verdict;
+      return {
+        id: game.id,
+        mapId: game.mapId,
+        verdict,
+      };
+    });
     matchEntry.playedAt = (new Date(match.updatedAt)).toUTCString();
     matchData.push(matchEntry);
   }));
@@ -57,6 +67,7 @@ router.get('/all', async (req, res) => {
 });
 
 router.get('/pro', async (req, res) => {
+  const { id } = req.user;
   const proMatches = [];
   let proMatchesData = await Match.findAll({
     include: [
@@ -73,11 +84,11 @@ router.get('/pro', async (req, res) => {
   proMatchesData = parsify(proMatchesData);
 
   await Promise.all(proMatchesData.map(async (proMatch) => {
-    const gameIds = await Game.findAll({
+    const games = await Game.findAll({
       where: {
         matchId: proMatch.id,
       },
-      attributes: ['id'],
+      attributes: ['id', 'mapId', 'status', 'verdict'],
     });
 
     const matchEntry = {};
@@ -91,7 +102,15 @@ router.get('/pro', async (req, res) => {
     matchEntry.score1 = proMatch.score1;
     matchEntry.score2 = proMatch.score2;
     matchEntry.playedAt = (new Date(proMatch.updatedAt)).toUTCString();
-    matchEntry.games = gameIds;
+    matchEntry.games = games.map((game) => {
+      let verdict = (id === game.userId2) ? '2' : '0';
+      verdict = (id === game.userId1) ? '1' : verdict;
+      return {
+        id: game.id,
+        mapId: game.mapId,
+        verdict,
+      };
+    });
     proMatches.push(matchEntry);
   }));
 
