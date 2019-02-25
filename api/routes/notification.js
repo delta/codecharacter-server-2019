@@ -120,6 +120,25 @@ router.get('/global/', async (req, res) => {
   }
 });
 
+router.get('/global/all', async (req, res) => {
+  try {
+    const notifications = await GlobalNotification.findAll({
+      attributes: ['id', 'message', 'createdAt'],
+    });
+
+    return res.status(200).json({
+      type: 'Success',
+      error: '',
+      notifications,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      type: 'Error',
+      error: 'Internal server error',
+    });
+  }
+});
+
 router.delete('/global/:id', async (req, res) => {
   try {
     const notificationId = req.params.id;
