@@ -56,21 +56,29 @@ router.get('/:start/:finish', [
     const fetchWinLossData = leaderboard.map(item => leaderboardUtils.getWinLossData(item.user.id));
     const winLossData = await Promise.all(fetchWinLossData);
 
-    for (let index = start - 1; index < finish; index += 1) {
-      const leaderboardElement = {};
-      leaderboardElement.userId = leaderboard[index].user.id;
-      leaderboardElement.rank = index + 1;
-      leaderboardElement.rating = leaderboard[index].rating;
-      leaderboardElement.fullName = leaderboard[index].user.fullName;
-      leaderboardElement.country = leaderboard[index].user.country;
-      leaderboardElement.username = leaderboard[index].user.username;
-      leaderboardElement.avatar = leaderboard[index].user.avatar;
-      leaderboardElement.numWin = winLossData[index].win;
-      leaderboardElement.numLoss = winLossData[index].loss;
-      leaderboardElement.numTie = winLossData[index].tie;
+    let currentRank = 0;
+    let previousRating = 0;
 
-      leaderboardData.push(leaderboardElement);
-    }
+    leaderboard.forEach((leaderboardElement, index) => {
+      const searchElement = {};
+      searchElement.id = leaderboardElement.user.id;
+      searchElement.rating = leaderboardElement.rating;
+      searchElement.rank = currentRank + 1;
+      searchElement.fullName = leaderboardElement.user.fullName;
+      searchElement.country = leaderboardElement.user.country;
+      searchElement.username = leaderboardElement.user.username;
+      searchElement.avatar = leaderboardElement.user.avatar;
+      searchElement.type = leaderboardElement.user.type;
+      searchElement.numWin = winLossData[index].win;
+      searchElement.numLoss = winLossData[index].loss;
+      searchElement.numTie = winLossData[index].tie;
+      if (index >= start - 1 && index < finish) {
+        leaderboardData.push(searchElement);
+      }
+      if (previousRating !== searchElement.rating) currentRank += 1;
+      previousRating = searchElement.rating;
+    });
+
     return res.status(200).json({ type: 'Success', error: '', leaderboardData });
   } catch (err) {
     return res.status(500).json({
@@ -144,22 +152,28 @@ router.get('/:search/:start/:finish', [
       const fetchWinData = leaderboard.map(item => leaderboardUtils.getWinLossData(item.user.id));
       const winLossData = await Promise.all(fetchWinData);
 
+      let currentRank = 1;
+      let previousRating = 0;
+
       leaderboard.forEach((leaderboardElement, index) => {
         if (leaderboardElement.user.username.includes(searchPattern)) {
           const searchElement = {};
-          searchElement.rank = index + 1;
           searchElement.id = leaderboard[index].user.id;
           searchElement.rating = leaderboardElement.rating;
+          searchElement.rank = currentRank;
           searchElement.fullName = leaderboardElement.user.fullName;
           searchElement.country = leaderboardElement.user.country;
           searchElement.username = leaderboardElement.user.username;
           searchElement.avatar = leaderboardElement.user.avatar;
+          searchElement.type = leaderboardElement.user.type;
           searchElement.numWin = winLossData[index].win;
           searchElement.numLoss = winLossData[index].loss;
           searchElement.numTie = winLossData[index].tie;
           if (count >= start && count <= finish) {
             searchData[count - start] = searchElement;
           }
+          if (previousRating !== searchElement.rating) currentRank += 1;
+          previousRating = searchElement.rating;
           count += 1;
         }
       });
@@ -202,10 +216,12 @@ router.get('/timer', async (req, res) => {
           timer: 0,
         });
     }
+
+    const msTimeLeft = minMatchWaitTime - (currentTime.getTime() - lastMatchTime.getTime());
     return res.status(200)
       .json({
         type: 'Success',
-        timer: (minMatchWaitTime - (currentTime.getTime() - lastMatchTime.getTime())) / 1000,
+        timer: Math.floor(msTimeLeft / 1000),
       });
   } catch (err) {
     return res.status(500).json({

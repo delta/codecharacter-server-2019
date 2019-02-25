@@ -167,7 +167,6 @@ describe('Update user', async () => {
     const username = randomString.generate(15);
     const updateDetails = {
       username,
-      email: `${username}@test.com`,
       country: 'IN',
       fullName: 'Mocha Test2',
     };

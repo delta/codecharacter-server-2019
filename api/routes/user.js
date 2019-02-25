@@ -61,11 +61,6 @@ router.get('/view/:username', [
 });
 
 router.post('/update', [
-  check('email')
-    .optional()
-    .isEmail().withMessage('Invalid email')
-    .custom(async value => !(await User.findOne({ where: { email: value } })))
-    .withMessage('Email is already taken'),
   check('username')
     .optional()
     .custom(async value => !(await User.findOne({ where: { username: value } })))
@@ -78,7 +73,7 @@ router.post('/update', [
     if (handleValidationErrors(req, res)) return null;
     const { username } = req.body;
     const updationDoc = {};
-    const fieldsUpdated = ['username', 'email', 'fullName', 'country', 'avatar'];
+    const fieldsUpdated = ['username', 'fullName', 'country', 'avatar'];
     fieldsUpdated.forEach((key) => {
       if (req.body[key]) {
         updationDoc[key] = req.body[key];

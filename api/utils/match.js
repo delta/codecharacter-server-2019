@@ -11,7 +11,7 @@ const gameUtils = require('./game');
 const socket = require('./socketHandlers');
 const notificationUtils = require('./notifications');
 
-const elo = new EloRank(15);
+const elo = new EloRank(30);
 const checkMatchWaitTime = async (userId) => {
   const lastMatch = await Match.findOne({
     where: { userId1: userId },
