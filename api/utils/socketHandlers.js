@@ -17,17 +17,20 @@ const sendMessage = (userId, message, type) => {
   });
 };
 
-const broadcastNotification = (notificationId, message) => {
+const broadcastNotification = async (notificationId, message) => {
   const userIds = Object.keys(connections);
 
+  const deletions = [];
   userIds.forEach((userId) => {
     const socketIds = Object.keys(connections[userId]);
     // send message to each socketId of user
     socketIds.forEach((socketId) => {
       connections[userId][socketId].emit('Info', message);
     });
-    NotificationUtils.deleteGlobalNotification(notificationId, userId);
+    deletions.push(NotificationUtils.deleteGlobalNotification(notificationId, userId));
   });
+
+  await Promise.all(deletions);
 };
 
 const handleConnections = async (socket) => {
@@ -56,10 +59,13 @@ const handleConnections = async (socket) => {
 
     const unreadGlobalNotifications = await NotificationUtils.getUnreadGlobalNotifications(userId);
 
+    const deletions = [];
     unreadGlobalNotifications.forEach((notification) => {
       sendMessage(userId, notification.message, 'Info');
-      NotificationUtils.deleteGlobalNotification(notification.id, userId);
+      deletions.push(NotificationUtils.deleteGlobalNotification(notification.id, userId));
     });
+
+    await Promise.all(deletions);
 
     socket.on('disconnect', disconnectHandler.bind(null, socketId, userId));
   } catch (err) {
