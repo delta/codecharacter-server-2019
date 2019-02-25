@@ -54,11 +54,11 @@ const handleConnections = async (socket) => {
       connections[userId][socketId] = socket;
     }
 
-    const unreadGlobalNotifications = await NotificationUtils.getUnreadGlobalNotifications();
+    const unreadGlobalNotifications = await NotificationUtils.getUnreadGlobalNotifications(userId);
 
     unreadGlobalNotifications.forEach((notification) => {
       sendMessage(userId, notification.message, 'Info');
-      NotificationUtils.deleteGlobalNotification(notification.id);
+      NotificationUtils.deleteGlobalNotification(notification.id, userId);
     });
 
     socket.on('disconnect', disconnectHandler.bind(null, socketId, userId));
