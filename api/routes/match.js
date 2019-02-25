@@ -53,6 +53,8 @@ router.get('/all', async (req, res) => {
     matchEntry.games = games.map((game) => {
       let verdict = (id === game.userId2) ? '2' : '0';
       verdict = (id === game.userId1) ? '1' : verdict;
+      verdict = (game.status === 'Error') ? '3' : verdict;
+
       return {
         id: game.id,
         mapId: game.mapId,
@@ -105,6 +107,8 @@ router.get('/pro', async (req, res) => {
     matchEntry.games = games.map((game) => {
       let verdict = (id === game.userId2) ? '2' : '0';
       verdict = (id === game.userId1) ? '1' : verdict;
+      verdict = (game.status === 'Error') ? '3' : verdict;
+
       return {
         id: game.id,
         mapId: game.mapId,
