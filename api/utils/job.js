@@ -44,9 +44,9 @@ const sendJob = async () => {
     const {
       popFromQueue,
       matchId,
-      score1,
-      score2,
-      interestingness,
+      score1 = 0,
+      score2 = 0,
+      interestingness = 0,
     } = await executeUtils.sendExecuteJob(
       executeJob.gameId,
       idleCompileBoxId,

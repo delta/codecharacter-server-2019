@@ -196,8 +196,8 @@ const sendExecuteJob = async (
   try {
     if (await compileBoxUtils.getCompileBoxStatus(compileBoxId) === 'BUSY') {
       return {
-        type: 'Error',
-        error: 'CompileBox not available',
+        success: false,
+        popFromQueue: false,
       };
     }
 
@@ -242,7 +242,10 @@ const sendExecuteJob = async (
     }
 
     if (!(await git.checkFileExists(`${dll2Dir}/${dll2Path}`))) {
-      return false;
+      return {
+        success: false,
+        popFromQueue: false,
+      };
     }
 
     const dll1 = JSON.parse(await git.getFile('', dll1Path, null, dll1Dir));
@@ -268,6 +271,9 @@ const sendExecuteJob = async (
 
     if (response.errorType === 'PLAYER_RUNTIME_ERROR') {
       socket.sendMessage(userId1, 'Runtime error', 'Match Error');
+      if (matchType === 'USER_MATCH') {
+        await gameUtils.setGameStatus(gameId, 'Error');
+      }
       return {
         success: false,
         popFromQueue: true,
@@ -275,6 +281,11 @@ const sendExecuteJob = async (
     } if (['EXECUTE_PROCESS_ERROR', 'UNKNOWN_EXECUTE_ERROR', 'KEY_MISMATCH'].includes(response.errorType)) {
       console.log(gameId, response.error);
       socket.sendMessage(userId1, 'Internal server error', 'Match Error');
+
+      if (matchType === 'USER_MATCH') {
+        await gameUtils.setGameStatus(gameId, 'Error');
+      }
+
       return {
         success: false,
         popFromQueue: true,
@@ -305,6 +316,7 @@ const sendExecuteJob = async (
       return {
         success: true,
         popFromQueue: true,
+        error: false,
         matchId,
         score1,
         score2,

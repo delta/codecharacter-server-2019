@@ -160,9 +160,6 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
     match.initialRating2 = await userUtils.getRating(match.userId2);
 
     match.interestingness += interestingness;
-
-    match.status = 'DONE';
-
     await match.save();
 
     if (await hasMatchEnded(matchId)) {
