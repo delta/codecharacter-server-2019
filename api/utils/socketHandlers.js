@@ -1,3 +1,5 @@
+const NotificationUtils = require('./notifications');
+
 const connections = { };
 
 const disconnectHandler = (socketId, userId) => {
@@ -5,7 +7,17 @@ const disconnectHandler = (socketId, userId) => {
   delete connections[userId][socketId];
 };
 
-module.exports.handleConnections = (socket) => {
+const sendMessage = (userId, message, type) => {
+  // get socketIds of connections by userId
+  if (!connections[userId]) return;
+  const socketIds = Object.keys(connections[userId]);
+  // send message to each socketId of user
+  socketIds.forEach((socketId) => {
+    connections[userId][socketId].emit(type, message);
+  });
+};
+
+const handleConnections = async (socket) => {
   try {
     // get socketId and userId from cookies
     let cookies = socket.handshake.headers.cookie;
@@ -28,23 +40,20 @@ module.exports.handleConnections = (socket) => {
     if (!connections[userId][socketId]) {
       connections[userId][socketId] = socket;
     }
+
+    const unreadGlobalNotifications = await NotificationUtils.getUnreadGlobalNotifications();
+
+    unreadGlobalNotifications.forEach((Notification) => {
+      sendMessage(userId, Notification.message, 'Info');
+    });
+
     socket.on('disconnect', disconnectHandler.bind(null, socketId, userId));
   } catch (err) {
     console.log(err);
   }
 };
 
-module.exports.sendMessage = (userId, message, type) => {
-  // get socketIds of connections by userId
-  if (!connections[userId]) return;
-  const socketIds = Object.keys(connections[userId]);
-  // send message to each socketId of user
-  socketIds.forEach((socketId) => {
-    connections[userId][socketId].emit(type, message);
-  });
-};
-
-module.exports.disconnectUser = (userId) => {
+const disconnectUser = (userId) => {
   if (connections[userId] === undefined) return;
   // get socketIds of connections by userId
   const socketIds = Object.keys(connections[userId]);
@@ -54,4 +63,9 @@ module.exports.disconnectUser = (userId) => {
   });
 };
 
-module.exports.connections = connections;
+module.exports = {
+  sendMessage,
+  handleConnections,
+  disconnectUser,
+  connections,
+};
