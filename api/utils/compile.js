@@ -49,6 +49,9 @@ const getOldestCompileJob = async () => {
       order: [
         ['createdAt', 'ASC'],
       ],
+      where: {
+        status: 'QUEUED',
+      },
       limit: 1,
     });
     return compileJob;

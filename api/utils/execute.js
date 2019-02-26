@@ -160,6 +160,9 @@ const getOldestExecuteJob = async () => {
     order: [
       ['createdAt', 'ASC'],
     ],
+    where: {
+      status: 'QUEUED',
+    },
     limit: 1,
   });
   return executeJob;
@@ -200,20 +203,6 @@ const sendExecuteJob = async (
         popFromQueue: false,
       };
     }
-
-    // if (matchType === 'USER_MATCH') {
-    //   socket.sendMessage(
-    //     userId1,
-    //     `Match against ${await userUtils.getUsername(userId2)} on map "${await getMapName(mapId)}" is executing.`,
-    //     'Match Info',
-    //   );
-    // } else if (matchType === 'SELF_MATCH') {
-    //   socket.sendMessage(userId1, `Self Match on map "${await getMapName(mapId)}" is executing.`, 'Match Info');
-    // } else if (matchType === 'AI_MATCH') {
-    //   socket.sendMessage(userId1, `Match against AI ${aiId} on map "${await getMapName(mapId)}" is executing.`, 'Match Info');
-    // } else if (matchType === 'PREVIOUS_COMMIT_MATCH') {
-    //   socket.sendMessage(userId1, `Match against previous commit on map "${await getMapName(mapId)}" is executing.`, 'Match Info');
-    // }
 
     if (matchType === 'USER_MATCH') {
       await gameUtils.setGameStatus(gameId, 'Executing');

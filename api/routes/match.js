@@ -7,6 +7,7 @@ const Game = require('../models').game;
 const User = require('../models').user;
 
 const git = require('../utils/gitHandlers');
+const socket = require('../utils/socketHandlers');
 const constantUtils = require('../utils/constant');
 
 const router = express.Router();
@@ -109,6 +110,10 @@ router.get('/pro', async (req, res) => {
 
   await Promise.all(proMatchesData.map(async (proMatch) => {
     const games = await Game.findAll({
+      include: [
+        { model: User, as: 'user1' },
+        { model: User, as: 'user2' },
+      ],
       where: {
         matchId: proMatch.id,
       },
@@ -173,6 +178,10 @@ router.get('/log/:gameId', async (req, res) => {
         id: game.mapId,
       },
     });
+
+    if (map.isHidden) {
+      socket.sendMessage(id, `${map.name} is a mystery map.`, 'Error');
+    }
 
     if (!game || map.isHidden) {
       return res.status(400).json({
