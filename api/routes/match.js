@@ -37,6 +37,7 @@ router.get('/all', async (req, res) => {
       where: {
         matchId: match.id,
       },
+      order: ['mapId'],
       attributes: ['id', 'mapId', 'status', 'verdict'],
     });
 
@@ -90,6 +91,7 @@ router.get('/pro', async (req, res) => {
       where: {
         matchId: proMatch.id,
       },
+      order: ['mapId'],
       attributes: ['id', 'mapId', 'status', 'verdict'],
     });
 
