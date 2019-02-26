@@ -63,7 +63,7 @@ const sendCompileJob = async (userId, compileBoxId, commitHash) => {
       socket.sendMessage(userId, 'Internal Server Error', 'Compile Error');
     }
 
-    socket.sendMessage(userId, 'Your code is being compiled...', 'Compile Info');
+    // socket.sendMessage(userId, 'Your code is being compiled...', 'Compile Info');
 
     await codeStatusUtils.setUserCodeStatus(userId, 'Compiling');
     await compileBoxUtils.changeCompileBoxState(compileBoxId, 'BUSY');

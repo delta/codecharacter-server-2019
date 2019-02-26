@@ -157,8 +157,11 @@ const updateMatchResults = async (gameId, score1, score2, interestingness) => {
       where: { id: matchId },
     });
 
+<<<<<<< e5d292600a1b73644b05be26f094e94ab2caa3d2
+=======
     if (!match) return;
 
+>>>>>>> temp
     const finalScore1 = match.score1 + score1;
     const finalScore2 = match.score2 + score2;
 

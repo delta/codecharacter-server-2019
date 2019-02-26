@@ -43,7 +43,6 @@ const sendJob = async () => {
 
     const {
       popFromQueue,
-      matchId,
       score1 = 0,
       score2 = 0,
       interestingness = 0,
@@ -60,13 +59,14 @@ const sendJob = async () => {
     );
 
     if (popFromQueue) {
+      const jobType = executeJob.type;
       await ExecuteQueue.destroy({
         where: {
           id: executeJob.id,
         },
       });
-      if (executeJob.type === 'USER_MATCH') {
-        await matchUtils.updateMatchResults(matchId, score1, score2, interestingness);
+      if (jobType === 'USER_MATCH') {
+        await matchUtils.updateMatchResults(executeJob.gameId, score1, score2, interestingness);
       }
     }
   }

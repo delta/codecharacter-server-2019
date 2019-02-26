@@ -64,7 +64,9 @@ router.post('/update', [
   check('username')
     .optional()
     .custom(async value => !(await User.findOne({ where: { username: value } })))
-    .withMessage('Username is already taken'),
+    .withMessage('Username is already taken')
+    .isAlphanumeric()
+    .withMessage('Username must be alphanumeric'),
   check('country')
     .optional()
     .isAlpha().withMessage('country should contain only letters'),

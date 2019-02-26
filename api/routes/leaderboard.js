@@ -33,7 +33,7 @@ router.get('/:start/:finish', [
   finish = parseInt(finish, 10);
   const joinOptions = {
     model: User,
-    attributes: ['id', 'username', 'fullName', 'country', 'avatar'],
+    attributes: ['id', 'username', 'fullName', 'country', 'avatar', 'type'],
   };
 
   if (type) {
@@ -129,7 +129,7 @@ router.get('/:search/:start/:finish', [
   }
   const joinOptions = {
     model: User,
-    attributes: ['username', 'fullName', 'country', 'id', 'avatar'],
+    attributes: ['username', 'fullName', 'country', 'id', 'avatar', 'type'],
   };
 
   if (type) {

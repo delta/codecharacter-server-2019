@@ -11,10 +11,10 @@ const { Op } = Sequelize;
 
 module.exports = (passport) => {
   passport.use(new LocalStrategy(
-    ((username, password, done) => {
+    ((email, password, done) => {
       User.findOne({
         where: {
-          [Op.or]: [{ username }, { email: username }],
+          [Op.or]: [{ email }],
         },
       }).then(async (user) => {
         if (!user) {
@@ -22,7 +22,7 @@ module.exports = (passport) => {
             method: 'POST',
             uri: 'https://api.pragyan.org/19/event/login',
             body: {
-              user_email: username,
+              user_email: email,
               user_pass: password,
               event_id: config.event.event_id,
               event_secret: config.event.event_key,
@@ -30,16 +30,19 @@ module.exports = (passport) => {
             json: true,
           };
           const response = await rp(options);
+          const username = email.split('@')[0];
           if (response.status_code === 200) {
             const userCreated = await User.create({
               fullName: response.message.user_fullname,
-              email: username,
+              email,
               username,
               password: await bcrypt.hash(password, 10),
               country: 'IN',
               pragyanId: response.message.user_id,
               isPragyan: true,
               activated: true,
+              type: 'Student',
+              college: 'NIT Trichy',
             });
             if (await git.createUserDir(username)) {
               await codeStatus.create({
@@ -55,7 +58,7 @@ module.exports = (passport) => {
             // wrong password
             return done(null, false, 'Wrong Credentials!');
           } else {
-            return done(null, false, 'Username not found');
+            return done(null, false, 'Email not found');
           }
         } else if (!(await bcrypt.compare(password, user.password))) {
           return done(null, false, 'Wrong password');

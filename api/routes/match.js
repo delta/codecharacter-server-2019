@@ -41,6 +41,15 @@ router.get('/all', async (req, res) => {
       attributes: ['id', 'mapId', 'status', 'verdict'],
     });
 
+    let matchVerdict = '0';
+
+    if (match.verdict === '1') {
+      if (match.userId1 === id) matchVerdict = '1';
+      else if (match.userId2 === id) matchVerdict = '2';
+    } else if (match.verdict === '2') {
+      if (match.userId1 === id) matchVerdict = '2';
+      else if (match.userId2 === id) matchVerdict = '1';
+    }
     const matchEntry = {};
     matchEntry.usedId1 = match.user1.id;
     matchEntry.userId2 = match.user2.id;
@@ -48,13 +57,24 @@ router.get('/all', async (req, res) => {
     matchEntry.username2 = match.user2.username;
     matchEntry.avatar1 = match.user1.avatar;
     matchEntry.avatar2 = match.user2.avatar;
-    matchEntry.verdict = match.verdict;
+    matchEntry.verdict = matchVerdict;
     matchEntry.score1 = match.score1;
     matchEntry.score2 = match.score2;
     matchEntry.games = games.map((game) => {
-      let verdict = (id === game.userId2) ? '2' : '0';
-      verdict = (id === game.userId1) ? '1' : verdict;
-      verdict = (game.status === 'Error') ? '3' : verdict;
+      let verdict = '0';
+
+      if (game.verdict === '1') {
+        if (id === game.userId1) verdict = '1';
+        else if (id === game.userId2) verdict = '2';
+      } else if (game.verdict === '2') {
+        if (id === game.userId1) verdict = '2';
+        else if (id === game.userId2) verdict = '1';
+      }
+      
+      if (game.status === 'Error') {
+        game.verdict = '3';
+      }
+
 
       return {
         id: game.id,
@@ -95,6 +115,16 @@ router.get('/pro', async (req, res) => {
       attributes: ['id', 'mapId', 'status', 'verdict'],
     });
 
+    let matchVerdict = '0';
+
+    if (proMatch.verdict === '1') {
+      if (proMatch.userId1 === id) matchVerdict = '1';
+      else if (proMatch.userId2 === id) matchVerdict = '2';
+    } else if (proMatch.verdict === '2') {
+      if (proMatch.userId1 === id) matchVerdict = '2';
+      else if (proMatch.userId2 === id) matchVerdict = '1';
+    }
+
     const matchEntry = {};
     matchEntry.usedId1 = proMatch.user1.id;
     matchEntry.userId2 = proMatch.user2.id;
@@ -102,14 +132,24 @@ router.get('/pro', async (req, res) => {
     matchEntry.username2 = proMatch.user2.username;
     matchEntry.avatar1 = proMatch.user1.avatar;
     matchEntry.avatar2 = proMatch.user2.avatar;
-    matchEntry.verdict = proMatch.verdict;
+    matchEntry.verdict = matchVerdict;
     matchEntry.score1 = proMatch.score1;
     matchEntry.score2 = proMatch.score2;
     matchEntry.playedAt = (new Date(proMatch.updatedAt)).toUTCString();
     matchEntry.games = games.map((game) => {
-      let verdict = (id === game.userId2) ? '2' : '0';
-      verdict = (id === game.userId1) ? '1' : verdict;
-      verdict = (game.status === 'Error') ? '3' : verdict;
+      let verdict = '0';
+
+      if (game.verdict === '1') {
+        if (id === game.userId1) verdict = '1';
+        else if (id === game.userId2) verdict = '2';
+      } else if (game.verdict === '2') {
+        if (id === game.userId1) verdict = '2';
+        else if (id === game.userId2) verdict = '1';
+      }
+      
+      if (game.status === 'Error') {
+        game.verdict = '3';
+      }
 
       return {
         id: game.id,
