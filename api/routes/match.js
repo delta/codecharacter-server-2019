@@ -1,6 +1,7 @@
 const express = require('express');
 const { Op } = require('sequelize');
 
+const Map = require('../models').map;
 const Match = require('../models').match;
 const Game = require('../models').game;
 const User = require('../models').user;
@@ -167,7 +168,13 @@ router.get('/log/:gameId', async (req, res) => {
       },
     });
 
-    if (!game) {
+    const map = await Map.findOne({
+      where: {
+        id: game.mapId,
+      },
+    });
+
+    if (!game || map.isHidden) {
       return res.status(400).json({
         type: 'Error',
         error: 'Game does not exist',

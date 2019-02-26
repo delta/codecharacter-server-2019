@@ -57,15 +57,19 @@ const handleConnections = async (socket) => {
       connections[userId][socketId] = socket;
     }
 
-    const unreadGlobalNotifications = await NotificationUtils.getUnreadGlobalNotifications(userId);
-
-    const deletions = [];
-    unreadGlobalNotifications.forEach((notification) => {
-      sendMessage(userId, notification.message, 'Info');
-      deletions.push(NotificationUtils.deleteGlobalNotification(notification.id, userId));
-    });
-
-    await Promise.all(deletions);
+    try {
+      const unreadGlobalNotifications = await NotificationUtils.getUnreadGlobalNotifications(userId);
+  
+      const deletions = [];
+      unreadGlobalNotifications.forEach((notification) => {
+        sendMessage(userId, notification.message, 'Info');
+        deletions.push(NotificationUtils.deleteGlobalNotification(notification.id, userId));
+      });
+  
+      await Promise.all(deletions);
+    } catch (err) {
+      console.log(err);
+    }
 
     socket.on('disconnect', disconnectHandler.bind(null, socketId, userId));
   } catch (err) {

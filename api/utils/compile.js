@@ -63,14 +63,18 @@ const sendCompileJob = async (userId, compileBoxId, commitHash) => {
       socket.sendMessage(userId, 'Internal Server Error', 'Compile Error');
     }
 
-    // socket.sendMessage(userId, 'Your code is being compiled...', 'Compile Info');
+    console.log('H1');
+    socket.sendMessage(userId, 'Your code is being compiled...', 'Compile Info');
 
+    console.log('H2');
     await codeStatusUtils.setUserCodeStatus(userId, 'Compiling');
     await compileBoxUtils.changeCompileBoxState(compileBoxId, 'BUSY');
 
+    console.log('H3');
     const code = await git.getFile(await getUsername(userId), 'code.cpp', (commitHash !== 'latest' ? commitHash : null));
     const targetCompileBoxUrl = await compileBoxUtils.getUrl(compileBoxId);
 
+    console.log('H4');
     const options = {
       method: 'POST',
       uri: `${targetCompileBoxUrl}/compile`,
@@ -83,8 +87,8 @@ const sendCompileJob = async (userId, compileBoxId, commitHash) => {
     };
 
     const response = await rp(options);
+    console.log('H5', Object.keys(response), response.error, response.errorType, compileBoxId);
     await compileBoxUtils.changeCompileBoxState(compileBoxId, 'IDLE');
-
     const {
       success,
       dll1,
@@ -92,8 +96,9 @@ const sendCompileJob = async (userId, compileBoxId, commitHash) => {
       error,
       errorType,
     } = response;
-
+    
     if (!success) {
+      console.log('CompileError', error);
       if (errorType === 'COMPILE_ERROR') {
         socket.sendMessage(userId, error, 'Compile Error Log');
       } else if (errorType === 'UNAUTHORIZED') {
@@ -108,13 +113,15 @@ const sendCompileJob = async (userId, compileBoxId, commitHash) => {
       return;
     }
 
+    console.log('CompileError1');
     const username = await getUsername(userId);
     await git.setFile(username, (commitHash === 'latest' ? 'dll1.dll' : 'dll1_previous_commit.dll'), JSON.stringify(dll1));
     await git.setFile(username, (commitHash === 'latest' ? 'dll2.dll' : 'dll2_previous_commit.dll'), JSON.stringify(dll2));
     await codeStatusUtils.setUserCodeStatus(userId, 'Idle');
-
+    console.log('CompileError2');
     socket.sendMessage(userId, 'Successfully Compiled!', 'Compile Success');
   } catch (error) {
+    console.log('CompileError', error);
     socket.sendMessage(userId, 'Internal Server Error', 'Compile Error');
   }
 };
