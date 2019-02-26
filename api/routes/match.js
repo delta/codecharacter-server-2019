@@ -38,7 +38,7 @@ router.get('/all', async (req, res) => {
         matchId: match.id,
       },
       order: ['mapId'],
-      attributes: ['id', 'mapId', 'status', 'verdict'],
+      attributes: ['id', 'mapId', 'status', 'verdict', 'userId1', 'userId2'],
     });
 
     let matchVerdict = '0';
@@ -70,9 +70,9 @@ router.get('/all', async (req, res) => {
         if (id === game.userId1) verdict = '2';
         else if (id === game.userId2) verdict = '1';
       }
-      
+
       if (game.status === 'Error') {
-        game.verdict = '3';
+        verdict = '3';
       }
 
 
@@ -112,7 +112,7 @@ router.get('/pro', async (req, res) => {
         matchId: proMatch.id,
       },
       order: ['mapId'],
-      attributes: ['id', 'mapId', 'status', 'verdict'],
+      attributes: ['id', 'mapId', 'status', 'verdict', 'userId1', 'userId2'],
     });
 
     let matchVerdict = '0';
@@ -137,18 +137,10 @@ router.get('/pro', async (req, res) => {
     matchEntry.score2 = proMatch.score2;
     matchEntry.playedAt = (new Date(proMatch.updatedAt)).toUTCString();
     matchEntry.games = games.map((game) => {
-      let verdict = '0';
+      const verdict = '0';
 
-      if (game.verdict === '1') {
-        if (id === game.userId1) verdict = '1';
-        else if (id === game.userId2) verdict = '2';
-      } else if (game.verdict === '2') {
-        if (id === game.userId1) verdict = '2';
-        else if (id === game.userId2) verdict = '1';
-      }
-      
       if (game.status === 'Error') {
-        game.verdict = '3';
+        verdict = '3';
       }
 
       return {
