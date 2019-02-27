@@ -157,11 +157,14 @@ router.get('/:search/:start/:finish', [
       const fetchWinData = leaderboard.map(item => leaderboardUtils.getWinLossData(item.user.id));
       const winLossData = await Promise.all(fetchWinData);
 
-      let currentRank = 1;
-      let actualRank = 1;
+      let currentRank = 0;
+      let actualRank = 0;
       let previousRating = 0;
 
       leaderboard.forEach((leaderboardElement, index) => {
+        actualRank += 1;
+        if (previousRating !== leaderboardElement.rating) currentRank = actualRank;
+
         if (leaderboardElement.user.username.includes(searchPattern)) {
           const searchElement = {};
           searchElement.id = leaderboard[index].user.id;
@@ -178,15 +181,11 @@ router.get('/:search/:start/:finish', [
           if (count >= start && count <= finish) {
             searchData[count - start] = searchElement;
           }
-
-          actualRank += 1;
-          if (previousRating !== searchElement.rating) currentRank += 1;
-          else currentRank = actualRank;
-
-          previousRating = searchElement.rating;
-
-          count += 1;
         }
+        
+        previousRating = leaderboardElement.rating;
+
+        count += 1;
       });
     }
     return res.status(200).json({ type: 'Success', error: '', searchData });
