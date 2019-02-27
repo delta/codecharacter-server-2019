@@ -151,6 +151,7 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
     const match = await Match.findOne({
       where: { id: matchId },
     });
+
     const finalScore1 = match.score1 + score1;
     const finalScore2 = match.score2 + score2;
 
@@ -165,15 +166,15 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
 
     await match.save();
 
-    let user1Status;
-    let user1Type;
-    let user1Title;
-    let user2Status;
-    let user2Type;
-    let user2Title;
-
     if (await hasMatchEnded(matchId)) {
       await setMatchStatus(matchId, 'DONE');
+
+      let user1Status;
+      let user1Type;
+      let user1Title;
+      let user2Status;
+      let user2Type;
+      let user2Title;
 
       const user1 = await Leaderboard.findOne({ userId: match.userId1 });
       let rating1 = user1.rating;

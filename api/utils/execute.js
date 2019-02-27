@@ -170,7 +170,7 @@ const getOldestExecuteJob = async () => {
   return executeJob;
 };
 
-const parseResults = ({ scores, interestingness }) => {
+const parseResults = ({ scores, interestingness, winType }) => {
   const player1Score = Number(scores[0].score);
   const player2Score = Number(scores[1].score);
   const player1Status = scores[0].status;
@@ -182,6 +182,7 @@ const parseResults = ({ scores, interestingness }) => {
     player1Status,
     player2Status,
     interestingness: Number(interestingness),
+    winType,
   };
 };
 
@@ -287,19 +288,21 @@ const sendExecuteJob = async (
     }
     const results = parseResults(response.results);
 
-    if (matchType === 'USER_MATCH') {
-      const {
-        matchId,
-        score1,
-        score2,
-      } = await gameUtils.updateGameResults(gameId, results);
+    const {
+      matchId,
+      score1,
+      score2,
+      status1,
+    } = await gameUtils.updateGameResults(gameId, results);
 
+    if (matchType === 'USER_MATCH') {
       await gameUtils.updateGameLogs(
         gameId,
         response.player1LogCompressed,
         response.player2LogCompressed,
         response.log,
       );
+
       return {
         success: true,
         popFromQueue: true,
@@ -310,13 +313,22 @@ const sendExecuteJob = async (
       };
     }
 
-    socket.sendMessage(userId1, JSON.stringify({
-      player1Log: response.player1LogCompressed,
-      player2Log: response.player2LogCompressed,
-      gameLog: response.log,
-      results,
-    }), 'Match Success');
-
+    if (status1 === 'RUNTIME_ERROR') {
+      socket.sendMessage('Your match threw a runtime error', 'Match Error');
+    } else if (status1 === 'EXCEEDED_INSTRUCTION_LIMIT') {
+      socket.sendMessage('Your code exceeded the instruction limit', 'Match Error');
+    } else if (status1 === 'UNDEFINED') {
+      socket.sendMessage('Something went wrong...', 'Match Error');
+    } else if (status1 === 'TIMEOUT') {
+      socket.sendMessage('Your code took too long to execute', 'Match Error');
+    } else {
+      socket.sendMessage(userId1, JSON.stringify({
+        player1Log: response.player1LogCompressed,
+        player2Log: response.player2LogCompressed,
+        gameLog: response.log,
+        results,
+      }), 'Match Success');
+    }
     return {
       success: true,
       popFromQueue: true,
