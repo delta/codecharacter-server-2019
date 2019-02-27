@@ -151,12 +151,13 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
     const match = await Match.findOne({
       where: { id: matchId },
     });
-
     const finalScore1 = match.score1 + score1;
     const finalScore2 = match.score2 + score2;
 
     match.score1 = finalScore1;
     match.score2 = finalScore2;
+    match.initialRating1 = await userUtils.getRating(match.userId1);
+    match.initialRating2 = await userUtils.getRating(match.userId2);
 
     match.interestingness += interestingness;
 
@@ -231,6 +232,8 @@ const updateMatchResults = async (matchId, score1, score2, interestingness) => {
         },
       });
 
+      match.finalRating1 = await userUtils.getRating(match.userId1);
+      match.finalRating2 = await userUtils.getRating(match.userId2);
       await match.save();
 
       socket.sendMessage(match.userId1, user1Status, user1Type);
