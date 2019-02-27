@@ -45,6 +45,22 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 0,
     },
+    initialRating1: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
+    initialRating2: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
+    finalRating1: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
+    finalRating2: {
+      type: DataTypes.BIGINT,
+      allowNull: true,
+    },
   }, {});
   match.associate = (models) => {
     match.belongsTo(models.user, { as: 'user1', foreignKey: 'userId1' });
