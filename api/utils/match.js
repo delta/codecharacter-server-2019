@@ -170,7 +170,10 @@ const updateMatchResults = async (gameId, score1, score2, interestingness) => {
     match.interestingness += interestingness;
     await match.save();
 
+    console.log('Here1');
+
     if (await hasMatchEnded(matchId)) {
+      console.log('Here2');
       await setMatchStatus(matchId, 'DONE');
 
       let user1Status;
@@ -212,8 +215,8 @@ const updateMatchResults = async (gameId, score1, score2, interestingness) => {
 
         match.verdict = '2';
       } else {
-        rating1 = elo.updateRating(expectedScore1, 0.5, rating1);
-        rating2 = elo.updateRating(expectedScore2, 0.5, rating2);
+        rating1 = elo.updateRating(expectedScore1, 0, rating1);
+        rating2 = elo.updateRating(expectedScore2, 0, rating2);
         user1Status = `You tied against ${await userUtils.getUsername(match.userId2)} \n ${finalScore1}-${finalScore2}`;
         user1Type = 'Match Result Success';
         user1Title = 'Draw';

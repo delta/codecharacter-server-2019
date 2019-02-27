@@ -91,7 +91,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM,
       values: ['DEATHMATCH', 'SCORE', 'EXCEEDED_INSTRUCTION_LIMIT', 'RUNTIME_ERROR', 'TIMEOUT', 'NONE'],
       allowNull: false,
-      defaultValue: 'NORMAL',
+      defaultValue: 'SCORE',
     },
   }, {});
   return game;

@@ -77,10 +77,10 @@ const updateGameResults = async (gameId, results) => {
   let score1 = 0;
   let score2 = 0;
 
-  if (results.player1Score > results.player2Score) {
+  if (results.winner === 'PLAYER1') {
     game.verdict = '1';
     score1 += 1;
-  } else if (results.player2Score > results.player1Score) {
+  } else if (results.winner === 'PLAYER2') {
     game.verdict = '2';
     score2 += 1;
   } else {
@@ -89,21 +89,19 @@ const updateGameResults = async (gameId, results) => {
 
   game.points1 = results.player1Score;
   game.points2 = results.player2Score;
-  game.status1 = results.status1;
-  game.status2 = results.status2;
+  game.status1 = results.player1Status;
+  game.status2 = results.player2Status;
   game.interestingness += results.interestingness;
 
   game.status = 'Executed';
+  game.winType = results.winType;
 
   const { matchId } = game;
   await game.save();
 
   return {
-    matchId,
     score1,
-    status1: game.status1,
     score2,
-    status2: game.status2,
   };
 };
 

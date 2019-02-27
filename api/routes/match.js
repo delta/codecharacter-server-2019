@@ -9,6 +9,7 @@ const User = require('../models').user;
 const git = require('../utils/gitHandlers');
 const socket = require('../utils/socketHandlers');
 const constantUtils = require('../utils/constant');
+const userUtils = require('../utils/user');
 
 const router = express.Router();
 const parsify = obj => JSON.parse(JSON.stringify(obj));
@@ -170,14 +171,13 @@ router.get('/log/:gameId', async (req, res) => {
 
     gameId = Number(gameId);
     const game = await Game.findOne({
-      include: [
-        { model: User, as: 'user1' },
-        { model: User, as: 'user2' },
-      ],
       where: {
         id: gameId,
       },
     });
+
+    const username1 = await userUtils.getUsername(game.userId1);
+    const username2 = await userUtils.getUsername(game.userId2);
 
     const map = await Map.findOne({
       where: {
@@ -196,40 +196,49 @@ router.get('/log/:gameId', async (req, res) => {
       });
     }
 
-    const matchLogDir = await constantUtils.getMatchLogDir();
-    const player1Log = await git.getFile(null, game.debugLog1Path, null, matchLogDir);
-    const player2Log = await git.getFile(null, game.debugLog2Path, null, matchLogDir);
-    const gameLog = await git.getFile(null, game.log, null, matchLogDir);
-
     let errorMessage = '';
 
     if (game.status1 === 'RUNTIME_ERROR') {
-      errorMessage = `${errorMessage}${game.user1.username}'s code threw a runtime error.\n`;
+      errorMessage = `${errorMessage}${username1}'s code threw a runtime error.\n`;
     } else if (game.status1 === 'EXCEEDED_INSTRUCTION') {
-      errorMessage = `${errorMessage}${game.user1.username}'s code exceeded the instruction limit.\n`;
+      errorMessage = `${errorMessage}${username1}'s code exceeded the instruction limit.\n`;
     } else if (game.status1 === 'TIMEOUT') {
-      errorMessage = `${errorMessage}${game.user1.username}'s code is an error.\n`;
+      errorMessage = `${errorMessage}${username1}'s code is an error.\n`;
     } else if (game.status1 === 'UNDEFINED') {
       errorMessage = `${errorMessage}Something went wrong...\n`;
     }
 
-    if (game.status2 === 'RUNTIME_ERROR') {
-      errorMessage = `${errorMessage}${game.user2.username}'s code threw a runtime error.\n`;
-    } else if (game.status2 === 'EXCEEDED_INSTRUCTION') {
-      errorMessage = `${errorMessage}${game.user2.username}'s code exceeded the instruction limit.\n`;
-    } else if (game.status2 === 'TIMEOUT') {
-      errorMessage = `${errorMessage}${game.user2.username}'s code is an error.\n`;
-    } else if (game.status2 === 'UNDEFINED') {
+    if (errorMessage === '' && game.status2 === 'RUNTIME_ERROR') {
+      errorMessage = `${errorMessage}${username2}'s code threw a runtime error.\n`;
+    } else if (errorMessage === '' && game.status2 === 'EXCEEDED_INSTRUCTION') {
+      errorMessage = `${errorMessage}${username2}'s code exceeded the instruction limit.\n`;
+    } else if (errorMessage === '' && game.status2 === 'TIMEOUT') {
+      errorMessage = `${errorMessage}${username2}'s code is an error.\n`;
+    } else if (errorMessage === '' && game.status2 === 'UNDEFINED') {
       errorMessage = `${errorMessage}Something went wrong...\n`;
     }
 
+    console.log(errorMessage, game.status1, game.status2, username1, username2);
+
     if (errorMessage !== '') {
-      socket.sendMessage(errorMessage, 'Error');
-      return res.status(400).json({
+      console.log('Here...');
+      socket.sendMessage(id, errorMessage, 'Match Error');
+      return res.status(200).json({
         type: 'Success',
-        error: errorMessage,
+        error: '',
+        logs: {
+          player1Log: '',
+          player2Log: '',
+          gameLog: '',
+          matchPlayerId: ((id === game.userId1) ? 1 : 2),
+        },
       });
     }
+
+    const matchLogDir = await constantUtils.getMatchLogDir();
+    const player1Log = await git.getFile(null, game.debugLog1Path, null, matchLogDir);
+    const player2Log = await git.getFile(null, game.debugLog2Path, null, matchLogDir);
+    const gameLog = await git.getFile(null, game.log, null, matchLogDir);
 
     return res.status(200).json({
       type: 'Success',
@@ -242,6 +251,7 @@ router.get('/log/:gameId', async (req, res) => {
       },
     });
   } catch (err) {
+    console.log(err);
     return res.status(500).json({
       type: 'Error',
       error: 'Internal Server Error',

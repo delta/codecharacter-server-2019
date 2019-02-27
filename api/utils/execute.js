@@ -167,7 +167,7 @@ const getOldestExecuteJob = async () => {
   return executeJob;
 };
 
-const parseResults = ({ scores, interestingness, winType }) => {
+const parseResults = ({ scores, interestingness, winType, winner }) => {
   const player1Score = Number(scores[0].score);
   const player2Score = Number(scores[1].score);
   const player1Status = scores[0].status;
@@ -180,6 +180,7 @@ const parseResults = ({ scores, interestingness, winType }) => {
     player2Status,
     interestingness: Number(interestingness),
     winType,
+    winner
   };
 };
 
@@ -196,6 +197,7 @@ const sendExecuteJob = async (
   dll2Path,
 ) => {
   try {
+    console.log('Inside 1');
     if (await compileBoxUtils.getCompileBoxStatus(compileBoxId) === 'BUSY') {
       return {
         success: false,
@@ -203,6 +205,7 @@ const sendExecuteJob = async (
       };
     }
 
+    console.log('Inside 2');
     if (matchType === 'USER_MATCH') {
       await gameUtils.setGameStatus(gameId, 'Executing');
       await compileBoxUtils.changeCompileBoxState(compileBoxId, 'BUSY');
@@ -214,6 +217,7 @@ const sendExecuteJob = async (
     const username1 = await getUsername(userId1);
     const username2 = await getUsername(userId2);
 
+    console.log('Inside 3', username1, username2);
     if (matchType === 'SELF_MATCH' || matchType === 'PREVIOUS_COMMIT_MATCH') {
       const codeStorageDir = await constantUtils.getCodeStorageDir();
       dll1Dir = `${codeStorageDir}/${username1}`;
@@ -229,6 +233,7 @@ const sendExecuteJob = async (
       dll2Dir = `${aiStorageDir}/${await await getAiName(aiId)}`;
     }
 
+    console.log('Inside 4');
     if (!(await git.checkFileExists(`${dll2Dir}/${dll2Path}`))) {
       return {
         success: false,
@@ -236,6 +241,7 @@ const sendExecuteJob = async (
       };
     }
 
+    console.log('Inside 5');
     const dll1 = JSON.parse(await git.getFile('', dll1Path, null, dll1Dir));
     const dll2 = JSON.parse(await git.getFile('', dll2Path, null, dll2Dir));
     const map = await getMap(mapId);
@@ -286,19 +292,24 @@ const sendExecuteJob = async (
     }
     const results = parseResults(response.results);
 
-    const {
-      score1,
-      score2,
-      status1,
-    } = await gameUtils.updateGameResults(gameId, results);
+    console.log('Results ', results);
 
+    
     if (matchType === 'USER_MATCH') {
-      await gameUtils.updateGameLogs(
-        gameId,
-        response.player1LogCompressed,
-        response.player2LogCompressed,
-        response.log,
-      );
+      const {
+        score1,
+        score2,
+      } = await gameUtils.updateGameResults(gameId, results);
+      console.log('Score1 ', score1, 'score2 ', score2);
+
+      if (results.player1Status === 'NORMAL' && results.player2Status === 'NORMAL') {
+        await gameUtils.updateGameLogs(
+          gameId,
+          response.player1LogCompressed,
+          response.player2LogCompressed,
+          response.log,
+        );
+      }
 
       return {
         success: true,
@@ -310,14 +321,14 @@ const sendExecuteJob = async (
       };
     }
 
-    if (status1 === 'RUNTIME_ERROR') {
-      socket.sendMessage('Your match threw a runtime error', 'Match Error');
-    } else if (status1 === 'EXCEEDED_INSTRUCTION_LIMIT') {
-      socket.sendMessage('Your code exceeded the instruction limit', 'Match Error');
-    } else if (status1 === 'UNDEFINED') {
-      socket.sendMessage('Something went wrong...', 'Match Error');
-    } else if (status1 === 'TIMEOUT') {
-      socket.sendMessage('Your code took too long to execute', 'Match Error');
+    if (results.player1Status === 'RUNTIME_ERROR') {
+      socket.sendMessage(userId1, 'Your match threw a runtime error', 'Match Error');
+    } else if (results.player1Status === 'EXCEEDED_INSTRUCTION_LIMIT') {
+      socket.sendMessage(userId1, 'Your code exceeded the instruction limit', 'Match Error');
+    } else if (results.player1Status === 'TIMEOUT') {
+      socket.sendMessage(userId1, 'Your code took too long to execute', 'Match Error');
+    } else if (results.player1Status === 'UNDEFINED') {
+      socket.sendMessage(userId1, 'Something went wrong...', 'Match Error');
     } else {
       socket.sendMessage(userId1, JSON.stringify({
         player1Log: response.player1LogCompressed,
@@ -331,6 +342,7 @@ const sendExecuteJob = async (
       popFromQueue: true,
     };
   } catch (error) {
+    console.log(error);
     return {
       success: false,
       popFromQueue: true,

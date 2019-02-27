@@ -96,6 +96,7 @@ router.post('/match', [
       error: startMatchResponse.message,
     });
   } catch (err) {
+    console.log(err);
     return res.status(500).json({
       type: 'Error',
       error: 'Internal Server Error',
