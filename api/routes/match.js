@@ -4,6 +4,7 @@ const { Op } = require('sequelize');
 const Map = require('../models').map;
 const Match = require('../models').match;
 const Game = require('../models').game;
+const Leaderboard = require('../models').leaderboard;
 const User = require('../models').user;
 
 const git = require('../utils/gitHandlers');
@@ -41,7 +42,7 @@ router.get('/all', async (req, res) => {
         matchId: match.id,
       },
       order: ['mapId'],
-      attributes: ['id', 'mapId', 'status', 'verdict', 'userId1', 'userId2'],
+      attributes: ['id', 'mapId', 'status', 'verdict', 'userId1', 'userId2', 'winType'],
     });
 
     let matchVerdict = '0';
@@ -63,7 +64,6 @@ router.get('/all', async (req, res) => {
     matchEntry.verdict = matchVerdict;
     matchEntry.score1 = match.score1;
     matchEntry.score2 = match.score2;
-    matchEntry.winType = match.winType;
     matchEntry.games = games.map((game) => {
       let verdict = '0';
 
@@ -83,6 +83,7 @@ router.get('/all', async (req, res) => {
       return {
         id: game.id,
         mapId: game.mapId,
+        winType: game.winType,
         verdict,
       };
     });
@@ -94,74 +95,92 @@ router.get('/all', async (req, res) => {
 });
 
 router.get('/pro', async (req, res) => {
-  const { id } = req.user;
-  const proMatches = [];
-  let proMatchesData = await Match.findAll({
-    include: [
-      { model: User, as: 'user1' },
-      { model: User, as: 'user2' },
-    ],
-    where: {
-      status: 'DONE',
-    },
-    order: [['interestingness', 'DESC'], ['createdAt', 'DESC']],
-    limit: 10,
-  });
-
-  proMatchesData = parsify(proMatchesData);
-
-  await Promise.all(proMatchesData.map(async (proMatch) => {
-    const games = await Game.findAll({
+  try {
+    const { id } = req.user;
+    const proMatches = [];
+    let proMatchesData = await Match.findAll({
       include: [
         { model: User, as: 'user1' },
         { model: User, as: 'user2' },
       ],
       where: {
-        matchId: proMatch.id,
+        status: 'DONE',
       },
-      order: ['mapId'],
-      attributes: ['id', 'mapId', 'status', 'verdict', 'userId1', 'userId2'],
+      order: [['interestingness', 'DESC'], ['createdAt', 'DESC']],
+      limit: 5,
     });
-
-    let matchVerdict = '0';
-
-    if (proMatch.verdict === '1') {
-      if (proMatch.userId1 === id) matchVerdict = '1';
-      else if (proMatch.userId2 === id) matchVerdict = '2';
-    } else if (proMatch.verdict === '2') {
-      if (proMatch.userId1 === id) matchVerdict = '2';
-      else if (proMatch.userId2 === id) matchVerdict = '1';
-    }
-
-    const matchEntry = {};
-    matchEntry.usedId1 = proMatch.user1.id;
-    matchEntry.userId2 = proMatch.user2.id;
-    matchEntry.username1 = proMatch.user1.username;
-    matchEntry.username2 = proMatch.user2.username;
-    matchEntry.avatar1 = proMatch.user1.avatar;
-    matchEntry.avatar2 = proMatch.user2.avatar;
-    matchEntry.verdict = matchVerdict;
-    matchEntry.score1 = proMatch.score1;
-    matchEntry.score2 = proMatch.score2;
-    matchEntry.winType = proMatch.winType;
-    matchEntry.playedAt = (new Date(proMatch.updatedAt)).toUTCString();
-    matchEntry.games = games.map((game) => {
-      let verdict = '0';
-
-      if (game.status === 'Error') {
-        verdict = '3';
+  
+    proMatchesData = parsify(proMatchesData);
+  
+    await Promise.all(proMatchesData.map(async (proMatch) => {
+      const games = await Game.findAll({
+        where: {
+          matchId: proMatch.id,
+        },
+        order: ['mapId'],
+        attributes: ['id', 'mapId', 'winType', 'status', 'verdict', 'userId1', 'userId2'],
+      });
+  
+      let matchVerdict = '0';
+  
+      if (proMatch.verdict === '1') {
+        if (proMatch.userId1 === id) matchVerdict = '1';
+        else if (proMatch.userId2 === id) matchVerdict = '2';
+      } else if (proMatch.verdict === '2') {
+        if (proMatch.userId1 === id) matchVerdict = '2';
+        else if (proMatch.userId2 === id) matchVerdict = '1';
       }
+      
+      const leaderboard1User = await Leaderboard.findOne({
+        where: {
+          userId: proMatch.user1.id,
+        },
+      });
 
-      return {
-        id: game.id,
-        mapId: game.mapId,
-        verdict,
-      };
+      const leaderboard2User = await Leaderboard.findOne({
+        where: {
+          userId: proMatch.user2.id,
+        },
+      });
+
+      const matchEntry = {};
+      matchEntry.usedId1 = proMatch.user1.id;
+      matchEntry.userId2 = proMatch.user2.id;
+      matchEntry.username1 = proMatch.user1.username;
+      matchEntry.username2 = proMatch.user2.username;
+      matchEntry.avatar1 = proMatch.user1.avatar;
+      matchEntry.avatar2 = proMatch.user2.avatar;
+      matchEntry.verdict = matchVerdict;
+      matchEntry.score1 = proMatch.score1;
+      matchEntry.score2 = proMatch.score2;
+      matchEntry.rating1 = leaderboard1User.rating;
+      matchEntry.rating2 = leaderboard2User.rating;
+      matchEntry.playedAt = (new Date(proMatch.updatedAt)).toUTCString();
+      matchEntry.games = games.map((game) => {
+        let verdict = '0';
+  
+        if (game.status === 'Error') {
+          verdict = '3';
+        }
+  
+        return {
+          id: game.id,
+          mapId: game.mapId,
+          winType: game.winType,
+          verdict,
+        };
+      });
+      proMatches.push(matchEntry);
+    }));
+  
+    return res.status(200).json({ type: 'Success', error: '', matchData: proMatches });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      type: 'Error',
+      error: 'Internal Server Error',
     });
-    proMatches.push(matchEntry);
-  }));
-
-  return res.status(200).json({ type: 'Success', error: '', matchData: proMatches });
+  }
 });
 
 router.get('/log/:gameId', async (req, res) => {
@@ -218,10 +237,7 @@ router.get('/log/:gameId', async (req, res) => {
       errorMessage = `${errorMessage}Something went wrong...\n`;
     }
 
-    console.log(errorMessage, game.status1, game.status2, username1, username2);
-
     if (errorMessage !== '') {
-      console.log('Here...');
       socket.sendMessage(id, errorMessage, 'Match Error');
       return res.status(200).json({
         type: 'Success',

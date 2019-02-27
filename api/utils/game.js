@@ -93,7 +93,12 @@ const updateGameResults = async (gameId, results) => {
   game.status2 = results.player2Status;
   game.interestingness += results.interestingness;
 
-  game.status = 'Executed';
+  if (results.player1Status === 'NORMAL' && results.player2Status === 'NORMAL') {
+    game.status = 'Executed';
+  } else {
+    game.status = 'Error';
+  }
+
   game.winType = results.winType;
 
   const { matchId } = game;
