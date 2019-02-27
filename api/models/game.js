@@ -75,6 +75,24 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id',
       },
     },
+    status1: {
+      type: DataTypes.ENUM,
+      values: ['UNDEFINED', 'NORMAL', 'EXCEEDED_INSTRUCTION_LIMIT', 'RUNTIME_ERROR', 'TIMEOUT'],
+      allowNull: false,
+      defaultValue: 'NORMAL',
+    },
+    status2: {
+      type: DataTypes.ENUM,
+      values: ['UNDEFINED', 'NORMAL', 'EXCEEDED_INSTRUCTION_LIMIT', 'RUNTIME_ERROR', 'TIMEOUT'],
+      allowNull: false,
+      defaultValue: 'NORMAL',
+    },
+    winType: {
+      type: DataTypes.ENUM,
+      values: ['DEATHMATCH', 'SCORE', 'EXCEEDED_INSTRUCTION_LIMIT', 'RUNTIME_ERROR', 'TIMEOUT', 'NONE'],
+      allowNull: false,
+      defaultValue: 'NORMAL',
+    },
   }, {});
   return game;
 };
