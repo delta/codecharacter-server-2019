@@ -57,6 +57,7 @@ router.get('/:start/:finish', [
     const winLossData = await Promise.all(fetchWinLossData);
 
     let currentRank = 0;
+    let actualRank = 0;
     let previousRating = 0;
 
     leaderboard.forEach((leaderboardElement, index) => {
@@ -75,7 +76,11 @@ router.get('/:start/:finish', [
       if (index >= start - 1 && index < finish) {
         leaderboardData.push(searchElement);
       }
+      actualRank += 1;
+
       if (previousRating !== searchElement.rating) currentRank += 1;
+      else currentRank = actualRank;
+
       previousRating = searchElement.rating;
     });
 
@@ -153,6 +158,7 @@ router.get('/:search/:start/:finish', [
       const winLossData = await Promise.all(fetchWinData);
 
       let currentRank = 1;
+      let actualRank = 1;
       let previousRating = 0;
 
       leaderboard.forEach((leaderboardElement, index) => {
@@ -172,8 +178,13 @@ router.get('/:search/:start/:finish', [
           if (count >= start && count <= finish) {
             searchData[count - start] = searchElement;
           }
+
+          actualRank += 1;
           if (previousRating !== searchElement.rating) currentRank += 1;
+          else currentRank = actualRank;
+
           previousRating = searchElement.rating;
+
           count += 1;
         }
       });

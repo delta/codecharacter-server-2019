@@ -151,7 +151,7 @@ const updateMatchResults = async (gameId, score1, score2, interestingness) => {
       where: { id: gameId },
     });
 
-    const matchId = game.matchId;
+    const { matchId } = game;
 
     const match = await Match.findOne({
       where: { id: matchId },

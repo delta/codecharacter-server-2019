@@ -58,14 +58,14 @@ const handleConnections = async (socket) => {
     }
 
     try {
-      const unreadGlobalNotifications = await NotificationUtils.getUnreadGlobalNotifications(userId);
-  
+      const globalNotifications = await NotificationUtils.getUnreadGlobalNotifications(userId);
+
       const deletions = [];
-      unreadGlobalNotifications.forEach((notification) => {
+      globalNotifications.forEach((notification) => {
         sendMessage(userId, notification.message, 'Info');
         deletions.push(NotificationUtils.deleteGlobalNotification(notification.id, userId));
       });
-  
+
       await Promise.all(deletions);
     } catch (err) {
       console.log(err);

@@ -143,7 +143,7 @@ router.get('/pro', async (req, res) => {
     matchEntry.score2 = proMatch.score2;
     matchEntry.playedAt = (new Date(proMatch.updatedAt)).toUTCString();
     matchEntry.games = games.map((game) => {
-      const verdict = '0';
+      let verdict = '0';
 
       if (game.status === 'Error') {
         verdict = '3';

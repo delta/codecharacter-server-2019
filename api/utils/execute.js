@@ -9,9 +9,8 @@ const constantUtils = require('./constant');
 const socket = require('./socketHandlers');
 const { getUsername } = require('./user');
 const git = require('./gitHandlers');
-const userUtils = require('./user');
 const { secretString } = require('../config/config');
-const { getMap, getMapName } = require('./map');
+const { getMap } = require('./map');
 
 const getAiName = async (aiId) => {
   const ai = await Ai.findOne({
