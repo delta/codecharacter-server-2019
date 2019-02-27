@@ -62,6 +62,7 @@ router.get('/all', async (req, res) => {
     matchEntry.verdict = matchVerdict;
     matchEntry.score1 = match.score1;
     matchEntry.score2 = match.score2;
+    matchEntry.winType = match.winType;
     matchEntry.games = games.map((game) => {
       let verdict = '0';
 
@@ -141,6 +142,7 @@ router.get('/pro', async (req, res) => {
     matchEntry.verdict = matchVerdict;
     matchEntry.score1 = proMatch.score1;
     matchEntry.score2 = proMatch.score2;
+    matchEntry.winType = proMatch.winType;
     matchEntry.playedAt = (new Date(proMatch.updatedAt)).toUTCString();
     matchEntry.games = games.map((game) => {
       let verdict = '0';
@@ -168,6 +170,10 @@ router.get('/log/:gameId', async (req, res) => {
 
     gameId = Number(gameId);
     const game = await Game.findOne({
+      include: [
+        { model: User, as: 'user1' },
+        { model: User, as: 'user2' },
+      ],
       where: {
         id: gameId,
       },
@@ -194,6 +200,36 @@ router.get('/log/:gameId', async (req, res) => {
     const player1Log = await git.getFile(null, game.debugLog1Path, null, matchLogDir);
     const player2Log = await git.getFile(null, game.debugLog2Path, null, matchLogDir);
     const gameLog = await git.getFile(null, game.log, null, matchLogDir);
+
+    let errorMessage = '';
+
+    if (game.status1 === 'RUNTIME_ERROR') {
+      errorMessage = `${errorMessage}${game.user1.username}'s code threw a runtime error.\n`;
+    } else if (game.status1 === 'EXCEEDED_INSTRUCTION') {
+      errorMessage = `${errorMessage}${game.user1.username}'s code exceeded the instruction limit.\n`;
+    } else if (game.status1 === 'TIMEOUT') {
+      errorMessage = `${errorMessage}${game.user1.username}'s code is an error.\n`;
+    } else if (game.status1 === 'UNDEFINED') {
+      errorMessage = `${errorMessage}Something went wrong...\n`;
+    }
+
+    if (game.status2 === 'RUNTIME_ERROR') {
+      errorMessage = `${errorMessage}${game.user2.username}'s code threw a runtime error.\n`;
+    } else if (game.status2 === 'EXCEEDED_INSTRUCTION') {
+      errorMessage = `${errorMessage}${game.user2.username}'s code exceeded the instruction limit.\n`;
+    } else if (game.status2 === 'TIMEOUT') {
+      errorMessage = `${errorMessage}${game.user2.username}'s code is an error.\n`;
+    } else if (game.status2 === 'UNDEFINED') {
+      errorMessage = `${errorMessage}Something went wrong...\n`;
+    }
+
+    if (errorMessage !== '') {
+      socket.sendMessage(errorMessage, 'Error');
+      return res.status(400).json({
+        type: 'Success',
+        error: errorMessage,
+      });
+    }
 
     return res.status(200).json({
       type: 'Success',

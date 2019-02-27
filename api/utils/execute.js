@@ -287,7 +287,6 @@ const sendExecuteJob = async (
     const results = parseResults(response.results);
 
     const {
-      matchId,
       score1,
       score2,
       status1,
