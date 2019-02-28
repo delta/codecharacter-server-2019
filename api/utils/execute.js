@@ -63,6 +63,7 @@ const pushAiMatchToQueue = async (userId, aiId, mapId) => {
       return false;
     }
 
+    socket.sendMessage(userId, `Match initiated against AI`, 'Match Info');
     await ExecuteQueue.create({
       userId1: userId,
       userId2: userId,
@@ -97,6 +98,7 @@ const pushSelfMatchToQueue = async (userId, mapId) => {
       return false;
     }
 
+    socket.sendMessage(userId, `Match initiated against self`, 'Match Info');
     await ExecuteQueue.create({
       userId1: userId,
       userId2: userId,
@@ -130,6 +132,7 @@ const pushCommitMatchToQueue = async (userId, mapId) => {
       return false;
     }
 
+    socket.sendMessage(userId, `Match initiated against previous commit`, 'Match Info');
     await ExecuteQueue.create({
       userId1: userId,
       userId2: userId,
@@ -335,6 +338,7 @@ const sendExecuteJob = async (
         player2Log: response.player2LogCompressed,
         gameLog: response.log,
         results,
+        matchPlayerId: 1,
       }), 'Match Success');
     }
     return {

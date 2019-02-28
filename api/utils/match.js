@@ -76,11 +76,12 @@ const createMatch = async (userId1, userId2) => {
     userId1,
     userId2,
   });
-
+}
   return match.id;
 };
 
 const startMatch = async (userId1, userId2) => {
+  socket.sendMessage(userId1, `Match initiated against ${await userUtils.getUsername(userId1)}`, 'Match Info');
   if (!(await checkMatchWaitTime(userId1))) {
     socket.sendMessage(userId1, 'Cannot initiate match. Too early', 'Match Error');
     return {
@@ -195,10 +196,10 @@ const updateMatchResults = async (gameId, score1, score2, interestingness) => {
       if (finalScore1 > finalScore2) {
         rating1 = elo.updateRating(expectedScore1, 1, rating1);
         rating2 = elo.updateRating(expectedScore2, 0, rating2);
-        user1Status = `You won against ${match.userId2} \n ${finalScore1}-${finalScore2}`;
+        user1Status = `You won against ${await userUtils.getUsername(match.userId2)} \n ${finalScore1}-${finalScore2}`;
         user1Type = 'Match Result Success';
         user1Title = 'Victory';
-        user2Status = `You lost against ${match.userId1} \n ${finalScore2}-${finalScore1}`;
+        user2Status = `You lost against ${await userUtils.getUsername(match.userId1)} \n ${finalScore2}-${finalScore1}`;
         user2Type = 'Match Result Error';
         user2Title = 'Defeat';
 
@@ -206,8 +207,8 @@ const updateMatchResults = async (gameId, score1, score2, interestingness) => {
       } else if (finalScore2 > finalScore1) {
         rating1 = elo.updateRating(expectedScore1, 0, rating1);
         rating2 = elo.updateRating(expectedScore2, 1, rating2);
-        user1Status = `You lost against ${await userUtils.getUsername(match.userId2)} \n ${finalScore1}-${finalScore2}`;
         user1Type = 'Match Result Error';
+        user1Status = `You lost against ${await userUtils.getUsername(match.userId2)} \n ${finalScore1}-${finalScore2}`;
         user1Title = 'Defeat';
         user2Status = `You won against ${await userUtils.getUsername(match.userId1)} \n ${finalScore2}-${finalScore1}`;
         user2Type = 'Match Result Success';
