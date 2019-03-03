@@ -11,7 +11,6 @@ module.exports = {
       userId: {
         allowNull: false,
         type: Sequelize.BIGINT,
-        unique: true,
         foreignKey: true,
         references: {
           model: 'users',
@@ -21,7 +20,6 @@ module.exports = {
       notificationId: {
         allowNull: false,
         type: Sequelize.BIGINT,
-        unique: true,
         foreignKey: true,
         references: {
           model: 'globalnotifications',

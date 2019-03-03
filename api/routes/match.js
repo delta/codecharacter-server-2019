@@ -75,11 +75,6 @@ router.get('/all', async (req, res) => {
         else if (id === game.userId2) verdict = '1';
       }
 
-      if (game.status === 'Error') {
-        verdict = '3';
-      }
-
-
       return {
         id: game.id,
         mapId: game.mapId,
@@ -159,15 +154,11 @@ router.get('/pro', async (req, res) => {
       matchEntry.games = games.map((game) => {
         let verdict = '0';
   
-        if (game.status === 'Error') {
-          verdict = '3';
-        }
-  
         return {
           id: game.id,
           mapId: game.mapId,
           winType: game.winType,
-          verdict,
+          verdict: game.verdict,
         };
       });
       proMatches.push(matchEntry);
@@ -246,7 +237,7 @@ router.get('/log/:gameId', async (req, res) => {
           player1Log: '',
           player2Log: '',
           gameLog: '',
-          matchPlayerId: ((id === game.userId1) ? 1 : 2),
+          matchPlayerId: ((id === game.userId1) ? 1 : ((id === game.userId2) ? 2 : 1)),
         },
       });
     }

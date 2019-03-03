@@ -9,6 +9,7 @@ services:
       - db
     volumes:
       - ./docker/storage:/usr/src/app/storage
+    restart: always
 
   db:
     container_name: codecharacter_db
@@ -17,7 +18,8 @@ services:
       MYSQL_ROOT_PASSWORD: "sFy,hBue,=`3k-F)"
       MYSQL_DATABASE: "codecharacter"
     volumes:
-      - ./docker/mysql/codecharacter:/var/lib/mysql/mysql/codecharacter
+      - ./docker/mysql/codecharacter:/var/lib/mysql/codecharacter
+    restart: always
 
   phpmyadmin:
     container_name: codecharacter_pma
@@ -28,3 +30,4 @@ services:
       - 9020:80
     depends_on:
       - db
+    restart: always

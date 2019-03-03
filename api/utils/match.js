@@ -11,7 +11,7 @@ const gameUtils = require('./game');
 const socket = require('./socketHandlers');
 const notificationUtils = require('./notifications');
 
-const elo = new EloRank(16);
+const elo = new EloRank(32);
 const checkMatchWaitTime = async (userId) => {
   const lastMatch = await Match.findOne({
     where: { userId1: userId },
@@ -76,12 +76,11 @@ const createMatch = async (userId1, userId2) => {
     userId1,
     userId2,
   });
-}
+
   return match.id;
 };
 
 const startMatch = async (userId1, userId2) => {
-  socket.sendMessage(userId1, `Match initiated against ${await userUtils.getUsername(userId1)}`, 'Match Info');
   if (!(await checkMatchWaitTime(userId1))) {
     socket.sendMessage(userId1, 'Cannot initiate match. Too early', 'Match Error');
     return {
@@ -105,6 +104,8 @@ const startMatch = async (userId1, userId2) => {
       message: 'Opponent has not submitted any code yet',
     };
   }
+
+  socket.sendMessage(userId1, `Match initiated against ${await userUtils.getUsername(userId2)}`, 'Match Info');
 
   const matchId = await createMatch(userId1, userId2);
   const user1DllPath = 'dll1.dll';

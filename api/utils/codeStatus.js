@@ -18,7 +18,7 @@ const getUserCodeStatus = async (userId) => {
   try {
     const codestatus = await CodeStatus.findOne({
       where: {
-        id: userId,
+        userId,
       },
     });
 
