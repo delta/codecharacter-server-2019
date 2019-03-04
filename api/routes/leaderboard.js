@@ -6,6 +6,7 @@ const Match = require('../models').match;
 const leaderboardUtils = require('../utils/leaderboard');
 const Leaderboard = require('../models').leaderboard;
 const User = require('../models').user;
+const isLoggedIn = require('../middlewares/isLoggedIn');
 
 const router = express.Router();
 
@@ -197,7 +198,7 @@ router.get('/:search/:start/:finish', [
   }
 });
 
-router.get('/timer', async (req, res) => {
+router.get('/timer', isLoggedIn, async (req, res) => {
   try {
     const { id } = req.user;
     const lastMatch = await Match.findOne({
