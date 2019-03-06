@@ -104,9 +104,9 @@ router.get('/pro', async (req, res) => {
       order: [['interestingness', 'DESC'], ['createdAt', 'DESC']],
       limit: 5,
     });
-  
+
     proMatchesData = parsify(proMatchesData);
-  
+
     await Promise.all(proMatchesData.map(async (proMatch) => {
       const games = await Game.findAll({
         where: {
@@ -115,9 +115,9 @@ router.get('/pro', async (req, res) => {
         order: ['mapId'],
         attributes: ['id', 'mapId', 'winType', 'status', 'verdict', 'userId1', 'userId2'],
       });
-  
+
       let matchVerdict = '0';
-  
+
       if (proMatch.verdict === '1') {
         if (proMatch.userId1 === id) matchVerdict = '1';
         else if (proMatch.userId2 === id) matchVerdict = '2';
@@ -125,7 +125,7 @@ router.get('/pro', async (req, res) => {
         if (proMatch.userId1 === id) matchVerdict = '2';
         else if (proMatch.userId2 === id) matchVerdict = '1';
       }
-      
+
       const leaderboard1User = await Leaderboard.findOne({
         where: {
           userId: proMatch.user1.id,
@@ -151,19 +151,15 @@ router.get('/pro', async (req, res) => {
       matchEntry.rating1 = leaderboard1User.rating;
       matchEntry.rating2 = leaderboard2User.rating;
       matchEntry.playedAt = (new Date(proMatch.updatedAt)).toUTCString();
-      matchEntry.games = games.map((game) => {
-        let verdict = '0';
-  
-        return {
-          id: game.id,
-          mapId: game.mapId,
-          winType: game.winType,
-          verdict: game.verdict,
-        };
-      });
+      matchEntry.games = games.map(game => ({
+        id: game.id,
+        mapId: game.mapId,
+        winType: game.winType,
+        verdict: game.verdict,
+      }));
       proMatches.push(matchEntry);
     }));
-  
+
     return res.status(200).json({ type: 'Success', error: '', matchData: proMatches });
   } catch (err) {
     console.log(err);
@@ -237,6 +233,7 @@ router.get('/log/:gameId', async (req, res) => {
           player1Log: '',
           player2Log: '',
           gameLog: '',
+          // eslint-disable-next-line
           matchPlayerId: ((id === game.userId1) ? 1 : ((id === game.userId2) ? 2 : 1)),
         },
       });

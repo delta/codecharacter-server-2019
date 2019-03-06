@@ -1,6 +1,7 @@
 const matchUtils = require('./match');
 const compileUtils = require('./compile');
 const executeUtils = require('./execute');
+const debugUtils = require('./debug');
 const codeStatusUtils = require('./codeStatus');
 const compileBoxUtils = require('./compileBox');
 const CompileQueue = require('../models').compilequeue;
@@ -12,23 +13,20 @@ const sendJob = async () => {
 
   const compileJob = await compileUtils.getOldestCompileJob();
   const executeJob = await executeUtils.getOldestExecuteJob();
+  const debugJob = await debugUtils.getOldestDebugJob();
 
-  let jobtype;
-  if (compileJob && executeJob) {
-    if (compileJob.createdAt.getTime() > executeJob.createdAt.getTime()) {
-      jobtype = 'execute';
-    } else {
-      jobtype = 'compile';
-    }
-  } else if (compileJob && !executeJob) {
-    jobtype = 'compile';
-  } else if (executeJob && !compileJob) {
-    jobtype = 'execute';
+  let jobType;
+  if (compileJob) {
+    jobType = 'compile';
+  } else if (executeJob) {
+    jobType = 'execute';
+  } else if (debugJob) {
+    jobType = 'debug';
   } else {
     return;
   }
 
-  if (jobtype === 'compile') {
+  if (jobType === 'compile') {
     const { userId, commitHash } = compileJob;
 
     await compileUtils.setCompileQueueJobStatus(compileJob.id, 'COMPILING');
@@ -38,7 +36,7 @@ const sendJob = async () => {
     await CompileQueue.destroy({
       where: { id: compileJob.id },
     });
-  } else {
+  } else if (jobType === 'execute') {
     await executeUtils.setExecuteQueueJobStatus(executeJob.id, 'EXECUTING');
 
     const {
@@ -59,16 +57,24 @@ const sendJob = async () => {
     );
 
     if (popFromQueue) {
-      const jobType = executeJob.type;
+      const executeJobType = executeJob.type;
       await ExecuteQueue.destroy({
         where: {
           id: executeJob.id,
         },
       });
-      if (jobType === 'USER_MATCH') {
+      if (executeJobType === 'USER_MATCH') {
         await matchUtils.updateMatchResults(executeJob.gameId, score1, score2, interestingness);
       }
     }
+  } else {
+    const {
+      userId, code1, code2, map,
+    } = debugJob;
+
+    await debugUtils.setDebugJobStatus(debugJob.id, 'EXECUTING');
+    await debugUtils.sendDebugJob(userId, idleCompileBoxId, debugJob.id, code1, code2, map);
+    await debugUtils.destroyDebugJob(debugJob.id);
   }
 
   sendJob();

@@ -183,7 +183,7 @@ router.get('/:search/:start/:finish', [
             searchData[count - start] = searchElement;
           }
         }
-        
+
         previousRating = leaderboardElement.rating;
 
         count += 1;

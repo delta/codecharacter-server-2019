@@ -7,6 +7,7 @@ const codeStatusUtils = require('../utils/codeStatus');
 const jobUtils = require('../utils/job');
 const matchUtils = require('../utils/match');
 const executeUtils = require('../utils/execute');
+const debugUtils = require('../utils/debug');
 const Map = require('../models').map;
 const Ai = require('../models').ai;
 
@@ -201,6 +202,48 @@ router.post('/match/ai', [
       error: 'No compiled DLLs',
     });
   } catch (err) {
+    return res.status(500).json({
+      type: 'Error',
+      error: 'Internal Server Error',
+    });
+  }
+});
+
+router.post('/debug', [
+  check('code')
+    .not().isEmpty().withMessage('Current code cannot be empty')
+    .isString(),
+  check('type')
+    .custom((value) => {
+      const types = ['SELF_MATCH', 'PREVIOUS_COMMIT_MATCH'];
+      return types.includes(value);
+    }).withMessage('Invalid type'),
+  check('mapId')
+    .not().isEmpty().withMessage('MapId cannot be empty')
+    .isInt()
+    .withMessage('MapId must be an integer'),
+  check('commitHash')
+    .optional()
+    .isString().withMessage('Commit Hash must be a string'),
+], async (req, res) => {
+  if (handleValidationErrors(req, res)) return null;
+
+  const { id } = req.user;
+  const {
+    code, type, mapId, commitHash,
+  } = req.body;
+
+  try {
+    await debugUtils.debugRun(id, code, type, mapId, commitHash);
+
+    jobUtils.sendJob();
+
+    return res.status(200).json({
+      type: 'Success',
+      error: '',
+    });
+  } catch (err) {
+    console.log(err);
     return res.status(500).json({
       type: 'Error',
       error: 'Internal Server Error',

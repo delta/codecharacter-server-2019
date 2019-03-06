@@ -101,7 +101,6 @@ const updateGameResults = async (gameId, results) => {
 
   game.winType = results.winType;
 
-  const { matchId } = game;
   await game.save();
 
   return {

@@ -23,18 +23,14 @@ const getIdleCompileBox = async () => {
   }
 };
 
-const changeCompileBoxState = async (id, state) => {
+const changeCompileBoxState = async (id, status) => {
   const compileBox = await CompileBox.findOne({
     where: { id },
   });
 
   if (!compileBox) return false;
 
-  if (state !== 'IDLE' || state !== 'BUSY') {
-    return false;
-  }
-
-  compileBox.state = state;
+  compileBox.status = status;
   await compileBox.save();
 
   return true;

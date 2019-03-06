@@ -16,6 +16,9 @@ module.exports = {
     key: 'COMPILE_QUEUE_LIMIT',
     value: 500,
   }, {
+    key: 'DEBUG_QUEUE_LIMIT',
+    value: 500,
+  }, {
     key: 'DEFAULT_CODE_STORAGE_DIR',
     value: `${appPath}/storage/codes`,
   }, {

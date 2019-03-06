@@ -63,7 +63,7 @@ const pushAiMatchToQueue = async (userId, aiId, mapId) => {
       return false;
     }
 
-    socket.sendMessage(userId, `Match initiated against AI`, 'Match Info');
+    socket.sendMessage(userId, 'Match initiated against AI', 'Match Info');
     await ExecuteQueue.create({
       userId1: userId,
       userId2: userId,
@@ -98,7 +98,7 @@ const pushSelfMatchToQueue = async (userId, mapId) => {
       return false;
     }
 
-    socket.sendMessage(userId, `Match initiated against self`, 'Match Info');
+    socket.sendMessage(userId, 'Match initiated against self', 'Match Info');
     await ExecuteQueue.create({
       userId1: userId,
       userId2: userId,
@@ -132,7 +132,7 @@ const pushCommitMatchToQueue = async (userId, mapId) => {
       return false;
     }
 
-    socket.sendMessage(userId, `Match initiated against previous commit`, 'Match Info');
+    socket.sendMessage(userId, 'Match initiated against previous commit', 'Match Info');
     await ExecuteQueue.create({
       userId1: userId,
       userId2: userId,
@@ -170,7 +170,9 @@ const getOldestExecuteJob = async () => {
   return executeJob;
 };
 
-const parseResults = ({ scores, interestingness, winType, winner }) => {
+const parseResults = ({
+  scores, interestingness, winType, winner,
+}) => {
   const player1Score = Number(scores[0].score);
   const player2Score = Number(scores[1].score);
   const player1Status = scores[0].status;
@@ -183,7 +185,7 @@ const parseResults = ({ scores, interestingness, winType, winner }) => {
     player2Status,
     interestingness: Number(interestingness),
     winType,
-    winner
+    winner,
   };
 };
 
@@ -297,7 +299,7 @@ const sendExecuteJob = async (
 
     console.log('Results ', results);
 
-    
+
     if (matchType === 'USER_MATCH') {
       const {
         score1,
