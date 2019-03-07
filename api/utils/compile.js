@@ -62,14 +62,9 @@ const getOldestCompileJob = async () => {
 
 const sendCompileJob = async (userId, compileBoxId, commitHash) => {
   try {
-    if (await compileBoxUtils.getCompileBoxStatus(compileBoxId) === 'BUSY') {
-      socket.sendMessage(userId, 'Internal Server Error', 'Compile Error');
-    }
-
     socket.sendMessage(userId, 'Your code is being compiled...', 'Compile Info');
 
     await codeStatusUtils.setUserCodeStatus(userId, 'Compiling');
-    await compileBoxUtils.changeCompileBoxState(compileBoxId, 'BUSY');
 
     const code = await git.getFile(await getUsername(userId), 'code.cpp', (commitHash !== 'latest' ? commitHash : null));
     const targetCompileBoxUrl = await compileBoxUtils.getUrl(compileBoxId);
@@ -87,7 +82,6 @@ const sendCompileJob = async (userId, compileBoxId, commitHash) => {
 
     const response = await rp(options);
 
-    await compileBoxUtils.changeCompileBoxState(compileBoxId, 'IDLE');
     const {
       success,
       dll1,

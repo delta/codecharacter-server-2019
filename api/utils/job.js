@@ -2,7 +2,6 @@ const matchUtils = require('./match');
 const compileUtils = require('./compile');
 const executeUtils = require('./execute');
 const debugUtils = require('./debug');
-const codeStatusUtils = require('./codeStatus');
 const compileBoxUtils = require('./compileBox');
 const CompileQueue = require('../models').compilequeue;
 const ExecuteQueue = require('../models').executequeue;
@@ -26,19 +25,18 @@ const sendJob = async () => {
     return;
   }
 
+  await compileBoxUtils.changeCompileBoxState(idleCompileBoxId, 'BUSY');
   if (jobType === 'compile') {
     const { userId, commitHash } = compileJob;
 
     await compileUtils.setCompileQueueJobStatus(compileJob.id, 'COMPILING');
     await compileUtils.sendCompileJob(userId, idleCompileBoxId, commitHash);
 
-    await codeStatusUtils.setUserCodeStatus(userId, 'Idle');
     await CompileQueue.destroy({
       where: { id: compileJob.id },
     });
   } else if (jobType === 'execute') {
     await executeUtils.setExecuteQueueJobStatus(executeJob.id, 'EXECUTING');
-
     const {
       popFromQueue,
       score1 = 0,
@@ -76,6 +74,7 @@ const sendJob = async () => {
     await debugUtils.sendDebugJob(userId, idleCompileBoxId, debugJob.id, code1, code2, map);
     await debugUtils.destroyDebugJob(debugJob.id);
   }
+  await compileBoxUtils.changeCompileBoxState(idleCompileBoxId, 'IDLE');
 
   sendJob();
 };

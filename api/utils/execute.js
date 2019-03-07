@@ -202,18 +202,8 @@ const sendExecuteJob = async (
   dll2Path,
 ) => {
   try {
-    console.log('Inside 1');
-    if (await compileBoxUtils.getCompileBoxStatus(compileBoxId) === 'BUSY') {
-      return {
-        success: false,
-        popFromQueue: false,
-      };
-    }
-
-    console.log('Inside 2');
     if (matchType === 'USER_MATCH') {
       await gameUtils.setGameStatus(gameId, 'Executing');
-      await compileBoxUtils.changeCompileBoxState(compileBoxId, 'BUSY');
     }
 
     let dll1Dir;
@@ -266,7 +256,6 @@ const sendExecuteJob = async (
     };
 
     const response = await rp(options);
-    await compileBoxUtils.changeCompileBoxState(compileBoxId, 'IDLE');
 
     if (response.errorType === 'PLAYER_RUNTIME_ERROR') {
       socket.sendMessage(userId1, 'Runtime error', 'Match Error');
@@ -332,7 +321,7 @@ const sendExecuteJob = async (
       socket.sendMessage(userId1, 'Your code exceeded the instruction limit', 'Match Error');
     } else if (results.player1Status === 'TIMEOUT') {
       socket.sendMessage(userId1, 'Your code took too long to execute', 'Match Error');
-    } else if (results.player1Status === 'UNDEFINED') {
+    } else if (results.player1Status === 'UNDEFINED' && results.player2Status === 'UNDEFINED') {
       socket.sendMessage(userId1, 'Something went wrong...', 'Match Error');
     } else {
       socket.sendMessage(userId1, JSON.stringify({

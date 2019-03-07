@@ -1,7 +1,6 @@
 const rp = require('request-promise');
 const DebugQueue = require('../models').debugqueue;
 const compileBoxUtils = require('./compileBox');
-const codeStatusUtils = require('./codeStatus');
 const constantUtils = require('./constant');
 const git = require('./gitHandlers');
 const { secretString } = require('../config/config');
@@ -136,9 +135,6 @@ const debugRun = async (userId, code, type, mapId, commitHash = null) => {
 const sendDebugJob = async (userId, compileBoxId, debugJobId, code1, code2, map) => {
   try {
     socket.sendMessage(userId, 'Your code is running in debug mode...', 'Debug Run Info');
-
-    await codeStatusUtils.setUserCodeStatus(userId, 'Executing');
-    await compileBoxUtils.changeCompileBoxState(compileBoxId, 'BUSY');
 
     const targetCompileBoxUrl = await compileBoxUtils.getUrl(compileBoxId);
 
