@@ -101,7 +101,7 @@ const sendCompileJob = async (userId, compileBoxId, commitHash) => {
       } else {
         socket.sendMessage(userId, 'Internal Server Error', 'Compile Error');
       }
-
+      await codeStatusUtils.setUserCodeStatus(userId, 'Idle');
       return;
     }
 

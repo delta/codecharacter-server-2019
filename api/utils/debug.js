@@ -111,7 +111,7 @@ const debugRun = async (userId, code, type, mapId, commitHash = null) => {
       await pushToDebugQueue(userId, code, code, map);
     } else if (type === 'PREVIOUS_COMMIT_MATCH') {
       const previousCommitCode = await git.getFile(await getUsername(userId), 'code.cpp', commitHash);
-      await pushToDebugQueue(userId, code, previousCommitCode, map);
+      await pushToDebugQueue(userId, code, JSON.stringify(previousCommitCode), map);
     } else if (type === 'AI_MATCH') {
       // TODO: Need to implement debug runs on ai matches
     } else {
@@ -143,8 +143,8 @@ const sendDebugJob = async (userId, compileBoxId, debugJobId, code1, code2, map)
       uri: `${targetCompileBoxUrl}/debug`,
       userId,
       body: {
-        code1,
-        code2,
+        code1: JSON.parse(code1),
+        code2: JSON.parse(code2),
         map,
         secretString,
       },
