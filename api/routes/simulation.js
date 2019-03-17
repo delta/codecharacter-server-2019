@@ -13,6 +13,16 @@ const Ai = require('../models').ai;
 
 const router = express.Router();
 
+const checkGameOver = () => {
+  const date = new Date();
+  const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+  const localDate = new Date(utc + (3600000 * 5.5));
+  if (localDate.getDate() > 16) {
+    return true;
+  }
+  return false;
+};
+
 router.post('/compile', [
   check('commitHash')
     .not().isEmpty().isAlphanumeric(),
@@ -23,6 +33,13 @@ router.post('/compile', [
   const { commitHash } = req.body;
 
   try {
+    if (checkGameOver(id)) {
+      socket.sendMessage(id, 'The contest has ended. Thanks for playing :)', 'Compile Error');
+      return res.status(400).json({
+        type: 'Error',
+        error: 'The contest has ended. Thanks for playing :)',
+      });
+    }
     const userCodeStatus = (await codeStatusUtils.getUserCodeStatus(id));
 
     if (userCodeStatus !== 'Idle') {
@@ -82,6 +99,14 @@ router.post('/match', [
   const { opponentId } = req.body;
 
   try {
+    if (checkGameOver(id)) {
+      socket.sendMessage(id, 'The contest has ended. Thanks for playing :)', 'Error');
+      return res.status(400).json({
+        type: 'Error',
+        error: 'The contest has ended. Thanks for playing :)',
+      });
+    }
+
     const startMatchResponse = await matchUtils.startMatch(id, opponentId);
 
     if (startMatchResponse.success) {
