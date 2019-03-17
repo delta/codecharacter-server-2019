@@ -7,6 +7,11 @@ const CompileQueue = require('../models').compilequeue;
 const ExecuteQueue = require('../models').executequeue;
 
 const sendJob = async () => {
+  const date = new Date();
+  const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+  const localDate = new Date(utc + (3600000 * 5.5));
+  console.log(localDate.toLocaleString());
+
   const idleCompileBoxId = await compileBoxUtils.getIdleCompileBox();
   if (idleCompileBoxId === -1) return;
 
