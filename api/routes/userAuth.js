@@ -16,6 +16,11 @@ const isLoggedIn = require('../middlewares/isLoggedIn');
 
 const router = express.Router();
 
+router.use((req, res, next) => {
+  req.session.socketId = req.query.socketId;
+  next();
+});
+
 router.post('/register', [
   check('username')
     .not().isEmpty().withMessage('Username cannot be empty')
@@ -236,6 +241,80 @@ router.get('/verify/:username/:tokenSource', async (req, res) => {
     return res.status(200).redirect('https://code.pragyan.org');
   }
   return res.status(400).redirect('https://code.pragyan.org');
+});
+
+router.get('/auth/google', (req, res, next) => {
+  passport.authenticate('google', { scope: 'https://www.googleapis.com/auth/plus.login' }, () => null)(req, res, next);
+});
+
+router.get('/callback/google', (req, res, next) => {
+  passport.authenticate('google', { failureRedirect: '/' }, (err, user, info) => {
+    if (err) {
+      return res.status(500).json({
+        type: 'Error',
+        error: err,
+      });
+    }
+    if (!user) {
+      return res.status(400).json({
+        type: 'Error',
+        error: info,
+      });
+    }
+    req.logIn(user, (error) => {
+      if (error) {
+        return res.status(500).json({
+          type: 'Error',
+          error: 'Internal server error',
+        });
+      }
+      res.cookie('userId', user.id);
+      socket.sendMessage(user.id,
+        {
+          isLoggedIn: true, username: user.username, email: user.email, country: 'IN',
+        },
+        'google');
+      return res.end();
+    });
+    return null;
+  })(req, res, next);
+});
+
+router.get('/auth/facebook', (req, res, next) => {
+  passport.authenticate('facebook', { scope: ['id', 'email', 'public_profile', 'user_location'] }, () => null)(req, res, next);
+});
+
+router.get('/callback/facebook', (req, res, next) => {
+  passport.authenticate('facebook', { failureRedirect: '/' }, (err, user, info) => {
+    if (err) {
+      return res.status(500).json({
+        type: 'Error',
+        error: 'Internal server error',
+      });
+    }
+    if (!user) {
+      return res.status(400).json({
+        type: 'Error',
+        error: info,
+      });
+    }
+    req.logIn(user, (error) => {
+      if (error) {
+        return res.status(500).json({
+          type: 'Error',
+          error: 'Internal server error',
+        });
+      }
+      res.cookie('userId', user.id);
+      socket.sendMessage(user.id,
+        {
+          isLoggedIn: true, username: user.username, email: user.email, country: user.country,
+        },
+        'facebook');
+      return res.end();
+    });
+    return null;
+  })(req, res, next);
 });
 
 module.exports = router;

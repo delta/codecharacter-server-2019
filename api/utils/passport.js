@@ -2,12 +2,46 @@ const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcrypt');
 const Sequelize = require('sequelize');
 const rp = require('request-promise');
+const FacebookStrategy = require('passport-facebook').Strategy;
+const GoogleStrategy = require('passport-google-oauth2').Strategy;
 const codeStatus = require('../models').codestatus;
 const git = require('../utils/gitHandlers');
 const User = require('../models').user;
 const config = require('../config/config.js');
 
+
 const { Op } = Sequelize;
+
+const registerSocial = (user, callback) => {
+  User.findOne(
+    { email: user.email },
+  )
+    .then((existingUser) => {
+      if (existingUser) {
+        return callback(null, existingUser, 'Success');
+      }
+      const passwordHash = bcrypt.hash(user.id, 10);
+      return User.create({
+        username: user.email,
+        fullname: user.name,
+        email: user.email,
+        password: passwordHash,
+        country: 'IN',
+      })
+        .then((createdUser) => {
+          git.createUserDir(createdUser.username)
+            .then(() => {
+              codeStatus.create({
+                userId: createdUser.id,
+                latestSrcPath: `${git.getUserDir(createdUser.username)}/code.cpp`,
+              });
+            });
+          return callback(null, createdUser, 'Success');
+        })
+        .catch(err => callback(err));
+    })
+    .catch(err => callback(err));
+};
 
 module.exports = (passport) => {
   passport.use(new LocalStrategy(
@@ -80,4 +114,45 @@ module.exports = (passport) => {
       done(error, null);
     });
   });
+  passport.use(new FacebookStrategy(
+    {
+      clientID: config.facebook.client_id,
+      clientSecret: config.facebook.client_secret,
+      callbackURL: config.facebook.callback_url,
+      profileFields: ['id', 'displayName', 'email'],
+      passReqToCallback: true,
+    },
+    async (req, accessToken, refreshToken, profile, done) => {
+      const data = await JSON.stringify(profile);
+      registerSocial(
+        {
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          country: data.location.country || 'IN',
+        },
+        done,
+      );
+    },
+  ));
+  passport.use(new GoogleStrategy(
+    {
+      clientID: config.google.client_id,
+      clientSecret: config.google.client_secret,
+      callbackURL: config.google.callback_url,
+      passReqToCallback: true,
+    },
+    async (req, accessToken, refreshToken, profile, done) => {
+      const data = await JSON.stringify(profile);
+      registerSocial(
+        {
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          country: data.country || 'IN',
+        },
+        done,
+      );
+    },
+  ));
 };
